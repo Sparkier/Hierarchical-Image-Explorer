@@ -5,7 +5,6 @@
 1. Install the dependencies:
 
 ```bash
-cd svelte-app
 yarn
 ```
 
@@ -25,7 +24,7 @@ If you're using [Visual Studio Code](https://code.visualstudio.com/) we recommen
 
 To have nice commit messages throughout, we use [commitizen](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly). To commit, use `git cz`.
 
-We require reviewed pull requests before merging to master. This means:
+We require reviewed pull requests before merging to `main`. This means:
 
 1. You cannot directly push to the `main` branch.
 2. You should create a new branch for a change you want to make.
