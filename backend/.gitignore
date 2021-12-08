@@ -1,4 +1,5 @@
 node_modules/
-data/mnist/mnist_jpg/MNIST-JPG-testing
+data/mnist/mnist_jpg/MNIST-JPG-testing/
+data/mnist/mnistTest.zip
 
 .DS_Store
