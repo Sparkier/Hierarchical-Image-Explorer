@@ -1,0 +1,26 @@
+{
+  "name": "hierarchical-image-explorer-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd hierarchical-image-explorer && rollup -c",
+    "dev": "cd hierarchical-image-explorer && rollup -c -w",
+    "start": "cd hierarchical-image-explorer && sirv public --no-clear",
+    "format": "cd hierarchical-image-explorer && prettier --write ./src/**/*.{svelte,ts}",
+    "lint": "cd hierarchical-image-explorer && eslint './src/**/*.{js,ts,svelte}'",
+    "lint:fix": "cd hierarchical-image-explorer && eslint --fix './src/**/*.{js,ts,svelte}'",
+    "check": "cd hierarchical-image-explorer && svelte-check --tsconfig ./tsconfig.json"
+  },
+  "devDependencies": {
+    "commitizen": "^4.2.4",
+    "cz-conventional-changelog": "3.3.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "workspaces": [
+    "hierarchical-image-explorer"
+  ]
+}
