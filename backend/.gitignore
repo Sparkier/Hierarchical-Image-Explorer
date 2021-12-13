@@ -1,0 +1,5 @@
+node_modules/
+data/mnist/mnist_jpg/MNIST-JPG-testing/
+data/mnist/mnist_test_swg.csv
+
+.DS_Store
