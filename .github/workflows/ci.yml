@@ -32,3 +32,9 @@ jobs:
 
       - name: Lint
         run: yarn lint
+
+      - name: Python
+        run: pip install -r requirements.txt
+      
+      - name: pylint
+        run: pylint backend
