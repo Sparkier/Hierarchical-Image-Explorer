@@ -1,6 +1,6 @@
 {
   "svelte.enable-ts-plugin": true,
   "[svelte]": {
-    "editor.defaultFormatter": "svelte.svelte-vscode"
+    "editor.defaultFormatter": "ms-vsliveshare.vsliveshare"
   }
 }
