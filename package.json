@@ -35,5 +35,6 @@
   },
   "workspaces": [
     "hierarchical-image-explorer"
-  ]
+  ],
+  "include": ["hierarchical-image-explorer/src/**/*"]
 }
