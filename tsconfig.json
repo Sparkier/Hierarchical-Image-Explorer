@@ -2,9 +2,9 @@
   "extends": "@tsconfig/svelte/tsconfig.json",
   "compilerOptions": {
     "strict": true,
-    "types": ["svelte"],
+    "types": ["svelte", "node"],
     "noImplicitAny": true
   },
-  "files": ["./src/main.ts"],
-  "include": ["src/**/*"]
+  "include": ["hierarchical-image-explorer/src/**/*"],
+  "exclude": ["node_modules/*"]
 }

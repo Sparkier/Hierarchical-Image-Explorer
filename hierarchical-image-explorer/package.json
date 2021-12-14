@@ -9,7 +9,7 @@
     "format": "prettier --write ./src/**/*.{svelte,ts}",
     "lint": "eslint './src/**/*.{js,ts,svelte}'",
     "lint:fix": "eslint --fix './src/**/*.{js,ts,svelte}'",
-    "check": "svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-check --ignore dist"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
