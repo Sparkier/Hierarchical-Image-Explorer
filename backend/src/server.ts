@@ -4,7 +4,7 @@ const cors = require("cors")
 const fs = require("fs")
 const csv = require("fast-csv")
 
-const imagePath = "/data/mnist/"
+const imagePath = "../data/mnist/"
 
 const port = 25679
 console.log("server starting")
@@ -17,9 +17,15 @@ app.use(express.urlencoded({ extended: true }));
 
 console.log("server is alive!")
 
+type mnistDatum = {
+    image_id:string,
+    path:string,
+    label:number
+}
+
 // load data
-var dataFrame = []
-fs.createReadStream("data/mnist/mnist_test_swg.csv")
+var dataFrame:[mnistDatum?] = []
+fs.createReadStream("../data/mnist/mnist_test_swg.csv")
     .pipe(csv.parse({headers: true}))
     .on('error', e => console.log(e))
     .on('data', row => dataFrame.push(row))
@@ -27,17 +33,22 @@ fs.createReadStream("data/mnist/mnist_test_swg.csv")
 
 // functions
 function pathFromId(id){
-    return dataFrame.filter(elem => elem.image_id == id)[0].file_path
+    return getElemntByID(id).path
 }
 
-function getElemntByID(id){
-    return dataFrame.filter(elem => elem.image_id == id)[0]
+function getElemntByID(id):mnistDatum{
+    if (dataFrame.length == 0) throw new Error("Dataframe empty")
+    const resultSet = dataFrame.filter(elem => elem!.image_id == id)
+    if(resultSet.length == 0) throw new Error("Id not in dataframe")
+    return resultSet[0]!
+    
+
 }
 
 function getAllIds(){
-    allIDs = []
+    let allIDs:[string?] = []
     dataFrame.forEach(datum => {
-        allIDs.push(datum.image_id)
+        allIDs.push(datum!.image_id)
     });
     return allIDs
 }
@@ -49,8 +60,8 @@ app.get("/", (req,res) => {
 })
 
 app.get("/data/images/:id", (req,res) => {
-    path = pathFromId(req.params.id)
-    absolutPath = __dirname + imagePath + path
+    let path = pathFromId(req.params.id)
+    let absolutPath = __dirname + imagePath + path
     res.sendFile(absolutPath)
 })
 
@@ -69,7 +80,10 @@ app.get("/annotations/pages/:id", (req,res) => {
 })
 
 app.get("/data/heads", (req,res) => {
-    res.send(Object.keys(dataFrame[0]))
+    if(dataFrame.length > 0){
+        res.send(Object.keys(!dataFrame[0]))
+    }
+    else throw new Error("Empty dataframe")
 })
 
 app.get("/test/:number", (req,res) => {

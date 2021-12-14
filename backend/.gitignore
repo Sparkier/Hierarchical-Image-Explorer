@@ -1,5 +1,8 @@
 node_modules/
-data/*
+data/
 !data/.gitkeep
+out/
+tsconfig.tsbuildinfo
+
 
 .DS_Store

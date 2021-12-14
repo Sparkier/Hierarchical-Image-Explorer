@@ -4,11 +4,12 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "fast-csv": "^4.3.6",
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "ts-node": "^10.4.0"
   },
   "main": "server.js",
   "scripts": {
-    "start": "nodemon server.js",
+    "start": "nodemon src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
