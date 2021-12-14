@@ -72,6 +72,13 @@ app.get("/data/allIds", (req, res) => {
     res.send(getAllIds())
 })
 
+app.get("/data/label/:id", (req, res) => {
+    let filteredResult = dataFrame.filter(d => d.label == req.params.id)
+    let filteredIDs:string[] = []
+    filteredResult.forEach(d => filteredIDs.push(d.image_id))
+    res.send(filteredIDs)
+})
+
 app.get("/annotations/pages/:id", (req, res) => {
     const batchSize = 20; // rows per page
     res.send(dataFrame.slice(req.params.id * batchSize, req.params.id * batchSize + batchSize))
