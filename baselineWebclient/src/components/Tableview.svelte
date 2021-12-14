@@ -70,7 +70,7 @@ tr:hover {
         </tr>
           {#each data as item}
           <tr>
-            <td><img src={serverAdress + "data/images/" + item.image_id}></td>
+            <td><img src={serverAdress + "data/images/" + item.image_id} alt={item.label}></td>
             <td>{item.image_id}</td>
             <td>{item.label}</td>
           </tr>
