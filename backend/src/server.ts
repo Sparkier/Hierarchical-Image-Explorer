@@ -3,10 +3,12 @@ const bodyParser = require("body-parser")
 const cors = require("cors")
 const fs = require("fs")
 const csv = require("fast-csv")
+const path = require('path')
 
-const imagePath = "../data/mnist/"
+const imagePath = "/data/mnist/"
 
 const port = 25679
+
 console.log("server starting")
 
 // app initiation
@@ -19,13 +21,13 @@ console.log("server is alive!")
 
 type mnistDatum = {
     image_id: string,
-    path: string,
+    file_path: string,
     label: number
 }
 
 // load data
 let dataFrame: mnistDatum[] = []
-fs.createReadStream("../data/mnist/mnist_test_swg.csv")
+fs.createReadStream("data/mnist/mnist_test_swg.csv")
     .pipe(csv.parse({ headers: true }))
     .on('error', e => console.log(e))
     .on('data', row => dataFrame.push(row))
@@ -33,7 +35,7 @@ fs.createReadStream("../data/mnist/mnist_test_swg.csv")
 
 // functions
 function getPathFromId(id): string {
-    return getDatumByID(id).path
+    return getDatumByID(id).file_path
 }
 
 function getDatumByID(id): mnistDatum {
@@ -57,8 +59,8 @@ app.get("/", (req, res) => {
 })
 
 app.get("/data/images/:id", (req, res) => {
-    let path = getPathFromId(req.params.id)
-    let absolutPath = __dirname + imagePath + path
+    let file_path = getPathFromId(req.params.id)
+    let absolutPath = path.join(__dirname, "../") + file_path
     res.sendFile(absolutPath)
 })
 
