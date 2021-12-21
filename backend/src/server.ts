@@ -31,7 +31,10 @@ fs.createReadStream("data/mnist/mnist_test_swg.csv")
     .pipe(csv.parse({ headers: true }))
     .on('error', e => console.log(e))
     .on('data', row => dataFrame.push(row))
-    .on('end', rowCount => console.log("CSV read with " + rowCount + " rows"))
+    .on('end', rowCount => { 
+        if (dataFrame.length == 0) throw new Error("Dataset empty")
+        console.log("CSV read with " + rowCount + " rows")
+    })
 
 // functions
 function getPathFromId(id): string {
@@ -39,7 +42,6 @@ function getPathFromId(id): string {
 }
 
 function getDatumByID(id): mnistDatum {
-    if (dataFrame.length == 0) throw new Error("Dataframe empty")
     const resultSet = dataFrame.filter(elem => elem.image_id == id)
     if (resultSet.length == 0) throw new Error("Id not in dataframe")
     return resultSet[0]
@@ -73,10 +75,8 @@ app.get("/data/allIds", (req, res) => {
 })
 
 app.get("/data/label/:id", (req, res) => {
-    let filteredResult = dataFrame.filter(d => d.label == req.params.id)
-    let filteredIDs:string[] = []
-    filteredResult.forEach(d => filteredIDs.push(d.image_id))
-    res.send(filteredIDs)
+    let filteredResult = dataFrame.filter(d => d.label === req.params.id)
+    res.send(filteredResult.map(row => row.image_id))
 })
 
 app.get("/annotations/pages/:id", (req, res) => {
@@ -85,10 +85,7 @@ app.get("/annotations/pages/:id", (req, res) => {
 })
 
 app.get("/data/heads", (req, res) => {
-    if (dataFrame.length > 0) {
-        res.send(Object.keys(dataFrame[0]))
-    }
-    else throw new Error("Empty dataframe")
+    res.send(Object.keys(dataFrame[0]))
 })
 
 app.get("/test/:number", (req, res) => {
