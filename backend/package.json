@@ -10,6 +10,10 @@
   "main": "server.js",
   "scripts": {
     "start": "nodemon src/server.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write ./src/**/*.{svelte,ts}",
+    "lint": "eslint ./src/**/*.{ts,svelte}",
+    "lint:fix": "eslint --fix ./src/**/*.{js,ts,svelte}",
+    "check": "svelte-check --ignore dist"
   }
 }
