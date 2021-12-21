@@ -2,6 +2,7 @@
   "extends": "@tsconfig/svelte/tsconfig.json",
   "compilerOptions": {
     "strict": true,
+    "esModuleInterop": true,
     "types": ["svelte", "node"],
     "noImplicitAny": true
   },
