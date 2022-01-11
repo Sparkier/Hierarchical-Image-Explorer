@@ -20,19 +20,24 @@ app.use(express.urlencoded({ extended: true }));
 console.log('server is alive!');
 
 type mnistDatum = {
-  image_id: string;
   file_path: string;
   label: number;
 };
 
+type mnistDatumWithID ={
+  image_id: string,
+  file_path: string,
+  label:number
+}
+
 // load data
-const dataFrame: mnistDatum[] = [];
+const dataFrame: Map<string,mnistDatum> = new Map();
 fs.createReadStream(`${dataPath}mnist_test_swg.csv`)
   .pipe(csv.parse({ headers: true }))
   .on('error', (e) => console.log(e))
-  .on('data', (row) => dataFrame.push(row))
+  .on('data', (row) => dataFrame.set(row.image_id,{file_path:row.file_path,label:row.label}))
   .on('end', (rowCount) => {
-    if (dataFrame.length == 0) throw new Error('Dataset empty');
+    if (dataFrame.size == 0) throw new Error('Dataset empty');
     console.log('CSV read with ' + rowCount + ' rows');
   });
 
@@ -41,18 +46,18 @@ function getPathFromId(id): string {
   return getDatumByID(id).file_path;
 }
 
-function getDatumByID(id): mnistDatum {
-  const resultSet = dataFrame.filter((elem) => elem.image_id == id);
-  if (resultSet.length == 0) throw new Error('Id not in dataframe');
-  return resultSet[0];
+function combineDatumWithID(datum:mnistDatum, id:string):mnistDatumWithID{
+  return {image_id:id,file_path:datum.file_path,label:datum.label}
+}
+
+function getDatumByID(id): mnistDatumWithID {
+  const result = dataFrame.get(id)
+  if (result == undefined) throw new Error("ID not found")
+  else return combineDatumWithID(result,id)
 }
 
 function getAllIds(): string[] {
-  const allIDs: string[] = [];
-  dataFrame.forEach((datum) => {
-    allIDs.push(datum.image_id);
-  });
-  return allIDs;
+  return [...dataFrame.keys()]
 }
 
 // endpoints
@@ -75,26 +80,21 @@ app.get('/data/allIds', (req, res) => {
 });
 
 app.get('/data/label/:id', (req, res) => {
-  const filteredResult = dataFrame.filter((d) => d.label === req.params.id);
-  res.send(filteredResult.map((row) => row.image_id));
+  const filteredResult = [...dataFrame.entries()].filter((d) => d[1].label === req.params.id);
+  res.send(filteredResult.map((row) => row[0]));
 });
 
 app.get('/annotations/pages/:id', (req, res) => {
   const batchSize = 20; // rows per page
-  res.send(
-    dataFrame.slice(
-      req.params.id * batchSize,
-      req.params.id * batchSize + batchSize
-    )
-  );
+  let result = [...dataFrame].slice(
+    req.params.id * batchSize,
+    req.params.id * batchSize + batchSize
+  )
+  res.send(result.map(e => {return combineDatumWithID(e[1],e[0])}));
 });
 
 app.get('/data/heads', (req, res) => {
-  res.send(Object.keys(dataFrame[0]));
-});
-
-app.get('/test/:number', (req, res) => {
-  res.send(req.params.number);
+  res.send(Object.keys(getDatumByID(getAllIds()[0])));
 });
 
 // start actual server
