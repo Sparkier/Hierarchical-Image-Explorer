@@ -1,11 +1,11 @@
-import express = require('express');
-import bodyParser = require('body-parser');
-import cors = require('cors');
-import fs = require('fs');
-import csv = require('fast-csv');
-import path = require('path');
+import express from "express";
+import bodyParser from "body-parser";
+import cors from "cors";
+import fs from "fs";
+import * as csv from "fast-csv";
+import path from "path";
 
-const dataPath = '/data/mnist/';
+const dataPath = './data/mnist/';
 
 const port = 25679;
 
