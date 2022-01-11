@@ -6,8 +6,8 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "format": "prettier --write ./src/**/*.{svelte,ts}",
-    "lint": "eslint './src/**/*.{js,ts,svelte}'",
-    "lint:fix": "eslint --fix './src/**/*.{js,ts,svelte}'",
+    "lint": "eslint ./src/**/*.{js,ts,svelte}",
+    "lint:fix": "eslint --fix ./src/**/*.{js,ts,svelte}",
     "start": "sirv public --no-clear",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
