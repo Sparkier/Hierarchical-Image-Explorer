@@ -5,6 +5,6 @@
     "types": ["svelte", "node"],
     "noImplicitAny": true
   },
-  "include": ["hierarchical-image-explorer/src/**/*"],
+  "include": ["hierarchical-image-explorer/src/**/*", "baseline-webclient/src/**/*"],
   "exclude": ["node_modules/*"]
 }
