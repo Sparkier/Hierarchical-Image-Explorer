@@ -8,7 +8,7 @@
     "start": "cd hierarchical-image-explorer && sirv public --no-clear",
     "format": "cd hierarchical-image-explorer && prettier --write ./src/**/*.{svelte,ts}",
     "lint": "eslint . --ext .svelte,.ts && yarn workspaces run check",
-    "lint:fix": "cd hierarchical-image-explorer && eslint --fix './src/**/*.{js,ts,svelte}'",
+    "lint:fix": "cd hierarchical-image-explorer && eslint --fix ./src/**/*.{js,ts,svelte} && cd ../baseline-webclient && eslint --fix ./src/**/*.{js,ts,svelte}",
     "check": "cd hierarchical-image-explorer && svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {
