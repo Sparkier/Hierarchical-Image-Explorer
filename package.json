@@ -35,7 +35,8 @@
   },
   "workspaces": [
     "hierarchical-image-explorer",
-    "baseline-webclient"
+    "baseline-webclient",
+    "backend"
   ],
-  "include": ["hierarchical-image-explorer/src/**/*", "baseline-webclient/src/**/*"]
+  "include": ["hierarchical-image-explorer/src/**/*", "baseline-webclient/src/**/*", "backend/src/**/*"]
 }

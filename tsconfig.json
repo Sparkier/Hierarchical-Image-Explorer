@@ -2,9 +2,10 @@
   "extends": "@tsconfig/svelte/tsconfig.json",
   "compilerOptions": {
     "strict": true,
+    "esModuleInterop": true,
     "types": ["svelte", "node"],
     "noImplicitAny": true
   },
-  "include": ["hierarchical-image-explorer/src/**/*", "baseline-webclient/src/**/*"],
+  "include": ["hierarchical-image-explorer/src/**/*", "baseline-webclient/src/**/*", "backend/src/**/*"],
   "exclude": ["node_modules/*"]
 }

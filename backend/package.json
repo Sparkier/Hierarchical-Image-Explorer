@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "fast-csv": "^4.3.6",
+    "nodemon": "^2.0.15",
+    "ts-node": "^10.4.0"
+  },
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon src/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write ./src/**/*.{svelte,ts}",
+    "lint": "eslint ./src/**/*.{ts,svelte}",
+    "lint:fix": "eslint --fix ./src/**/*.{js,ts,svelte}",
+    "check": "svelte-check --ignore dist"
+  }
+}
