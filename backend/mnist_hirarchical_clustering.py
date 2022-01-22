@@ -1,15 +1,17 @@
+"""Does basic hierarchical clustering on the mnist test data"""
+
+import json
+import itertools
 import csv
 from PIL import Image
 from numpy import asarray
-import numpy as np
 from sklearn.cluster import AgglomerativeClustering
-import json
-import itertools
+
 
 # read in annotations
 annotations = []
 
-with open('data/mnist/mnist_test_swg.csv') as csvfile:
+with open('data/mnist/mnist_test_swg.csv', encoding='utf-8') as csvfile:
     csv_reader = csv.reader(csvfile)
     for row in csv_reader:
         annotations.append(row)
@@ -36,7 +38,11 @@ model.fit(images)
 
 print("Saving results")
 ii = itertools.count(len(images))
-treeview = [{'node_id': int(next(ii)), 'left':int(x[0]), 'right':int(x[1])} for x in model.children_]
+treeview = [{
+    'node_id': int(next(ii)),
+    'left':int(x[0]), 
+    'right':int(x[1])
+    } for x in model.children_]
 
 labels = []
 clusters = []
@@ -47,7 +53,7 @@ for i in range(0,len(annotations)):
 
 
 # save result
-with open('data/mnist/ClusteringTree.json','w') as json_file:
+with open('data/mnist/ClusteringTree.json','w', encoding='utf-8') as json_file:
     json.dump({"tree":treeview,"clusters":labels},json_file, indent=4)
 
 print("Done")
