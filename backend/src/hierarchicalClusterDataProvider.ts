@@ -9,7 +9,6 @@ class HierarchicalClusterDataProvider{
     private indexOffset:number
 
 
-
     /**
      * Loads the data from the given filePath and converts it to a tree structure
      * @param filePath path to json file containing the tree and id to node id tables
@@ -66,32 +65,25 @@ class HierarchicalClusterDataProvider{
     }
 
     /**
-     * Returns all data IDs of child leaf nodes
-     * @param nodeID 
-     * @returns 
+     * Returns all dataIDs of all leaf-child nodes of the given nodeID
+     * @param nodeID root node to start search from
+     * @returns List of dataIDs
      */
     public getAllIDs(nodeID:number):string[]{
-        return this.getAllIdsRec(nodeID,[])
-    }
+        var toReturn:string[] = []
+        const root:HcNode = this.getNode(nodeID) 
+        var nodePool:HcNode[] = [root] 
 
-    /**
-     * Recursive part of getAllIDs
-     * @param nodeID 
-     * @param dataIDS 
-     * @returns 
-     */
-    private getAllIdsRec(nodeID:number, dataIDS:string[]):string[]{        
-        const node:HcNode = this.getNode(nodeID)
-        if(node.isLeaf()){
-            dataIDS.push(this.nodeIDtoDataID(node.nodeID))
-            return dataIDS
+        while (nodePool.length > 0){
+            const node = nodePool.pop()
+            if(node!.isLeaf()) toReturn.push(this.nodeIDtoDataID(node!.nodeID))
+            else nodePool = nodePool.concat(node?.getChildren()!)
         }
-        node.getChildren().forEach(child => this.getAllIdsRec(child.nodeID,dataIDS))
-        return dataIDS;
-
+        return toReturn;
     }
-
 }
+
+
 
 class HcNode{
     private children:HcNode[] = []
@@ -99,7 +91,7 @@ class HcNode{
     constructor(
         public nodeID:number, 
         ){}
-
+    
     public isLeaf():boolean{
         return this.children.length == 0
     }
