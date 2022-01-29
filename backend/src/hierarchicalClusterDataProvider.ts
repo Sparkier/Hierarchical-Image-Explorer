@@ -58,8 +58,6 @@ class HierarchicalClusterDataProvider{
      * @returns 
      */
     public nodeIDtoDataID(nodeID:number):string{
-        console.log(nodeID)
-        console.log(typeof(nodeID))
         if(this.leafNodes.has(nodeID)) return this.leafNodes.get(nodeID)!
         else throw new Error(`NodeID not a leaf node: ${nodeID}`)
     }

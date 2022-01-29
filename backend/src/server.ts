@@ -129,3 +129,7 @@ app.get('/hc/nodes/:id', (req,res) => {
 app.get('/hc/allchildIds/:id', (req,res) => {
   res.send(hcDataProvider.getAllIDs(req.params.id))
 })
+
+app.get('/hc/root', (req,res) => {
+  res.send(hcDataProvider.root)
+})
