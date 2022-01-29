@@ -26,6 +26,7 @@ class HierarchicalClusterDataProvider{
             this.nodes.push(new HcNode(i))
         }
 
+        console.log("Implicit Nodes created")
         // create nodes
         data.tree.forEach(node => {
             this.nodes.push(new HcNode(node.node_id))
@@ -34,10 +35,12 @@ class HierarchicalClusterDataProvider{
 
         this.root = this.nodes[this.nodes.length-1]!
         // create connections
+        console.log("Starting Node Population")
         data.tree.forEach(dataNode=> {
             const node = this.getNode(dataNode.node_id)
-            node.addChild(this.getNode(dataNode.left))
-            node.addChild(this.getNode(dataNode.right))
+            for (const childNode of dataNode.children){
+                node.addChild(this.getNode(childNode))
+            }
         })
         console.log("Hierarchical data setup complete!")
     }
