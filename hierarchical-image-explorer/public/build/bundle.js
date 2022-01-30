@@ -1,9 +1,12 @@
 
-(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
+(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35730/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
 var app = (function () {
     'use strict';
 
     function noop() { }
+    function is_promise(value) {
+        return value && typeof value === 'object' && typeof value.then === 'function';
+    }
     function add_location(element, file, line, column, char) {
         element.__svelte_meta = {
             loc: { file, line, column, char }
@@ -48,6 +51,13 @@ var app = (function () {
     function space() {
         return text(' ');
     }
+    function empty() {
+        return text('');
+    }
+    function listen(node, event, handler, options) {
+        node.addEventListener(event, handler, options);
+        return () => node.removeEventListener(event, handler, options);
+    }
     function attr(node, attribute, value) {
         if (value == null)
             node.removeAttribute(attribute);
@@ -60,6 +70,9 @@ var app = (function () {
     function children(element) {
         return Array.from(element.childNodes);
     }
+    function set_style(node, key, value, important) {
+        node.style.setProperty(key, value, important ? 'important' : '');
+    }
     function custom_event(type, detail, bubbles = false) {
         const e = document.createEvent('CustomEvent');
         e.initCustomEvent(type, bubbles, false, detail);
@@ -69,6 +82,25 @@ var app = (function () {
     let current_component;
     function set_current_component(component) {
         current_component = component;
+    }
+    function get_current_component() {
+        if (!current_component)
+            throw new Error('Function called outside component initialization');
+        return current_component;
+    }
+    function createEventDispatcher() {
+        const component = get_current_component();
+        return (type, detail) => {
+            const callbacks = component.$$.callbacks[type];
+            if (callbacks) {
+                // TODO are there situations where events could be dispatched
+                // in a server (non-DOM) environment?
+                const event = custom_event(type, detail);
+                callbacks.slice().forEach(fn => {
+                    fn.call(component, event);
+                });
+            }
+        };
     }
 
     const dirty_components = [];
@@ -154,6 +186,19 @@ var app = (function () {
     }
     const outroing = new Set();
     let outros;
+    function group_outros() {
+        outros = {
+            r: 0,
+            c: [],
+            p: outros // parent group
+        };
+    }
+    function check_outros() {
+        if (!outros.r) {
+            run_all(outros.c);
+        }
+        outros = outros.p;
+    }
     function transition_in(block, local) {
         if (block && block.i) {
             outroing.delete(block);
@@ -177,11 +222,177 @@ var app = (function () {
         }
     }
 
-    const globals = (typeof window !== 'undefined'
-        ? window
-        : typeof globalThis !== 'undefined'
-            ? globalThis
-            : global);
+    function handle_promise(promise, info) {
+        const token = info.token = {};
+        function update(type, index, key, value) {
+            if (info.token !== token)
+                return;
+            info.resolved = value;
+            let child_ctx = info.ctx;
+            if (key !== undefined) {
+                child_ctx = child_ctx.slice();
+                child_ctx[key] = value;
+            }
+            const block = type && (info.current = type)(child_ctx);
+            let needs_flush = false;
+            if (info.block) {
+                if (info.blocks) {
+                    info.blocks.forEach((block, i) => {
+                        if (i !== index && block) {
+                            group_outros();
+                            transition_out(block, 1, 1, () => {
+                                if (info.blocks[i] === block) {
+                                    info.blocks[i] = null;
+                                }
+                            });
+                            check_outros();
+                        }
+                    });
+                }
+                else {
+                    info.block.d(1);
+                }
+                block.c();
+                transition_in(block, 1);
+                block.m(info.mount(), info.anchor);
+                needs_flush = true;
+            }
+            info.block = block;
+            if (info.blocks)
+                info.blocks[index] = block;
+            if (needs_flush) {
+                flush();
+            }
+        }
+        if (is_promise(promise)) {
+            const current_component = get_current_component();
+            promise.then(value => {
+                set_current_component(current_component);
+                update(info.then, 1, info.value, value);
+                set_current_component(null);
+            }, error => {
+                set_current_component(current_component);
+                update(info.catch, 2, info.error, error);
+                set_current_component(null);
+                if (!info.hasCatch) {
+                    throw error;
+                }
+            });
+            // if we previously had a then/catch block, destroy it
+            if (info.current !== info.pending) {
+                update(info.pending, 0);
+                return true;
+            }
+        }
+        else {
+            if (info.current !== info.then) {
+                update(info.then, 1, info.value, promise);
+                return true;
+            }
+            info.resolved = promise;
+        }
+    }
+    function update_await_block_branch(info, ctx, dirty) {
+        const child_ctx = ctx.slice();
+        const { resolved } = info;
+        if (info.current === info.then) {
+            child_ctx[info.value] = resolved;
+        }
+        if (info.current === info.catch) {
+            child_ctx[info.error] = resolved;
+        }
+        info.block.p(child_ctx, dirty);
+    }
+    function outro_and_destroy_block(block, lookup) {
+        transition_out(block, 1, 1, () => {
+            lookup.delete(block.key);
+        });
+    }
+    function update_keyed_each(old_blocks, dirty, get_key, dynamic, ctx, list, lookup, node, destroy, create_each_block, next, get_context) {
+        let o = old_blocks.length;
+        let n = list.length;
+        let i = o;
+        const old_indexes = {};
+        while (i--)
+            old_indexes[old_blocks[i].key] = i;
+        const new_blocks = [];
+        const new_lookup = new Map();
+        const deltas = new Map();
+        i = n;
+        while (i--) {
+            const child_ctx = get_context(ctx, list, i);
+            const key = get_key(child_ctx);
+            let block = lookup.get(key);
+            if (!block) {
+                block = create_each_block(key, child_ctx);
+                block.c();
+            }
+            else if (dynamic) {
+                block.p(child_ctx, dirty);
+            }
+            new_lookup.set(key, new_blocks[i] = block);
+            if (key in old_indexes)
+                deltas.set(key, Math.abs(i - old_indexes[key]));
+        }
+        const will_move = new Set();
+        const did_move = new Set();
+        function insert(block) {
+            transition_in(block, 1);
+            block.m(node, next);
+            lookup.set(block.key, block);
+            next = block.first;
+            n--;
+        }
+        while (o && n) {
+            const new_block = new_blocks[n - 1];
+            const old_block = old_blocks[o - 1];
+            const new_key = new_block.key;
+            const old_key = old_block.key;
+            if (new_block === old_block) {
+                // do nothing
+                next = new_block.first;
+                o--;
+                n--;
+            }
+            else if (!new_lookup.has(old_key)) {
+                // remove old block
+                destroy(old_block, lookup);
+                o--;
+            }
+            else if (!lookup.has(new_key) || will_move.has(new_key)) {
+                insert(new_block);
+            }
+            else if (did_move.has(old_key)) {
+                o--;
+            }
+            else if (deltas.get(new_key) > deltas.get(old_key)) {
+                did_move.add(new_key);
+                insert(new_block);
+            }
+            else {
+                will_move.add(old_key);
+                o--;
+            }
+        }
+        while (o--) {
+            const old_block = old_blocks[o];
+            if (!new_lookup.has(old_block.key))
+                destroy(old_block, lookup);
+        }
+        while (n)
+            insert(new_blocks[n - 1]);
+        return new_blocks;
+    }
+    function validate_each_keys(ctx, list, get_context, get_key) {
+        const keys = new Set();
+        for (let i = 0; i < list.length; i++) {
+            const key = get_key(get_context(ctx, list, i));
+            if (keys.has(key)) {
+                throw new Error('Cannot have duplicate keys in a keyed each');
+            }
+            keys.add(key);
+        }
+    }
     function create_component(block) {
         block && block.c();
     }
@@ -326,6 +537,19 @@ var app = (function () {
         dispatch_dev('SvelteDOMRemove', { node });
         detach(node);
     }
+    function listen_dev(node, event, handler, options, has_prevent_default, has_stop_propagation) {
+        const modifiers = options === true ? ['capture'] : options ? Array.from(Object.keys(options)) : [];
+        if (has_prevent_default)
+            modifiers.push('preventDefault');
+        if (has_stop_propagation)
+            modifiers.push('stopPropagation');
+        dispatch_dev('SvelteDOMAddEventListener', { node, event, handler, modifiers });
+        const dispose = listen(node, event, handler, options);
+        return () => {
+            dispatch_dev('SvelteDOMRemoveEventListener', { node, event, handler, modifiers });
+            dispose();
+        };
+    }
     function attr_dev(node, attribute, value) {
         attr(node, attribute, value);
         if (value == null)
@@ -339,6 +563,15 @@ var app = (function () {
             return;
         dispatch_dev('SvelteDOMSetData', { node: text, data });
         text.data = data;
+    }
+    function validate_each_argument(arg) {
+        if (typeof arg !== 'string' && !(arg && typeof arg === 'object' && 'length' in arg)) {
+            let msg = '{#each} only iterates over array-like objects.';
+            if (typeof Symbol === 'function' && arg && Symbol.iterator in arg) {
+                msg += ' You can use a spread to convert this iterable into an array.';
+            }
+            throw new Error(msg);
+        }
     }
     function validate_slots(name, slot, keys) {
         for (const slot_key of Object.keys(slot)) {
@@ -368,7 +601,6 @@ var app = (function () {
     }
 
     /* src\components\minis\Hexagon.svelte generated by Svelte v3.45.0 */
-
     const file$2 = "src\\components\\minis\\Hexagon.svelte";
 
     function create_fragment$2(ctx) {
@@ -377,6 +609,7 @@ var app = (function () {
     	let image_1;
     	let image_1_width_value;
     	let image_1_height_value;
+    	let pattern_id_value;
     	let pattern_height_value;
     	let pattern_width_value;
     	let t0;
@@ -386,6 +619,8 @@ var app = (function () {
     	let t1;
     	let text_1_transform_value;
     	let g_transform_value;
+    	let mounted;
+    	let dispose;
 
     	const block = {
     		c: function create() {
@@ -400,24 +635,25 @@ var app = (function () {
     			attr_dev(image_1, "width", image_1_width_value = /*side*/ ctx[0] * 2);
     			attr_dev(image_1, "height", image_1_height_value = /*side*/ ctx[0] * 2);
     			xlink_attr(image_1, "xlink:href", /*image*/ ctx[1]);
-    			add_location(image_1, file$2, 37, 2, 978);
-    			attr_dev(pattern, "id", "image-bg");
+    			add_location(image_1, file$2, 44, 2, 1172);
+    			attr_dev(pattern, "id", pattern_id_value = `image-bg_${/*image*/ ctx[1]}`);
     			attr_dev(pattern, "height", pattern_height_value = /*side*/ ctx[0] * 2);
     			attr_dev(pattern, "width", pattern_width_value = /*side*/ ctx[0] * 2);
     			attr_dev(pattern, "patternUnits", "userSpaceOnUse");
-    			add_location(pattern, file$2, 36, 1, 886);
-    			add_location(defs, file$2, 35, 0, 877);
+    			add_location(pattern, file$2, 43, 1, 1069);
+    			add_location(defs, file$2, 42, 0, 1060);
     			attr_dev(polygon, "class", "hex svelte-1bvyzxq");
     			attr_dev(polygon, "points", "" + (/*p5*/ ctx[11] + " " + /*p4*/ ctx[10] + " " + /*p2*/ ctx[8] + " " + /*p1*/ ctx[7] + " " + /*p3*/ ctx[9] + " " + /*p6*/ ctx[12]));
     			attr_dev(polygon, "fill", /*fill*/ ctx[6]);
-    			add_location(polygon, file$2, 42, 0, 1146);
+    			add_location(polygon, file$2, 49, 0, 1363);
     			attr_dev(text_1, "transform", text_1_transform_value = "translate(" + /*side*/ ctx[0] + "," + /*side*/ ctx[0] + ")");
     			attr_dev(text_1, "font-family", "Verdana");
     			attr_dev(text_1, "font-size", "30");
     			attr_dev(text_1, "text-anchor", "middle");
-    			add_location(text_1, file$2, 43, 0, 1223);
+    			attr_dev(text_1, "fill", "red");
+    			add_location(text_1, file$2, 50, 0, 1440);
     			attr_dev(g, "transform", g_transform_value = "scale(" + /*scale*/ ctx[2] + ") translate(" + /*x*/ ctx[3] + ", " + /*y*/ ctx[4] + ")");
-    			add_location(g, file$2, 41, 0, 1093);
+    			add_location(g, file$2, 48, 0, 1287);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -431,6 +667,11 @@ var app = (function () {
     			append_dev(g, polygon);
     			append_dev(g, text_1);
     			append_dev(text_1, t1);
+
+    			if (!mounted) {
+    				dispose = listen_dev(g, "click", /*handleClick*/ ctx[13], false, false, false);
+    				mounted = true;
+    			}
     		},
     		p: function update(ctx, [dirty]) {
     			if (dirty & /*side*/ 1 && image_1_width_value !== (image_1_width_value = /*side*/ ctx[0] * 2)) {
@@ -443,6 +684,10 @@ var app = (function () {
 
     			if (dirty & /*image*/ 2) {
     				xlink_attr(image_1, "xlink:href", /*image*/ ctx[1]);
+    			}
+
+    			if (dirty & /*image*/ 2 && pattern_id_value !== (pattern_id_value = `image-bg_${/*image*/ ctx[1]}`)) {
+    				attr_dev(pattern, "id", pattern_id_value);
     			}
 
     			if (dirty & /*side*/ 1 && pattern_height_value !== (pattern_height_value = /*side*/ ctx[0] * 2)) {
@@ -473,6 +718,8 @@ var app = (function () {
     			if (detaching) detach_dev(defs);
     			if (detaching) detach_dev(t0);
     			if (detaching) detach_dev(g);
+    			mounted = false;
+    			dispose();
     		}
     	};
 
@@ -488,14 +735,16 @@ var app = (function () {
     }
 
     function instance$2($$self, $$props, $$invalidate) {
+    	let fill;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Hexagon', slots, []);
+    	const dispatch = createEventDispatcher();
     	let { side = 100 } = $$props;
     	let { color = "green" } = $$props;
     	let { image = "" } = $$props;
     	let { scale = 1 } = $$props;
-    	let { x = "0" } = $$props;
-    	let { y = "0" } = $$props;
+    	let { x = 0 } = $$props;
+    	let { y = 0 } = $$props;
     	let { text = "" } = $$props;
 
     	//export let textSize:string = "20";
@@ -519,10 +768,13 @@ var app = (function () {
     	let p4 = P4.x + "," + P4.y;
     	let p5 = P5.x + "," + P5.y;
     	let p6 = P6.x + "," + P6.y;
-    	let fill = "url('#image-bg')";
 
     	if (image == "") {
     		fill = color;
+    	}
+
+    	function handleClick() {
+    		dispatch('message', { text: 'Hello!' });
     	}
 
     	const writable_props = ['side', 'color', 'image', 'scale', 'x', 'y', 'text'];
@@ -533,7 +785,7 @@ var app = (function () {
 
     	$$self.$$set = $$props => {
     		if ('side' in $$props) $$invalidate(0, side = $$props.side);
-    		if ('color' in $$props) $$invalidate(13, color = $$props.color);
+    		if ('color' in $$props) $$invalidate(14, color = $$props.color);
     		if ('image' in $$props) $$invalidate(1, image = $$props.image);
     		if ('scale' in $$props) $$invalidate(2, scale = $$props.scale);
     		if ('x' in $$props) $$invalidate(3, x = $$props.x);
@@ -542,6 +794,8 @@ var app = (function () {
     	};
 
     	$$self.$capture_state = () => ({
+    		createEventDispatcher,
+    		dispatch,
     		side,
     		color,
     		image,
@@ -563,12 +817,13 @@ var app = (function () {
     		p4,
     		p5,
     		p6,
+    		handleClick,
     		fill
     	});
 
     	$$self.$inject_state = $$props => {
     		if ('side' in $$props) $$invalidate(0, side = $$props.side);
-    		if ('color' in $$props) $$invalidate(13, color = $$props.color);
+    		if ('color' in $$props) $$invalidate(14, color = $$props.color);
     		if ('image' in $$props) $$invalidate(1, image = $$props.image);
     		if ('scale' in $$props) $$invalidate(2, scale = $$props.scale);
     		if ('x' in $$props) $$invalidate(3, x = $$props.x);
@@ -587,7 +842,29 @@ var app = (function () {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [side, image, scale, x, y, text, fill, p1, p2, p3, p4, p5, p6, color];
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty & /*image*/ 2) {
+    			$$invalidate(6, fill = `url(#image-bg_${image})`);
+    		}
+    	};
+
+    	return [
+    		side,
+    		image,
+    		scale,
+    		x,
+    		y,
+    		text,
+    		fill,
+    		p1,
+    		p2,
+    		p3,
+    		p4,
+    		p5,
+    		p6,
+    		handleClick,
+    		color
+    	];
     }
 
     class Hexagon extends SvelteComponentDev {
@@ -596,7 +873,7 @@ var app = (function () {
 
     		init(this, options, instance$2, create_fragment$2, safe_not_equal, {
     			side: 0,
-    			color: 13,
+    			color: 14,
     			image: 1,
     			scale: 2,
     			x: 3,
@@ -670,46 +947,224 @@ var app = (function () {
     }
 
     /* src\components\Hierarchical.svelte generated by Svelte v3.45.0 */
-
-    const { console: console_1 } = globals;
     const file$1 = "src\\components\\Hierarchical.svelte";
 
-    function create_fragment$1(ctx) {
-    	let svg;
+    function get_each_context(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[12] = list[i];
+    	return child_ctx;
+    }
+
+    // (62:2) {:catch error}
+    function create_catch_block(ctx) {
+    	let p;
+    	let t_value = /*error*/ ctx[15].message + "";
+    	let t;
+
+    	const block = {
+    		c: function create() {
+    			p = svg_element("p");
+    			t = text(t_value);
+    			add_location(p, file$1, 62, 4, 2255);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, p, anchor);
+    			append_dev(p, t);
+    		},
+    		p: noop,
+    		i: noop,
+    		o: noop,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(p);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_catch_block.name,
+    		type: "catch",
+    		source: "(62:2) {:catch error}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (45:2) {:then}
+    function create_then_block(ctx) {
     	let hexagon;
+    	let each_blocks = [];
+    	let each_1_lookup = new Map();
+    	let each_1_anchor;
     	let current;
 
     	hexagon = new Hexagon({
     			props: {
-    				x: "30",
-    				y: "30",
-    				text: /*parentNode*/ ctx[0].nodeID.toString()
+    				side: /*hexaSide*/ ctx[0],
+    				x: getSVGwidth() / 2 - /*hexaSide*/ ctx[0],
+    				y: 30,
+    				text: /*parentNode*/ ctx[1].nodeID.toString(),
+    				color: "limegreen",
+    				image: getImage(/*parentNode*/ ctx[1].nodeID)
     			},
     			$$inline: true
     		});
 
+    	hexagon.$on("message", /*message_handler*/ ctx[9]);
+    	let each_value = /*children*/ ctx[2];
+    	validate_each_argument(each_value);
+    	const get_key = ctx => /*child*/ ctx[12].nodeID;
+    	validate_each_keys(ctx, each_value, get_each_context, get_key);
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		let child_ctx = get_each_context(ctx, each_value, i);
+    		let key = get_key(child_ctx);
+    		each_1_lookup.set(key, each_blocks[i] = create_each_block(key, child_ctx));
+    	}
+
     	const block = {
     		c: function create() {
-    			svg = svg_element("svg");
     			create_component(hexagon.$$.fragment);
-    			attr_dev(svg, "id", "svg");
-    			attr_dev(svg, "width", "100%");
-    			attr_dev(svg, "height", "580px");
-    			attr_dev(svg, "class", "svelte-1gn5q01");
-    			add_location(svg, file$1, 24, 0, 706);
-    		},
-    		l: function claim(nodes) {
-    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			each_1_anchor = empty();
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, svg, anchor);
-    			mount_component(hexagon, svg, null);
+    			mount_component(hexagon, target, anchor);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(target, anchor);
+    			}
+
+    			insert_dev(target, each_1_anchor, anchor);
     			current = true;
     		},
-    		p: function update(ctx, [dirty]) {
+    		p: function update(ctx, dirty) {
     			const hexagon_changes = {};
-    			if (dirty & /*parentNode*/ 1) hexagon_changes.text = /*parentNode*/ ctx[0].nodeID.toString();
+    			if (dirty & /*hexaSide*/ 1) hexagon_changes.side = /*hexaSide*/ ctx[0];
+    			if (dirty & /*hexaSide*/ 1) hexagon_changes.x = getSVGwidth() / 2 - /*hexaSide*/ ctx[0];
+    			if (dirty & /*parentNode*/ 2) hexagon_changes.text = /*parentNode*/ ctx[1].nodeID.toString();
+    			if (dirty & /*parentNode*/ 2) hexagon_changes.image = getImage(/*parentNode*/ ctx[1].nodeID);
     			hexagon.$set(hexagon_changes);
+
+    			if (dirty & /*getSVGwidth, hexaSide, getChildPosition, getIndexOfNodeID, children, getImage, updateTree*/ 213) {
+    				each_value = /*children*/ ctx[2];
+    				validate_each_argument(each_value);
+    				group_outros();
+    				validate_each_keys(ctx, each_value, get_each_context, get_key);
+    				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value, each_1_lookup, each_1_anchor.parentNode, outro_and_destroy_block, create_each_block, each_1_anchor, get_each_context);
+    				check_outros();
+    			}
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(hexagon.$$.fragment, local);
+
+    			for (let i = 0; i < each_value.length; i += 1) {
+    				transition_in(each_blocks[i]);
+    			}
+
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(hexagon.$$.fragment, local);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				transition_out(each_blocks[i]);
+    			}
+
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			destroy_component(hexagon, detaching);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].d(detaching);
+    			}
+
+    			if (detaching) detach_dev(each_1_anchor);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_then_block.name,
+    		type: "then",
+    		source: "(45:2) {:then}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (51:2) {#each children as child (child.nodeID)}
+    function create_each_block(key_1, ctx) {
+    	let first;
+    	let hexagon;
+    	let line;
+    	let line_y__value;
+    	let line_x__value_1;
+    	let current;
+
+    	function message_handler_1(...args) {
+    		return /*message_handler_1*/ ctx[10](/*child*/ ctx[12], ...args);
+    	}
+
+    	hexagon = new Hexagon({
+    			props: {
+    				side: /*hexaSide*/ ctx[0],
+    				x: /*getChildPosition*/ ctx[7](/*getIndexOfNodeID*/ ctx[6](/*child*/ ctx[12].nodeID)),
+    				y: 300,
+    				text: /*child*/ ctx[12].nodeID.toString(),
+    				color: "lightblue",
+    				image: getImage(/*child*/ ctx[12].nodeID)
+    			},
+    			$$inline: true
+    		});
+
+    	hexagon.$on("message", message_handler_1);
+
+    	const block = {
+    		key: key_1,
+    		first: null,
+    		c: function create() {
+    			first = empty();
+    			create_component(hexagon.$$.fragment);
+    			line = svg_element("line");
+    			attr_dev(line, "x1", getSVGwidth() / 2);
+    			attr_dev(line, "y1", line_y__value = 4 + /*hexaSide*/ ctx[0] * 2);
+    			attr_dev(line, "x2", line_x__value_1 = /*getChildPosition*/ ctx[7](/*getIndexOfNodeID*/ ctx[6](/*child*/ ctx[12].nodeID)) + /*hexaSide*/ ctx[0]);
+    			attr_dev(line, "y2", "300");
+    			set_style(line, "stroke", "black");
+    			set_style(line, "stroke-width", "2");
+    			add_location(line, file$1, 56, 4, 2029);
+    			this.first = first;
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, first, anchor);
+    			mount_component(hexagon, target, anchor);
+    			insert_dev(target, line, anchor);
+    			current = true;
+    		},
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+    			const hexagon_changes = {};
+    			if (dirty & /*hexaSide*/ 1) hexagon_changes.side = /*hexaSide*/ ctx[0];
+    			if (dirty & /*children*/ 4) hexagon_changes.x = /*getChildPosition*/ ctx[7](/*getIndexOfNodeID*/ ctx[6](/*child*/ ctx[12].nodeID));
+    			if (dirty & /*children*/ 4) hexagon_changes.text = /*child*/ ctx[12].nodeID.toString();
+    			if (dirty & /*children*/ 4) hexagon_changes.image = getImage(/*child*/ ctx[12].nodeID);
+    			hexagon.$set(hexagon_changes);
+
+    			if (!current || dirty & /*hexaSide*/ 1 && line_y__value !== (line_y__value = 4 + /*hexaSide*/ ctx[0] * 2)) {
+    				attr_dev(line, "y1", line_y__value);
+    			}
+
+    			if (!current || dirty & /*children, hexaSide*/ 5 && line_x__value_1 !== (line_x__value_1 = /*getChildPosition*/ ctx[7](/*getIndexOfNodeID*/ ctx[6](/*child*/ ctx[12].nodeID)) + /*hexaSide*/ ctx[0])) {
+    				attr_dev(line, "x2", line_x__value_1);
+    			}
     		},
     		i: function intro(local) {
     			if (current) return;
@@ -721,8 +1176,117 @@ var app = (function () {
     			current = false;
     		},
     		d: function destroy(detaching) {
+    			if (detaching) detach_dev(first);
+    			destroy_component(hexagon, detaching);
+    			if (detaching) detach_dev(line);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block.name,
+    		type: "each",
+    		source: "(51:2) {#each children as child (child.nodeID)}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (43:22)       <p>Loading data</p>    {:then}
+    function create_pending_block(ctx) {
+    	let p;
+    	let t;
+
+    	const block = {
+    		c: function create() {
+    			p = svg_element("p");
+    			t = text("Loading data");
+    			add_location(p, file$1, 43, 4, 1440);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, p, anchor);
+    			append_dev(p, t);
+    		},
+    		p: noop,
+    		i: noop,
+    		o: noop,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(p);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_pending_block.name,
+    		type: "pending",
+    		source: "(43:22)       <p>Loading data</p>    {:then}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$1(ctx) {
+    	let svg;
+    	let current;
+
+    	let info = {
+    		ctx,
+    		current: null,
+    		token: null,
+    		hasCatch: true,
+    		pending: create_pending_block,
+    		then: create_then_block,
+    		catch: create_catch_block,
+    		error: 15,
+    		blocks: [,,,]
+    	};
+
+    	handle_promise(/*setupTree*/ ctx[3](), info);
+
+    	const block = {
+    		c: function create() {
+    			svg = svg_element("svg");
+    			info.block.c();
+    			attr_dev(svg, "id", "svg");
+    			attr_dev(svg, "width", "100%");
+    			attr_dev(svg, "height", "580px");
+    			attr_dev(svg, "class", "svelte-mm9hc3");
+    			add_location(svg, file$1, 41, 0, 1368);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, svg, anchor);
+    			info.block.m(svg, info.anchor = null);
+    			info.mount = () => svg;
+    			info.anchor = null;
+    			current = true;
+    		},
+    		p: function update(new_ctx, [dirty]) {
+    			ctx = new_ctx;
+    			update_await_block_branch(info, ctx, dirty);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(info.block);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			for (let i = 0; i < 3; i += 1) {
+    				const block = info.blocks[i];
+    				transition_out(block);
+    			}
+
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
     			if (detaching) detach_dev(svg);
-    			destroy_component(hexagon);
+    			info.block.d();
+    			info.token = null;
+    			info = null;
     		}
     	};
 
@@ -739,78 +1303,115 @@ var app = (function () {
 
     const serverAdress = "http://localhost:25679/";
 
-    async function getRoot() {
-    	const response = await fetch(`${serverAdress}hc/root`);
-    	var root = await response.json();
-    	return root;
+    function getSVGwidth() {
+    	return document.getElementById("svg").clientWidth;
     }
 
-    async function getNode(nodeID) {
-    	const response = await fetch(`${serverAdress}hc/nodes/${nodeID}`);
-    	var node = await response.json();
-    	return node;
+    function getImage(nodeID) {
+    	return `${serverAdress}hc/repImage/${nodeID}`;
     }
 
     function instance$1($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Hierarchical', slots, []);
-    	let { parentNode } = $$props;
-    	let { childLeft } = $$props;
-    	let { childRight } = $$props;
+    	let parentNode;
+    	let children;
+    	let { hexaSide = 100 } = $$props;
+    	let { childPadding = 400 } = $$props;
+    	const svgElem = document.getElementById("svg");
 
-    	async function startUp() {
-    		const root = await getRoot();
-    		$$invalidate(0, parentNode = root);
-    		$$invalidate(2, childRight = root.children[0]);
-    		$$invalidate(1, childLeft = root.children[1]);
-    		console.log("All loaded");
+    	async function setupTree() {
+    		const response = await fetch(`${serverAdress}hc/root`);
+    		var root = await response.json();
+    		$$invalidate(1, parentNode = root);
+    		$$invalidate(2, children = root.children);
+    		return root;
     	}
 
-    	const writable_props = ['parentNode', 'childLeft', 'childRight'];
+    	async function updateTree(newRootID) {
+    		const response = await fetch(`${serverAdress}hc/nodes/${newRootID}`);
+    		var node = await response.json();
+    		$$invalidate(1, parentNode = node);
+    		$$invalidate(2, children = node.children);
+    		return node;
+    	}
+
+    	async function updateParent() {
+    		const parentRes = await fetch(`${serverAdress}hc/parent/${parentNode.nodeID}`);
+    		const parent = await parentRes.json();
+    		updateTree(parent.nodeID);
+    	}
+
+    	function getIndexOfNodeID(nodeID) {
+    		const elem = children.filter(e => e.nodeID == nodeID)[0];
+    		return children.indexOf(elem);
+    	}
+
+    	function getChildPosition(childIndex) {
+    		return childPadding + (getSVGwidth() - 2 * childPadding) * (childIndex / (children.length - 1)) - hexaSide;
+    	}
+
+    	const writable_props = ['hexaSide', 'childPadding'];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1.warn(`<Hierarchical> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Hierarchical> was created with unknown prop '${key}'`);
     	});
 
+    	const message_handler = async e => updateParent();
+    	const message_handler_1 = async (child, e) => updateTree(child.nodeID);
+
     	$$self.$$set = $$props => {
-    		if ('parentNode' in $$props) $$invalidate(0, parentNode = $$props.parentNode);
-    		if ('childLeft' in $$props) $$invalidate(1, childLeft = $$props.childLeft);
-    		if ('childRight' in $$props) $$invalidate(2, childRight = $$props.childRight);
+    		if ('hexaSide' in $$props) $$invalidate(0, hexaSide = $$props.hexaSide);
+    		if ('childPadding' in $$props) $$invalidate(8, childPadding = $$props.childPadding);
     	};
 
     	$$self.$capture_state = () => ({
     		serverAdress,
     		Hexagon,
     		parentNode,
-    		childLeft,
-    		childRight,
-    		getRoot,
-    		getNode,
-    		startUp
+    		children,
+    		hexaSide,
+    		childPadding,
+    		svgElem,
+    		setupTree,
+    		updateTree,
+    		updateParent,
+    		getIndexOfNodeID,
+    		getSVGwidth,
+    		getChildPosition,
+    		getImage
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ('parentNode' in $$props) $$invalidate(0, parentNode = $$props.parentNode);
-    		if ('childLeft' in $$props) $$invalidate(1, childLeft = $$props.childLeft);
-    		if ('childRight' in $$props) $$invalidate(2, childRight = $$props.childRight);
+    		if ('parentNode' in $$props) $$invalidate(1, parentNode = $$props.parentNode);
+    		if ('children' in $$props) $$invalidate(2, children = $$props.children);
+    		if ('hexaSide' in $$props) $$invalidate(0, hexaSide = $$props.hexaSide);
+    		if ('childPadding' in $$props) $$invalidate(8, childPadding = $$props.childPadding);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [parentNode, childLeft, childRight];
+    	return [
+    		hexaSide,
+    		parentNode,
+    		children,
+    		setupTree,
+    		updateTree,
+    		updateParent,
+    		getIndexOfNodeID,
+    		getChildPosition,
+    		childPadding,
+    		message_handler,
+    		message_handler_1
+    	];
     }
 
     class Hierarchical extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-
-    		init(this, options, instance$1, create_fragment$1, safe_not_equal, {
-    			parentNode: 0,
-    			childLeft: 1,
-    			childRight: 2
-    		});
+    		init(this, options, instance$1, create_fragment$1, safe_not_equal, { hexaSide: 0, childPadding: 8 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -818,44 +1419,21 @@ var app = (function () {
     			options,
     			id: create_fragment$1.name
     		});
-
-    		const { ctx } = this.$$;
-    		const props = options.props || {};
-
-    		if (/*parentNode*/ ctx[0] === undefined && !('parentNode' in props)) {
-    			console_1.warn("<Hierarchical> was created without expected prop 'parentNode'");
-    		}
-
-    		if (/*childLeft*/ ctx[1] === undefined && !('childLeft' in props)) {
-    			console_1.warn("<Hierarchical> was created without expected prop 'childLeft'");
-    		}
-
-    		if (/*childRight*/ ctx[2] === undefined && !('childRight' in props)) {
-    			console_1.warn("<Hierarchical> was created without expected prop 'childRight'");
-    		}
     	}
 
-    	get parentNode() {
+    	get hexaSide() {
     		throw new Error("<Hierarchical>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
 
-    	set parentNode(value) {
+    	set hexaSide(value) {
     		throw new Error("<Hierarchical>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
 
-    	get childLeft() {
+    	get childPadding() {
     		throw new Error("<Hierarchical>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
 
-    	set childLeft(value) {
-    		throw new Error("<Hierarchical>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get childRight() {
-    		throw new Error("<Hierarchical>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set childRight(value) {
+    	set childPadding(value) {
     		throw new Error("<Hierarchical>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
     }

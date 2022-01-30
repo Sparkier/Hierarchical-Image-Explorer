@@ -1,10 +1,14 @@
 <script lang="ts">
+
+	import { createEventDispatcher } from 'svelte';
+
+	const dispatch = createEventDispatcher();
 	export let side:number = 100;
 	export let color:string = "green";
 	export let image:string = "";
 	export let scale:number = 1;
-	export let x:string = "0";
-	export let y:string = "0";
+	export let x:number = 0;
+	export let y:number = 0;
 	export let text:string = "";
 	//export let textSize:string = "20";
 	
@@ -25,32 +29,38 @@
 	let p5 = P5.x + "," + P5.y
 	let p6 = P6.x + "," + P6.y
 	
-	let fill = "url('#image-bg')"
+	$: fill = `url(#image-bg_${image})`
 	if(image == ""){
 		fill = color;
+	}
+
+	function handleClick(){
+		dispatch('message', {
+			text: 'Hello!'
+		});
 	}
 </script>
 
 <style>
 	.hex{
 		stroke: black;
-  	stroke-width: 1;
+  		stroke-width: 1;
 	}
 </style>
 
 <defs>
-	<pattern id="image-bg" height="{side*2}" width="{side*2}" patternUnits="userSpaceOnUse">
+	<pattern id={`image-bg_${image}`} height="{side*2}" width="{side*2}" patternUnits="userSpaceOnUse">
 		<image width="{side*2}" height="{side*2}" xlink:href={image}/>
 	</pattern>
 </defs>
 <!-- Polygons are weird -->
-<g transform="scale({scale}) translate({x}, {y})"> 
-<polygon class="hex" points="{p5} {p4} {p2} {p1} {p3} {p6}" fill="{fill}"/>
-<text transform="translate({side},{side})" 
-        font-family="Verdana" 
-        font-size="30"
-        text-anchor="middle"
-    >
-    {text}
+<g transform="scale({scale}) translate({x}, {y})" on:click={handleClick}> 
+	<polygon class="hex" points="{p5} {p4} {p2} {p1} {p3} {p6}" fill="{fill}"/>
+	<text transform="translate({side},{side})" 
+			font-family="Verdana" 
+			font-size="30"
+			text-anchor="middle"
+			fill="red">
+    	{text}
     </text>
 </g>
