@@ -12,7 +12,8 @@ const port = 25679;
 
 const dataFrame: Map<string, mnistDatum> = new Map();
 const app = express();
-const hcDataProvider:HierarchicalClusterDataProvider = new HierarchicalClusterDataProvider(`${dataPath}/ClusteringTree.json`); 
+const hcDataProvider: HierarchicalClusterDataProvider =
+  new HierarchicalClusterDataProvider(`${dataPath}/ClusteringTree.json`);
 
 type mnistDatum = {
   file_path: string;
@@ -31,15 +32,15 @@ function startServer() {
 
   app.use(bodyParser.json());
   app.use(cors());
-  app.use(express.urlencoded({ extended: true }));  
+  app.use(express.urlencoded({ extended: true }));
 
   // load data
   setUpData();
 
   // start actual server
   app.listen(port, () => {
-  console.log('Server started! on port ' + port);
-});
+    console.log('Server started! on port ' + port);
+  });
 }
 
 function setUpData() {
@@ -47,11 +48,14 @@ function setUpData() {
   fs.createReadStream(`${dataPath}mnist_test_swg.csv`)
     .pipe(csv.parse({ headers: true }))
     .on('error', (e) => console.log(e))
-    .on('data', (row) => dataFrame.set(row.image_id, { file_path: row.file_path, label: row.label })
+    .on('data', (row) =>
+      dataFrame.set(row.image_id, {
+        file_path: row.file_path,
+        label: row.label,
+      })
     )
     .on('end', (rowCount) => {
-      if (dataFrame.size == 0)
-        throw new Error('Dataset empty');
+      if (dataFrame.size == 0) throw new Error('Dataset empty');
       console.log('CSV read with ' + rowCount + ' rows');
     });
   // setup hierarchical clustering data
@@ -119,30 +123,30 @@ app.get('/data/heads', (req, res) => {
   res.send(Object.keys(getDatumByID(getAllIds()[0])));
 });
 
-
 // ----------------------------------------- hierarchical clustering
 
-app.get('/hc/nodes/:id', (req,res) => {
-  res.send(hcDataProvider.getNode(req.params.id))
-})
+app.get('/hc/nodes/:id', (req, res) => {
+  res.send(hcDataProvider.getNode(req.params.id));
+});
 
-app.get('/hc/allchildIds/:id', (req,res) => {
-  res.send(hcDataProvider.getAllIDs(req.params.id))
-})
+app.get('/hc/allchildIds/:id', (req, res) => {
+  res.send(hcDataProvider.getAllIDs(req.params.id));
+});
 
-app.get('/hc/root', (req,res) => {
-  res.send(hcDataProvider.root)
-})
+app.get('/hc/root', (req, res) => {
+  res.send(hcDataProvider.root);
+});
 
-app.get('/hc/parent/:id', (req,res) =>{
-  res.send(hcDataProvider.getParent(req.params.id))
-})
-
+app.get('/hc/parent/:id', (req, res) => {
+  res.send(hcDataProvider.getParent(req.params.id));
+});
 
 // for testing random image
-app.get('/hc/repImage/:id', (req,res) => {
-  const dataIDS = hcDataProvider.getAllIDs(req.params.id)
-  const file_path = getPathFromId(dataIDS[Math.floor(Math.random()*dataIDS.length)]);
+app.get('/hc/repImage/:id', (req, res) => {
+  const dataIDS = hcDataProvider.getAllIDs(req.params.id);
+  const file_path = getPathFromId(
+    dataIDS[Math.floor(Math.random() * dataIDS.length)]
+  );
   const absolutPath = path.join(__dirname, '../') + file_path;
   res.sendFile(absolutPath);
-})
+});
