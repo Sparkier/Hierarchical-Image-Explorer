@@ -82,6 +82,16 @@ class HierarchicalClusterDataProvider{
         }
         return toReturn;
     }
+
+    public getParent(nodeID:number):HcNode{
+        for (var node of this.nodes){
+            if(node?.getChildren().filter(n => n.nodeID == nodeID).length != 0){
+                return node!;
+            }
+        }
+
+        throw new Error("Node has no parent")
+    }
 }
 
 

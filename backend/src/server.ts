@@ -133,3 +133,16 @@ app.get('/hc/allchildIds/:id', (req,res) => {
 app.get('/hc/root', (req,res) => {
   res.send(hcDataProvider.root)
 })
+
+app.get('/hc/parent/:id', (req,res) =>{
+  res.send(hcDataProvider.getParent(req.params.id))
+})
+
+
+// for testing random image
+app.get('/hc/repImage/:id', (req,res) => {
+  const dataIDS = hcDataProvider.getAllIDs(req.params.id)
+  const file_path = getPathFromId(dataIDS[Math.floor(Math.random()*dataIDS.length)]);
+  const absolutPath = path.join(__dirname, '../') + file_path;
+  res.sendFile(absolutPath);
+})
