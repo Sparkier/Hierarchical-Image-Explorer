@@ -9,8 +9,8 @@ from numpy import asarray
 from sklearn.cluster import AgglomerativeClustering
 
 
-"""Reads in a given csv file"""
 def read_annoations(datapath):
+    """Reads in a given csv file"""
     # read in annotations
     annotations = []
 
@@ -23,8 +23,8 @@ def read_annoations(datapath):
     return annotations
 
 
-"""Reads images from annotations and converts them to 1D Array"""
 def read_image_data(annotations):
+    """Reads images from annotations and converts them to 1D Array"""
     images = []
     print("Converting images to Numpy Arrays")
     # load images from disk and convert them:
@@ -35,16 +35,18 @@ def read_image_data(annotations):
     return images
 
 
-"""Runs Clustering on a given image Array"""
+
 def cluster_data(images):
+    """Runs Clustering on a given image Array"""
     print("Started Clustering")
     model = AgglomerativeClustering(distance_threshold=0, n_clusters=None)
     model.fit(images)
     return model
 
 
-"""Saves the resulting hierarchical tree and image labesl to a json file"""
+
 def save_clustering(annotations, images, model, output_path):
+    """Saves the resulting hierarchical tree and image labesl to a json file"""
     print("Saving results")
     image_iterator = itertools.count(len(images))
     treeview = [{
