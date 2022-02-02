@@ -80,8 +80,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    annotations = read_annoations(args.annotation_file)
-    images = read_image_data(annotations)
-    model = cluster_data(images)
-    save_clustering(annotations, images, model, args.output_file)
+    mnist_annotations = read_annoations(args.annotation_file)
+    mnist_images = read_image_data(mnist_annotations)
+    mnist_model = cluster_data(mnist_images)
+    save_clustering(mnist_annotations, mnist_images, mnist_model, args.output_file)
     print("Done")
