@@ -9,6 +9,7 @@ from numpy import asarray
 from sklearn.cluster import AgglomerativeClustering
 
 
+"""Reads in a given csv file"""
 def read_annoations(datapath):
     # read in annotations
     annotations = []
@@ -22,6 +23,7 @@ def read_annoations(datapath):
     return annotations
 
 
+"""Reads images from annotations and converts them to 1D Array"""
 def read_image_data(annotations):
     images = []
     print("Converting images to Numpy Arrays")
@@ -33,6 +35,7 @@ def read_image_data(annotations):
     return images
 
 
+"""Runs Clustering on a given image Array"""
 def cluster_data(images):
     print("Started Clustering")
     model = AgglomerativeClustering(distance_threshold=0, n_clusters=None)
@@ -40,6 +43,7 @@ def cluster_data(images):
     return model
 
 
+"""Saves the resulting hierarchical tree and image labesl to a json file"""
 def save_clustering(annotations, images, model, output_path):
     print("Saving results")
     image_iterator = itertools.count(len(images))
@@ -50,8 +54,8 @@ def save_clustering(annotations, images, model, output_path):
 
     labels = []
 
-    for i in range(0,len(annotations)):
-        labels.append({"ID":annotations[i][0],"clusterID":i})
+    for index, value in enumerate(annotations):
+        labels.append({"ID":value[0],"clusterID":index})
 
     with open(output_path,'w', encoding='utf-8') as json_file:
         json.dump({"tree":treeview,"clusters":labels},json_file, indent=4)
