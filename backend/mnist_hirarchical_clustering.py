@@ -39,6 +39,7 @@ def cluster_data(images):
     model.fit(images)
     return model
 
+
 def save_clustering(annotations, images, model, output_path):
     print("Saving results")
     image_iterator = itertools.count(len(images))
@@ -54,10 +55,6 @@ def save_clustering(annotations, images, model, output_path):
 
     with open(output_path,'w', encoding='utf-8') as json_file:
         json.dump({"tree":treeview,"clusters":labels},json_file, indent=4)
-
-
-
-
 
 
 if __name__ == "__main__":
@@ -82,9 +79,3 @@ if __name__ == "__main__":
     model = cluster_data(images)
     save_clustering(annotations, images, model, args.output_file)
     print("Done")
-
-
-
-
-
-
