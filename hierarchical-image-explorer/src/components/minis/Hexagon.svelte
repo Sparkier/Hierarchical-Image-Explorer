@@ -12,22 +12,22 @@
 	export let text:string = "";
 	//export let textSize:string = "20";
 	
-	const t = 120 * Math.PI /180;
-	const a = (side*Math.sqrt(3))/2;
+	const t = 120 * Math.PI / 180; // 120 degrees in radians
+	const a = (side*Math.sqrt(3))/2; // distance from a side to center of hexagon
 
-	const P1 ={x: 0,y: a}
-	const P2 ={x:P1.x-(side*Math.cos(t)),y:P1.y+(side*Math.sin(t))}
-	const P3 ={x:P2.x,y:0}
-	const P4 ={x:P2.x+side,y:P2.y}
-	const P5 ={x:side*2,y:a}
-	const P6 ={x:P2.x+side,y:0}
+	const Left ={x: 0, y: a}
+	const BottomLeft ={x:Left.x-(side*Math.cos(t)), y:Left.y+(side*Math.sin(t))}
+	const TopLeft ={x:BottomLeft.x, y:0}
+	const BottomRight ={x:BottomLeft.x+side, y:BottomLeft.y}
+	const Right ={x:side*2, y:a}
+	const TopRight ={x:BottomLeft.x+side, y:0}
 	
-	let p1 = P1.x + "," + P1.y
-	let p2 = P2.x + "," + P2.y
-	let p3 = P3.x + "," + P3.y
-	let p4 = P4.x + "," + P4.y
-	let p5 = P5.x + "," + P5.y
-	let p6 = P6.x + "," + P6.y
+	const l = `${Left.x},${Left.y}`
+	const bl = `${BottomLeft.x},${BottomLeft.y}`
+	const tl = `${TopLeft.x},${TopLeft.y}`
+	const br = `${BottomRight.x},${BottomRight.y}`
+	const r = `${Right.x},${Right.y}`
+	const tr = `${TopRight.x},${TopRight.y}`
 	
 	$: fill = `url(#image-bg_${image})`
 	if(image == ""){
@@ -53,9 +53,8 @@
 		<image width="{side*2}" height="{side*2}" xlink:href={image}/>
 	</pattern>
 </defs>
-<!-- Polygons are weird -->
 <g transform="scale({scale}) translate({x}, {y})" on:click={handleClick}> 
-	<polygon class="hex" points="{p5} {p4} {p2} {p1} {p3} {p6}" fill="{fill}"/>
+	<polygon class="hex" points="{r} {br} {bl} {l} {tl} {tr}" fill="{fill}"/>
 	<text transform="translate({side},{side})" 
 			font-family="Verdana" 
 			font-size="30"
