@@ -95,7 +95,7 @@ app.get('/data/annotations/:id', (req, res) => {
   res.send(getDatumByID(req.params.id));
 });
 
-app.get('/data/allIds', (req, res) => {
+app.get('/data/allids', (req, res) => {
   res.send(getAllIds());
 });
 
@@ -129,7 +129,7 @@ app.get('/hc/nodes/:id', (req, res) => {
   res.send(hcDataProvider.getNode(req.params.id));
 });
 
-app.get('/hc/allchildIds/:id', (req, res) => {
+app.get('/hc/allchildids/:id', (req, res) => {
   res.send(hcDataProvider.getAllIDs(req.params.id));
 });
 
@@ -142,7 +142,7 @@ app.get('/hc/parent/:id', (req, res) => {
 });
 
 // for testing random image
-app.get('/hc/repImage/:id', (req, res) => {
+app.get('/hc/repimage/:id', (req, res) => {
   const dataIDS = hcDataProvider.getAllIDs(req.params.id);
   const file_path = getPathFromId(
     dataIDS[Math.floor(Math.random() * dataIDS.length)]

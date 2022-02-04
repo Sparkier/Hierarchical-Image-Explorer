@@ -1,10 +1,10 @@
 import fs from 'fs';
 
 export default class HierarchicalClusterDataProvider {
-  public root: HcNode;
-  private nodes: [HcNode?];
-  private leafNodes: Map<number, string> = new Map();
-  private indexOffset: number;
+  public root: HcNode; // root of the tree
+  private nodes: [HcNode?]; // all nodes of the tree
+  private leafNodes: Map<number, string> = new Map(); // all leaf nodes in this case all nodes containing dataIDs
+  private indexOffset: number; // first index of none-leaf node in nodes which is also the number of leafNodes
 
   /**
    * Loads the data from the given filePath and converts it to a tree structure
@@ -31,7 +31,7 @@ export default class HierarchicalClusterDataProvider {
       this.nodes.push(new HcNode(node.node_id));
     });
 
-    this.root = this.nodes[this.nodes.length - 1]!;
+    this.root = this.nodes[this.nodes.length - 1] ?? new HcNode(-1);
     // create connections
     console.log('Starting Node Population');
     data.tree.forEach((dataNode) => {
@@ -51,7 +51,9 @@ export default class HierarchicalClusterDataProvider {
   public getNode(nodeID: number): HcNode {
     if (nodeID >= this.nodes.length)
       throw new Error(`Node index out of range: ${nodeID}`);
-    return this.nodes[nodeID]!;
+    const toReturn = this.nodes[nodeID];
+    if (toReturn == null) throw new Error('Node index out of Range');
+    else return toReturn;
   }
 
   /**
@@ -60,8 +62,11 @@ export default class HierarchicalClusterDataProvider {
    * @returns
    */
   public nodeIDtoDataID(nodeID: number): string {
-    if (this.leafNodes.has(nodeID)) return this.leafNodes.get(nodeID)!;
-    else throw new Error(`NodeID not a leaf node: ${nodeID}`);
+    if (this.leafNodes == null) throw new Error(`Undefined leaf node`);
+    else {
+      if (this.leafNodes.has(nodeID)) return this.leafNodes.get(nodeID)!;
+      else throw new Error(`NodeID not a leaf node: ${nodeID}`);
+    }
   }
 
   /**

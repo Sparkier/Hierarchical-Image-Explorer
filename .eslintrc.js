@@ -25,6 +25,7 @@ module.exports = {
   ],
   rules: {
     'prettier/prettier': 'warn',
+    '@typescript-eslint/no-non-null-assertion': 'off',
   },
   settings: {
     "svelte3/typescript": require("typescript"),
