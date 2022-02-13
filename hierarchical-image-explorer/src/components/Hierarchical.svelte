@@ -6,6 +6,7 @@
   }
 
   import Hexagon from './minis/Hexagon.svelte'
+  import ClusterInfoHover from './ClusterInfoHover.svelte'
 
   let parentNode:HcNode;
   let children:HcNode[];
@@ -106,6 +107,12 @@
     <p>{error.message}</p>
   {/await}
 </svg>
+
+<h1>Cluster Info Hover test</h1>
+
+{#if parentNode != undefined}
+<ClusterInfoHover clusterID = {parentNode.nodeID.toString()}></ClusterInfoHover>
+{/if}
 
 
 <style>
