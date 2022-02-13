@@ -96,6 +96,18 @@ export default class HierarchicalClusterDataProvider {
 
     throw new Error('Node has no parent');
   }
+
+  public getHierarchicalLevel(nodeID:number):number{
+    var level = 0;
+    var currentNode = this.getNode(nodeID)
+
+    while(!currentNode.isLeaf()){
+      level++;
+      currentNode = currentNode.getChildren()[0]
+    }
+
+    return level;
+  }
 }
 
 class HcNode {
