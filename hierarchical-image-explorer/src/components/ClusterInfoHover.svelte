@@ -5,11 +5,6 @@
     $: clusterSize_change = updateClusterSize(clusterID)
     $: clusterLeve_change = updateClusterLevel(clusterID)
 
-
-
-
-
-
     async function updateClusterSize(clusteID:number){
         const response = await fetch(`${serverAdress}hc/clusterinfo/size/${clusterID}`)
         clusterSize = await response.json()

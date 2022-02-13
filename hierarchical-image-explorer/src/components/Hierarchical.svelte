@@ -10,9 +10,15 @@
 
   let parentNode:HcNode;
   let children:HcNode[];
+  var showHover = false;
+  var hoverClusterID:number;
+  let hoverPosX:number = 0;
+  let hoverPosY:number = 0;
+
+   
+
   export let hexaSide = 100;
   export let childPadding = 400;
-
   const svgElem:HTMLElement = document.getElementById("svg")!
   
   /**
@@ -77,46 +83,81 @@
   function getImage(nodeID:number):string{
     return `${serverAdress}hc/repImage/${nodeID}`
   }
+
+  async function onMessageRecieved(message:{detail: {type:string,event:MouseEvent}}, nodeID:number=-1){
+    console.log(message)
+
+    switch (message.detail.type){
+      case "click":
+        if(nodeID == parentNode.nodeID) updateParent()
+        else updateTree(nodeID)
+        break;
+      case "mouseenter":
+        console.log("mouseenter")
+        hoverClusterID = nodeID
+        hoverPosX = message.detail.event.clientX
+        hoverPosY = message.detail.event.clientY
+        showHover = true;
+        break;
+      case "mouseleave":
+        console.log("mouseleave")
+        showHover = false;
+        break;
+    }
+  }
+
+  function onHexagonHover(e:any){
+    console.log(e)
+    return null;
+  }
   
 </script>
 
-<svg id="svg" width="100%" height="580px">
-  {#await setupTree()}
-    <p>Loading data</p>
-  {:then}
-    <!-- parent creation -->
-    <Hexagon side={hexaSide} x="{getSVGwidth()/2 - hexaSide }" 
-      y={30}  text="{parentNode.nodeID.toString()}" color="limegreen"
-      on:message={async e => updateParent()}
-      image={getImage(parentNode.nodeID)}>
-    </Hexagon>
-  <!-- "svelte for" over the children -->  
-  {#each children as child (child.nodeID)}
-    <Hexagon side={hexaSide} x="{getChildPosition(getIndexOfNodeID(child.nodeID))}"
-       y={300} text="{child.nodeID.toString()}" color="lightblue"
-        on:message={async e => updateTree(child.nodeID)}
-        image={getImage(child.nodeID)}>
-    </Hexagon>
-    <!-- line connections between parent and children -->
-    <line x1="{getSVGwidth()/2}" y1= {4+hexaSide*2} 
-      x2="{getChildPosition(getIndexOfNodeID(child.nodeID))+ hexaSide}" 
-      y2="300" style="stroke: black; stroke-width:2;">
-    </line>
-  {/each}
-  {:catch error}
-    <p>{error.message}</p>
-  {/await}
-</svg>
+<div> 
+  <svg id="svg" width="100%" height="580px">
+    {#await setupTree()}
+      <p>Loading data</p>
+    {:then}
+      <!-- parent creation -->
+        <Hexagon side={hexaSide} x="{getSVGwidth()/2 - hexaSide }" 
+          y={30}  text="{parentNode.nodeID.toString()}" color="limegreen"
+          on:message={async e => onMessageRecieved(e,parentNode.nodeID)}
+          image={getImage(parentNode.nodeID)}>
+        </Hexagon>
+    <!-- "svelte for" over the children -->  
+    {#each children as child (child.nodeID)}
+        <Hexagon side={hexaSide} x="{getChildPosition(getIndexOfNodeID(child.nodeID))}"
+          y={300} text="{child.nodeID.toString()}" color="lightblue"
+            on:message={async e => onMessageRecieved(e,child.nodeID)}
+            image={getImage(child.nodeID)}>
+        </Hexagon>
+      <!-- line connections between parent and children -->
+      <line x1="{getSVGwidth()/2}" y1= {4+hexaSide*2} 
+        x2="{getChildPosition(getIndexOfNodeID(child.nodeID))+ hexaSide}" 
+        y2="300" style="stroke: black; stroke-width:2;">
+      </line>
+    {/each}
+    {:catch error}
+      <p>{error.message}</p>
+    {/await}
+  </svg>
 
-<h1>Cluster Info Hover test</h1>
+  <h1>Cluster Info Hover test</h1>
 
-{#if parentNode != undefined}
-<ClusterInfoHover clusterID = {parentNode.nodeID.toString()}></ClusterInfoHover>
-{/if}
+  {#if parentNode != undefined && showHover}
+  <div class="hoverInfoContainer" style="left:{hoverPosX-(550/2)}px;top:{hoverPosY}px">
+    <ClusterInfoHover clusterID = {hoverClusterID}></ClusterInfoHover>
+  </div>
+  {/if}
+</div>
 
 
 <style>
   #svg {
     background-color: transparent;
+  }
+
+  .hoverInfoContainer{
+    position: absolute;
   }
 </style>

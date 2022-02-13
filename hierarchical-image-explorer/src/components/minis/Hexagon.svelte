@@ -34,9 +34,10 @@
     fill = color;
   }
 
-  function handleClick(){
+  function dispatchEvent(type:string, event:MouseEvent){
     dispatch('message', {
-      text: 'Hello!'
+      "type":type,
+      "event":event
     });
   }
 </script>
@@ -53,7 +54,7 @@
     <image width="{side*2}" height="{side*2}" xlink:href={image}/>
   </pattern>
 </defs>
-<g transform="scale({scale}) translate({x}, {y})" on:click={handleClick}> 
+<g transform="scale({scale}) translate({x}, {y})" on:click={(e) => dispatchEvent("click",e)} on:mouseenter={(e) => dispatchEvent("mouseenter",e)} on:mouseleave={(e) => dispatchEvent("mouseleave",e)}> 
   <polygon class="hex" points="{r} {br} {bl} {l} {tl} {tr}" fill="{fill}"/>
   <text transform="translate({side},{side})" 
       font-family="Verdana" 
