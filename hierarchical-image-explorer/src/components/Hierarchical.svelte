@@ -85,30 +85,21 @@
   }
 
   async function onMessageRecieved(message:{detail: {type:string,event:MouseEvent}}, nodeID:number=-1){
-    console.log(message)
-
     switch (message.detail.type){
       case "click":
         if(nodeID == parentNode.nodeID) updateParent()
         else updateTree(nodeID)
         break;
       case "mouseenter":
-        console.log("mouseenter")
         hoverClusterID = nodeID
         hoverPosX = message.detail.event.clientX
         hoverPosY = message.detail.event.clientY
         showHover = true;
         break;
       case "mouseleave":
-        console.log("mouseleave")
         showHover = false;
         break;
     }
-  }
-
-  function onHexagonHover(e:any){
-    console.log(e)
-    return null;
   }
   
 </script>
