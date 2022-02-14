@@ -87,7 +87,7 @@ app.get('/', (req, res) => {
 
 app.get('/data/images/:id', (req, res) => {
   const file_path = getPathFromId(req.params.id);
-  const absolutPath = path.join(__dirname, '../') + file_path;
+  const absolutPath = path.join(__dirname, '../',file_path);
   res.sendFile(absolutPath);
 });
 
@@ -147,6 +147,34 @@ app.get('/hc/repimage/:id', (req, res) => {
   const file_path = getPathFromId(
     dataIDS[Math.floor(Math.random() * dataIDS.length)]
   );
-  const absolutPath = path.join(__dirname, '../') + file_path;
+  const absolutPath = path.join(__dirname, '../', file_path);
   res.sendFile(absolutPath);
+});
+
+// for testing random image
+app.get('/hc/repimage/close/:id/:rank', (req, res) => {
+  const dataIDS = hcDataProvider.getAllIDs(req.params.id);
+  const file_path = getPathFromId(
+    dataIDS[Math.floor(Math.random() * dataIDS.length)]
+  );
+  const absolutPath = path.join(__dirname, '../', file_path);
+  res.sendFile(absolutPath);
+});
+
+// for testing random image
+app.get('/hc/repimage/distant/:id/:rank', (req, res) => {
+  const dataIDS = hcDataProvider.getAllIDs(req.params.id);
+  const file_path = getPathFromId(
+    dataIDS[Math.floor(Math.random() * dataIDS.length)]
+  );
+  const absolutPath = path.join(__dirname, '../', file_path);
+  res.sendFile(absolutPath);
+});
+
+app.get('/hc/clusterinfo/size/:id', (req, res) => {
+  res.send(hcDataProvider.getAllIDs(req.params.id).length.toString());
+});
+
+app.get('/hc/clusterinfo/level/:id', (req, res) => {
+  res.send(hcDataProvider.getHierarchicalLevel(req.params.id).toString());
 });
