@@ -87,7 +87,7 @@ app.get('/', (req, res) => {
 
 app.get('/data/images/:id', (req, res) => {
   const file_path = getPathFromId(req.params.id);
-  const absolutPath = path.join(__dirname, '../') + file_path;
+  const absolutPath = path.join(__dirname, '../',file_path);
   res.sendFile(absolutPath);
 });
 
@@ -147,7 +147,7 @@ app.get('/hc/repimage/:id', (req, res) => {
   const file_path = getPathFromId(
     dataIDS[Math.floor(Math.random() * dataIDS.length)]
   );
-  const absolutPath = path.join(__dirname, '../') + file_path;
+  const absolutPath = path.join(__dirname, '../', file_path);
   res.sendFile(absolutPath);
 });
 
@@ -157,7 +157,7 @@ app.get('/hc/repimage/close/:id/:rank', (req, res) => {
   const file_path = getPathFromId(
     dataIDS[Math.floor(Math.random() * dataIDS.length)]
   );
-  const absolutPath = path.join(__dirname, '../') + file_path;
+  const absolutPath = path.join(__dirname, '../', file_path);
   res.sendFile(absolutPath);
 });
 
@@ -167,7 +167,7 @@ app.get('/hc/repimage/distant/:id/:rank', (req, res) => {
   const file_path = getPathFromId(
     dataIDS[Math.floor(Math.random() * dataIDS.length)]
   );
-  const absolutPath = path.join(__dirname, '../') + file_path;
+  const absolutPath = path.join(__dirname, '../', file_path);
   res.sendFile(absolutPath);
 });
 
