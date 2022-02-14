@@ -133,8 +133,7 @@
     {/await}
   </svg>
 
-  <h1>Cluster Info Hover test</h1>
-
+  <!-- Cluster Info Hover -->
   {#if parentNode != undefined && showHover}
   <div class="hoverInfoContainer" style="left:{hoverPosX-(550/2)}px;top:{hoverPosY+20}px">
     <ClusterInfoHover clusterID = {hoverClusterID}></ClusterInfoHover>

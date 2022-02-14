@@ -56,6 +56,7 @@
     hr{
         color: transparent;
         height: 10px;
+        border-style: none;
     }
 
     .hoverBox{
