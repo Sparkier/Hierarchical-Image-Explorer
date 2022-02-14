@@ -1,4 +1,4 @@
-import {BWImageRepresentative, coloredImageRepresentative} from '../src/representative'
+import {bwImageRepresentative, coloredImageRepresentative} from '../src/representative'
 //const colorRep = require("../representative")  
 
 
@@ -33,7 +33,7 @@ const imgArrayBW: string[] = [
 
 async function testBof(){
   try{
-  const repSSIM = BWImageRepresentative(imgArrayBW);
+  const repSSIM = bwImageRepresentative(imgArrayBW);
   const repDeltaE = await coloredImageRepresentative(imgArray)
   console.log(`BW: ${repSSIM} \r\nDeltaE: ${repDeltaE}`)
   }

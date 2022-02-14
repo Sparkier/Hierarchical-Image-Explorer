@@ -3,6 +3,7 @@ import DeltaE = require('delta-e');
 import * as SSIM from 'ssim.js';
 import * as fs from 'fs';
 import * as jpeg from 'jpeg-js';
+import { ImageData } from 'ssim.js/dist/types';
 
 //Find the representative image by using the image color
 
@@ -39,11 +40,13 @@ export class LAB {
 }
 
 /**
- * Determine average image color of images and convert the RGB values to LAB to allow comparison
+ * Compute average image color of images and convert the RGB values to LAB to allow comparison
  * @param imgPathArray Array containing the paths to images
- * @returns LABArray containing the LAB color values of the images
+ * @returns LABArray containing the average LAB color values of the images
  */
-async function convertLAB(imgPathArray: string[]): Promise<LAB[]> {
+async function computeAverageImageColor(
+  imgPathArray: string[]
+): Promise<LAB[]> {
   const LABArray: LAB[] = [];
   for (let i = 0; i < imgPathArray.length; i++) {
     const colorValue = await ColorThief.getColor(imgPathArray[i]);
@@ -55,7 +58,7 @@ async function convertLAB(imgPathArray: string[]): Promise<LAB[]> {
 
 /**
  * Compare the LAB color values of the images using the delta-e2000 algorithm
- * @param LABArray Array conatining the LAB color values of an image
+ * @param LABArray Array containing the average LAB color values of the images
  * @returns DeltaArray containing the delta-e2000 values of the compared images
  */
 function createDistanceMatrixDE(LABArray: LAB[]): number[][] {
@@ -72,33 +75,17 @@ function createDistanceMatrixDE(LABArray: LAB[]): number[][] {
 /**
  * Determine the average of the delta-e2000 values to determine the lowest delta-e indicating the closest overall match between images
  * @param DeltaArray Array containing the delta-e2000 values of the compared images
- * @returns Path to image representative
+ * @returns Array containing the delta-e2000 average of the images
  */
 function computeDeltaEAverage(DeltaArray: number[][]): number[] {
-  const averageArray: number[] = [];
-  for (const subArray of DeltaArray) {
-    let sum = 0;
-    for (const delta of subArray) {
-      sum += delta;
-    }
-    averageArray.push(sum / subArray.length);
-  }
+  const averageArray: number[] = DeltaArray.map((subArray) => {
+    return (
+      subArray.reduce((partialSum, a) => partialSum + a, 0) / subArray.length
+    );
+  });
   return averageArray;
 }
 
-export async function coloredImageRepresentative(
-  imgArray: string[]
-): Promise<string> {
-  try {
-    const LABArray = await convertLAB(imgArray);
-    const deltaArray = createDistanceMatrixDE(LABArray);
-    const avgArray = computeDeltaEAverage(deltaArray);
-    return getRepresentative(imgArray, avgArray);
-  } catch (e) {
-    console.log(e);
-    return e.message;
-  }
-}
 //Find the representative image by using the structural similarity of an image
 
 /**
@@ -108,17 +95,19 @@ export async function coloredImageRepresentative(
  */
 function loadImagesJPG(
   filenames: string[],
-  callback: (img: jpeg.BufferRet[]) => void
+  callback: (img: jpeg.UintArrRet[]) => void
 ) {
-  const images: jpeg.BufferRet[] = [];
-  function loaded(img: jpeg.BufferRet) {
+  const images: jpeg.UintArrRet[] = [];
+  function loaded(img: jpeg.UintArrRet) {
     images.push(img);
     if (images.length == filenames.length) callback(images);
   }
 
-  function load(filePath: string, callback: (img: jpeg.BufferRet) => void) {
+  function load(filePath: string, callback: (img: jpeg.UintArrRet) => void) {
     const jpegData: Buffer = fs.readFileSync(filePath);
-    const rawImageData: jpeg.BufferRet = jpeg.decode(jpegData);
+    const rawImageData: jpeg.UintArrRet = jpeg.decode(jpegData, {
+      useTArray: true,
+    });
     callback(rawImageData);
   }
 
@@ -134,11 +123,14 @@ function loadImagesJPG(
  */
 function createDistanceMatrixSSIM(imgArrayBW: string[]): number[][] {
   const mssimArray: number[][] = [];
-  loadImagesJPG(imgArrayBW, (images: any) => {
+  loadImagesJPG(imgArrayBW, (images: jpeg.UintArrRet[]) => {
     for (let i = 0; i < images.length; i++) {
       mssimArray[i] = [];
       for (let j = 0; j < images.length; j++) {
-        mssimArray[i][j] = SSIM.ssim(images[i], images[j]).mssim;
+        mssimArray[i][j] = SSIM.ssim(
+          imageDataFromUintArrRet(images[i]),
+          imageDataFromUintArrRet(images[j])
+        ).mssim;
       }
     }
   });
@@ -146,30 +138,77 @@ function createDistanceMatrixSSIM(imgArrayBW: string[]): number[][] {
 }
 
 /**
+ * Converts jpeg.UintArrRet images to ImageData type
+ */
+function imageDataFromUintArrRet(input: jpeg.UintArrRet): ImageData {
+  return {
+    data: Uint8ClampedArray.from(input.data),
+    height: input.height,
+    width: input.width,
+  };
+}
+
+/**
  * Determine the average of the mean ssim values to determine the highest ssim indicating the closest overall match between images
- * @param mssimArray Array containing the mean ssim values of the compared images
- * @returns Path to image representative
+ * @param mssimArray Array containing the mean ssim (MSSIM) values of the compared images
+ * @returns Array containing the average ssim values
  */
 function computeSSIMAverage(mssimArray: number[][]): number[] {
-  const averageArray: number[] = [];
-  for (const subArray of mssimArray) {
-    let sum = 0;
-    for (const delta of subArray) {
-      sum += Math.abs(delta);
-    }
-    averageArray.push((sum - 1) / subArray.length);
-  }
+  const averageArray: number[] = mssimArray.map((subArray) => {
+    return (
+      subArray.reduce((partialSum, a) => partialSum + a, 0) / subArray.length
+    );
+  });
   return averageArray;
 }
 
-function getRepresentative(imgArray: string[], averageArray: number[]): string {
-  return imgArray[averageArray.indexOf(Math.max(...averageArray))];
+/**
+ * Determines the best suited image representative by choosing the lowest delta-e or the highest ssim value
+ * @param imgArray Array containinng the image paths
+ * @param averageArray Array containing the average delta-e/ssim values of the images
+ * @param bwImages flag to set whether the lowest delta-e or the highest ssim is choosen
+ * @returns path to image with the highest overall match
+ */
+function getRepresentative(
+  imgArray: string[],
+  averageArray: number[],
+  bwImages: boolean
+): string {
+  if (bwImages) {
+    return imgArray[averageArray.indexOf(Math.max(...averageArray))];
+  } else {
+    return imgArray[averageArray.indexOf(Math.min(...averageArray))];
+  }
 }
 
-export function BWImageRepresentative(imgArrayBW: string[]): string {
+/**
+ * Exported function containing all helper functions to find a BW image representative
+ * @param imgArrayBW Array containinng the image paths
+ * @returns path to BW image with the highest overall match
+ */
+export function bwImageRepresentative(imgArrayBW: string[]): string {
   try {
     const avgArray = computeSSIMAverage(createDistanceMatrixSSIM(imgArrayBW));
-    return getRepresentative(imgArrayBW, avgArray);
+    return getRepresentative(imgArrayBW, avgArray, true);
+  } catch (e) {
+    console.log(e);
+    return e.message;
+  }
+}
+
+/**
+ * Exported function containing all helper functions to find a colored image representative
+ * @param imgArray Array containinng the image paths
+ * @returns path to colored image with the highest overall match
+ */
+export async function coloredImageRepresentative(
+  imgArray: string[]
+): Promise<string> {
+  try {
+    const LABArray = await computeAverageImageColor(imgArray);
+    const deltaArray = createDistanceMatrixDE(LABArray);
+    const avgArray = computeDeltaEAverage(deltaArray);
+    return getRepresentative(imgArray, avgArray, false);
   } catch (e) {
     console.log(e);
     return e.message;
