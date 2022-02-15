@@ -1,12 +1,8 @@
 <script lang="ts"> 
-  type HcNode = {
-    children:HcNode[],
-    nodeID:number
-  }
 
   import Hexagon from './minis/Hexagon.svelte'
   import ClusterInfoHover from './ClusterInfoHover.svelte'
-import BackendService from '../services/backendService';
+  import BackendService, { HcNode } from '../services/backendService';
 
   let parentNode:HcNode;
   let children:HcNode[];
