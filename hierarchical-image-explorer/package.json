@@ -6,9 +6,9 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --no-clear",
-    "format": "prettier --write ./src/**/*.{svelte,ts}",
-    "lint": "eslint ./src/**/*.{js,ts,svelte}",
-    "lint:fix": "eslint --fix ./src/**/*.{js,ts,svelte}",
+    "format": "prettier --write ./src/**/*.{ts,svelte}",
+    "lint": "eslint ./src/**/*.{ts,svelte}",
+    "lint:fix": "eslint --fix ./src/**/*.{ts,svelte}",
     "check": "svelte-check --ignore dist"
   },
   "devDependencies": {

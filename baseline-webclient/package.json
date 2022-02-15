@@ -5,9 +5,9 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "format": "prettier --write ./src/**/*.{svelte,ts}",
-    "lint": "eslint ./src/**/*.{js,ts,svelte}",
-    "lint:fix": "eslint --fix ./src/**/*.{js,ts,svelte}",
+    "format": "prettier --write ./src/**/*.{ts,svelte}",
+    "lint": "eslint ./src/**/*.{ts,svelte}",
+    "lint:fix": "eslint --fix ./src/**/*.{ts,svelte}",
     "start": "sirv public --no-clear",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
