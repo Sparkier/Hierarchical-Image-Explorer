@@ -1,5 +1,4 @@
 <script lang="ts">
-
   import { createEventDispatcher } from 'svelte';
 
   const dispatch = createEventDispatcher();
@@ -47,6 +46,10 @@
     stroke: black;
       stroke-width: 1;
   }
+  
+  text{
+    pointer-events: none;
+  }
 </style>
 
 <defs>
@@ -54,7 +57,7 @@
     <image width="{side*2}" height="{side*2}" xlink:href={image}/>
   </pattern>
 </defs>
-<g transform="scale({scale}) translate({x}, {y})" on:click={(e) => dispatchEvent("click",e)} on:mouseenter={(e) => dispatchEvent("mouseenter",e)} on:mouseleave={(e) => dispatchEvent("mouseleave",e)}> 
+<g transform="scale({scale}) translate({x}, {y})" on:click on:mouseenter on:mouseleave> 
   <polygon class="hex" points="{r} {br} {bl} {l} {tl} {tr}" fill="{fill}"/>
   <text transform="translate({side},{side})" 
       font-family="Verdana" 

@@ -15,8 +15,6 @@
   let hoverPosX:number = 0;
   let hoverPosY:number = 0;
 
-   
-
   export let hexaSide = 100;
   export let childPadding = 400;
   const svgElem:HTMLElement = document.getElementById("svg")!
@@ -31,6 +29,7 @@
     children = root.children;
     return root;
   }
+
   /**
    * Updates the nodes of the tree
    * @param newRootID new parent node
@@ -52,6 +51,7 @@
     const parent = await parentRes.json()
     updateTree(parent.nodeID)
   }
+
   /**
    * Returns the index of a node from children based on its nodeID
    * @param nodeID
@@ -84,6 +84,13 @@
     return `${serverAdress}hc/repImage/${nodeID}`
   }
 
+  function showClusterInfoHover(x:number, y:number ,nodeID:number){
+    hoverClusterID = nodeID
+    hoverPosX = x
+    hoverPosY = y
+    showHover = true;
+  }
+
   async function onMessageRecieved(message:{detail: {type:string,event:MouseEvent}}, nodeID:number=-1){
     switch (message.detail.type){
       case "click":
@@ -112,14 +119,18 @@
       <!-- parent creation -->
         <Hexagon side={hexaSide} x="{getSVGwidth()/2 - hexaSide }" 
           y={30}  text="{parentNode.nodeID.toString()}" color="limegreen"
-          on:message={async e => onMessageRecieved(e,parentNode.nodeID)}
+          on:click={async () => updateParent()}
+          on:mouseenter={(e) => showClusterInfoHover(e.clientX, e.clientY, parentNode.nodeID)}
+          on:mouseleave={() => showHover = false}
           image={getImage(parentNode.nodeID)}>
         </Hexagon>
     <!-- "svelte for" over the children -->  
     {#each children as child (child.nodeID)}
         <Hexagon side={hexaSide} x="{getChildPosition(getIndexOfNodeID(child.nodeID))}"
           y={300} text="{child.nodeID.toString()}" color="lightblue"
-            on:message={async e => onMessageRecieved(e,child.nodeID)}
+            on:click={async () => updateTree(child.nodeID)}
+            on:mouseenter={(e) => showClusterInfoHover(e.clientX, e.clientY, child.nodeID)}
+            on:mouseleave={() => showHover = false}
             image={getImage(child.nodeID)}>
         </Hexagon>
       <!-- line connections between parent and children -->
@@ -140,7 +151,6 @@
   </div>
   {/if}
 </div>
-
 
 <style>
   #svg {
