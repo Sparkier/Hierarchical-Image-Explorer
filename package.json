@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "build": "yarn workspaces run build",
     "format": "yarn workspaces run format",
     "lint": "yarn workspaces run lint",
     "lint:fix": "yarn workspaces run lint:fix",
