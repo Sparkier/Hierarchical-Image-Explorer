@@ -1,5 +1,4 @@
 <script lang="ts">
-
   import { createEventDispatcher } from 'svelte';
 
   const dispatch = createEventDispatcher();
@@ -33,18 +32,16 @@
   if(image == ""){
     fill = color;
   }
-
-  function handleClick(){
-    dispatch('message', {
-      text: 'Hello!'
-    });
-  }
 </script>
 
 <style>
   .hex{
     stroke: black;
       stroke-width: 1;
+  }
+  
+  text{
+    pointer-events: none;
   }
 </style>
 
@@ -53,7 +50,7 @@
     <image width="{side*2}" height="{side*2}" xlink:href={image}/>
   </pattern>
 </defs>
-<g transform="scale({scale}) translate({x}, {y})" on:click={handleClick}> 
+<g transform="scale({scale}) translate({x}, {y})" on:click on:mouseenter on:mouseleave> 
   <polygon class="hex" points="{r} {br} {bl} {l} {tl} {tr}" fill="{fill}"/>
   <text transform="translate({side},{side})" 
       font-family="Verdana" 
