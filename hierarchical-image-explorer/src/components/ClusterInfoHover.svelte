@@ -1,18 +1,14 @@
 <script lang="ts">
+import BackendService from '../services/backendService';
+
     export let clusterID:number
 
-    const serverAdress = "http://localhost:25679/"
-
     $: fetchClusterSize = (async () => {
-        const response = await fetch(`${serverAdress}hc/clusterinfo/size/${clusterID}`);
-        const clusterSize = await response.json();
-        return clusterSize;
+        return BackendService.getClusterSize(clusterID)
     })();
 
     $: fetchClusterLevel = (async () => {
-        const response = await fetch(`${serverAdress}hc/clusterinfo/level/${clusterID}`)
-        const clusterLevel = await response.json()
-        return clusterLevel;
+        return BackendService.getClusterLevel(clusterID)
     })();
 
 </script>
@@ -42,11 +38,11 @@
           </tr>
       </table>
     <hr/>
-    <img class="outlierImage" src={`${serverAdress}hc/repimage/distant/${clusterID}/0`} alt="outlier0"/>
-    <img class="centroidImage" src={`${serverAdress}hc/repimage/close/${clusterID}/1`} alt="centroid1"/>
-    <img class="centroidImage" src={`${serverAdress}hc/repimage/close/${clusterID}/0`} alt="centroid0"/>
-    <img class="centroidImage" src={`${serverAdress}hc/repimage/close/${clusterID}/2`} alt="centroid2"/>
-    <img class="outlierImage" src={`${serverAdress}hc/repimage/distant/${clusterID}/0`} alt="outlier1"/>
+    <img class="outlierImage" src={BackendService.getOutlierImageUrl(clusterID,1)} alt="outlier0"/>
+    <img class="centroidImage" src={BackendService.getCentroidImageUrl(clusterID,1)} alt="centroid1"/>
+    <img class="centroidImage" src={BackendService.getCentroidImageUrl(clusterID,0)} alt="centroid0"/>
+    <img class="centroidImage" src={BackendService.getCentroidImageUrl(clusterID,2)} alt="centroid2"/>
+    <img class="outlierImage" src={BackendService.getOutlierImageUrl(clusterID,1)} alt="outlier1"/>
 </div>
 
 <style>
@@ -81,7 +77,7 @@
     .centroidImage{
         width: 100px
     }
-    
+
     .outlierImage{
         width: 70px;
     }

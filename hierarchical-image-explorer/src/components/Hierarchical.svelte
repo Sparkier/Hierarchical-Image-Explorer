@@ -1,5 +1,4 @@
-<script lang="ts">
-  const serverAdress = "http://localhost:25679/"  
+<script lang="ts"> 
   type HcNode = {
     children:HcNode[],
     nodeID:number
@@ -7,6 +6,7 @@
 
   import Hexagon from './minis/Hexagon.svelte'
   import ClusterInfoHover from './ClusterInfoHover.svelte'
+import BackendService from '../services/backendService';
 
   let parentNode:HcNode;
   let children:HcNode[];
@@ -23,8 +23,7 @@
    * Gets the root of the tree and assigns it to the variables
   */
   async function setupTree():Promise<HcNode>{
-    const response = await fetch(`${serverAdress}hc/root`)
-    var root = await response.json()
+    var root = await BackendService.getRootCluster()
     parentNode = root;
     children = root.children;
     return root;
@@ -35,8 +34,7 @@
    * @param newRootID new parent node
    */
   async function updateTree(newRootID:number):Promise<HcNode>{
-    const response = await fetch(`${serverAdress}hc/nodes/${newRootID}`)
-    var node = await response.json()
+    var node = await BackendService.getCluster(newRootID)
     parentNode = node;
     children = node.children;
     return node;
@@ -47,8 +45,7 @@
    * For going up in the tree structure an additional call to the backend is needed to get the parent node of the current parent
   */
   async function updateParent():Promise<void>{
-    const parentRes = await fetch(`${serverAdress}hc/parent/${parentNode.nodeID}`)
-    const parent = await parentRes.json()
+    const parent = await BackendService.getClusterParent(parentNode.nodeID)
     updateTree(parent.nodeID)
   }
 
@@ -75,38 +72,12 @@
   function getChildPosition(childIndex:number):number{
     return childPadding + (getSVGwidth()-2*childPadding)*(childIndex/(children.length-1)) -hexaSide
   }
-  
-  /**
-   * Returns the adress of the endpoint by nodeID
-   * @param nodeID
-  */
-  function getImage(nodeID:number):string{
-    return `${serverAdress}hc/repImage/${nodeID}`
-  }
 
   function showClusterInfoHover(x:number, y:number ,nodeID:number){
     hoverClusterID = nodeID
     hoverPosX = x
     hoverPosY = y
     showHover = true;
-  }
-
-  async function onMessageRecieved(message:{detail: {type:string,event:MouseEvent}}, nodeID:number=-1){
-    switch (message.detail.type){
-      case "click":
-        if(nodeID == parentNode.nodeID) updateParent()
-        else updateTree(nodeID)
-        break;
-      case "mouseenter":
-        hoverClusterID = nodeID
-        hoverPosX = message.detail.event.clientX
-        hoverPosY = message.detail.event.clientY
-        showHover = true;
-        break;
-      case "mouseleave":
-        showHover = false;
-        break;
-    }
   }
   
 </script>
@@ -122,7 +93,7 @@
           on:click={async () => updateParent()}
           on:mouseenter={(e) => showClusterInfoHover(e.clientX, e.clientY, parentNode.nodeID)}
           on:mouseleave={() => showHover = false}
-          image={getImage(parentNode.nodeID)}>
+          image={BackendService.getCentroidImageUrl(parentNode.nodeID)}>
         </Hexagon>
     <!-- "svelte for" over the children -->  
     {#each children as child (child.nodeID)}
@@ -131,7 +102,7 @@
             on:click={async () => updateTree(child.nodeID)}
             on:mouseenter={(e) => showClusterInfoHover(e.clientX, e.clientY, child.nodeID)}
             on:mouseleave={() => showHover = false}
-            image={getImage(child.nodeID)}>
+            image={BackendService.getCentroidImageUrl(child.nodeID)}>
         </Hexagon>
       <!-- line connections between parent and children -->
       <line x1="{getSVGwidth()/2}" y1= {4+hexaSide*2} 
