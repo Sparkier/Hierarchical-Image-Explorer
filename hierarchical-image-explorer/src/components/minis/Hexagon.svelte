@@ -32,13 +32,6 @@
   if(image == ""){
     fill = color;
   }
-
-  function dispatchEvent(type:string, event:MouseEvent){
-    dispatch('message', {
-      "type":type,
-      "event":event
-    });
-  }
 </script>
 
 <style>
