@@ -16,7 +16,6 @@ module.exports = {
     sourceType: "module",
     tsconfigRootDir: __dirname,
     project: ['./tsconfig.json'],
-    extraFileExtensions: ['.svelte']
   },
   overrides: [
     {
