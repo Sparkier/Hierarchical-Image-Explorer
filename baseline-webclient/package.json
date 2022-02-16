@@ -5,9 +5,9 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "format": "prettier --write ./src/**/*.{svelte,ts}",
-    "lint": "eslint ./src/**/*.{js,ts,svelte}",
-    "lint:fix": "eslint --fix ./src/**/*.{js,ts,svelte}",
+    "format": "prettier --write ./src/**/*.{ts,svelte}",
+    "lint": "eslint ./src/**/*.{ts,svelte}",
+    "lint:fix": "eslint --fix ./src/**/*.{ts,svelte}",
     "start": "sirv public --no-clear",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
@@ -27,12 +27,21 @@
     "svelte-check": "^2.0.0",
     "svelte-preprocess": "^4.0.0",
     "tslib": "^2.0.0",
-    "typescript": "^4.0.0"
+    "typescript": "^4.5.2",
+    "@typescript-eslint/parser": "^5.12.0",
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@babel/eslint-parser": "^7.16.3",
+    "eslint": "^8.9.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.25.3",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-promise": "^5.2.0",
+    "eslint-plugin-svelte3": "^3.4.0"
   },
   "dependencies": {
     "axion": "^0.1.0",
     "axios": "^0.24.0",
-    "eslint": "^8.4.1",
     "sirv-cli": "^1.0.0"
   }
 }

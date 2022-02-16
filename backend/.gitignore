@@ -1,7 +1,7 @@
 node_modules/
 data/
 !data/.gitkeep
-out/
+build/
 tsconfig.tsbuildinfo
 tests/img/
 

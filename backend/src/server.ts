@@ -4,20 +4,16 @@ import cors from 'cors';
 import fs from 'fs';
 import * as csv from 'fast-csv';
 import path from 'path';
+import HierarchicalClusterDataProvider from './hierarchicalClusterDataProvider';
 
 const dataPath = './data/mnist/';
 
 const port = 25679;
 
-console.log('server starting');
-
-// app initiation
+const dataFrame: Map<string, mnistDatum> = new Map();
 const app = express();
-app.use(bodyParser.json());
-app.use(cors());
-app.use(express.urlencoded({ extended: true }));
-
-console.log('server is alive!');
+const hcDataProvider: HierarchicalClusterDataProvider =
+  new HierarchicalClusterDataProvider(`${dataPath}/ClusteringTree.json`);
 
 type mnistDatum = {
   file_path: string;
@@ -30,21 +26,43 @@ type mnistDatumWithID = {
   label: number;
 };
 
-// load data
-const dataFrame: Map<string, mnistDatum> = new Map();
-fs.createReadStream(`${dataPath}mnist_test_swg.csv`)
-  .pipe(csv.parse({ headers: true }))
-  .on('error', (e) => console.log(e))
-  .on('data', (row) =>
-    dataFrame.set(row.image_id, { file_path: row.file_path, label: row.label })
-  )
-  .on('end', (rowCount) => {
-    if (dataFrame.size == 0) throw new Error('Dataset empty');
-    console.log('CSV read with ' + rowCount + ' rows');
+startServer();
+function startServer() {
+  console.log('server starting');
+
+  app.use(bodyParser.json());
+  app.use(cors());
+  app.use(express.urlencoded({ extended: true }));
+
+  // load data
+  setUpData();
+
+  // start actual server
+  app.listen(port, () => {
+    console.log('Server started! on port ' + port);
   });
+}
+
+function setUpData() {
+  // read and parse annotation file
+  fs.createReadStream(`${dataPath}mnist_test_swg.csv`)
+    .pipe(csv.parse({ headers: true }))
+    .on('error', (e) => console.log(e))
+    .on('data', (row) =>
+      dataFrame.set(row.image_id, {
+        file_path: row.file_path,
+        label: row.label,
+      })
+    )
+    .on('end', (rowCount: number) => {
+      if (dataFrame.size == 0) throw new Error('Dataset empty');
+      console.log('CSV read with ' + rowCount + ' rows');
+    });
+  // setup hierarchical clustering data
+}
 
 // functions
-function getPathFromId(id): string {
+function getPathFromId(id: string): string {
   return getDatumByID(id).file_path;
 }
 
@@ -52,7 +70,7 @@ function combineDatumWithID(datum: mnistDatum, id: string): mnistDatumWithID {
   return { image_id: id, file_path: datum.file_path, label: datum.label };
 }
 
-function getDatumByID(id): mnistDatumWithID {
+function getDatumByID(id: string): mnistDatumWithID {
   const result = dataFrame.get(id);
   if (result == undefined) throw new Error('ID not found');
   else return combineDatumWithID(result, id);
@@ -69,7 +87,7 @@ app.get('/', (req, res) => {
 
 app.get('/data/images/:id', (req, res) => {
   const file_path = getPathFromId(req.params.id);
-  const absolutPath = path.join(__dirname, '../') + file_path;
+  const absolutPath = path.join(__dirname, '../', file_path);
   res.sendFile(absolutPath);
 });
 
@@ -77,13 +95,13 @@ app.get('/data/annotations/:id', (req, res) => {
   res.send(getDatumByID(req.params.id));
 });
 
-app.get('/data/allIds', (req, res) => {
+app.get('/data/allids', (req, res) => {
   res.send(getAllIds());
 });
 
 app.get('/data/label/:id', (req, res) => {
   const filteredResult = [...dataFrame.entries()].filter(
-    (d) => d[1].label === req.params.id
+    (d) => d[1].label === Number.parseInt(req.params.id)
   );
   res.send(filteredResult.map((row) => row[0]));
 });
@@ -91,8 +109,8 @@ app.get('/data/label/:id', (req, res) => {
 app.get('/annotations/pages/:id', (req, res) => {
   const batchSize = 20; // rows per page
   const result = [...dataFrame].slice(
-    req.params.id * batchSize,
-    req.params.id * batchSize + batchSize
+    Number.parseInt(req.params.id) * batchSize,
+    Number.parseInt(req.params.id) * batchSize + batchSize
   );
   res.send(
     result.map((e) => {
@@ -105,7 +123,64 @@ app.get('/data/heads', (req, res) => {
   res.send(Object.keys(getDatumByID(getAllIds()[0])));
 });
 
-// start actual server
-app.listen(port, () => {
-  console.log('Server started! on port ' + port);
+// ----------------------------------------- hierarchical clustering
+
+app.get('/hc/nodes/:id', (req, res) => {
+  res.send(hcDataProvider.getNode(Number.parseInt(req.params.id)));
+});
+
+app.get('/hc/allchildids/:id', (req, res) => {
+  res.send(hcDataProvider.getAllIDs(Number.parseInt(req.params.id)));
+});
+
+app.get('/hc/root', (req, res) => {
+  res.send(hcDataProvider.root);
+});
+
+app.get('/hc/parent/:id', (req, res) => {
+  res.send(hcDataProvider.getParent(Number.parseInt(req.params.id)));
+});
+
+// for testing random image
+app.get('/hc/repimage/:id', (req, res) => {
+  const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
+  const file_path = getPathFromId(
+    dataIDS[Math.floor(Math.random() * dataIDS.length)]
+  );
+  const absolutPath = path.join(__dirname, '../', file_path);
+  res.sendFile(absolutPath);
+});
+
+// for testing random image
+app.get('/hc/repimage/close/:id/:rank', (req, res) => {
+  const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
+  const file_path = getPathFromId(
+    dataIDS[Math.floor(Math.random() * dataIDS.length)]
+  );
+  const absolutPath = path.join(__dirname, '../', file_path);
+  res.sendFile(absolutPath);
+});
+
+// for testing random image
+app.get('/hc/repimage/distant/:id/:rank', (req, res) => {
+  const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
+  const file_path = getPathFromId(
+    dataIDS[Math.floor(Math.random() * dataIDS.length)]
+  );
+  const absolutPath = path.join(__dirname, '../', file_path);
+  res.sendFile(absolutPath);
+});
+
+app.get('/hc/clusterinfo/size/:id', (req, res) => {
+  res.send(
+    hcDataProvider.getAllIDs(Number.parseInt(req.params.id)).length.toString()
+  );
+});
+
+app.get('/hc/clusterinfo/level/:id', (req, res) => {
+  res.send(
+    hcDataProvider
+      .getHierarchicalLevel(Number.parseInt(req.params.id))
+      .toString()
+  );
 });

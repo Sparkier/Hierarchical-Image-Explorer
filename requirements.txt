@@ -8,3 +8,8 @@ toml==0.10.2
 typed-ast==1.5.1
 typing_extensions==4.0.1
 wrapt==1.13.3
+
+# backend requirements
+Pillow
+numpy
+sklearn
