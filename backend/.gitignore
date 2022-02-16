@@ -3,6 +3,6 @@ data/
 !data/.gitkeep
 out/
 tsconfig.tsbuildinfo
-
+tests/img/
 
 .DS_Store

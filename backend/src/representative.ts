@@ -47,13 +47,12 @@ export class LAB {
 async function computeAverageImageColor(
   imgPathArray: string[]
 ): Promise<LAB[]> {
-  const LABArray: LAB[] = [];
-  for (let i = 0; i < imgPathArray.length; i++) {
-    const colorValue = await ColorThief.getColor(imgPathArray[i]);
-    const colorValueLAB = LAB.fromRGB(colorValue);
-    LABArray.push(colorValueLAB);
-  }
-  return LABArray;
+  return await Promise.all(
+    imgPathArray.map(async (imgPath: string) => {
+      const colorValue = await ColorThief.getColor(imgPath);
+      return LAB.fromRGB(colorValue);
+    })
+  );
 }
 
 /**
