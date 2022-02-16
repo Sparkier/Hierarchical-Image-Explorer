@@ -3,30 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "cd hierarchical-image-explorer && rollup -c",
-    "dev": "cd hierarchical-image-explorer && rollup -c -w",
-    "start": "cd hierarchical-image-explorer && sirv public --no-clear",
-    "format": "cd hierarchical-image-explorer && prettier --write ./src/**/*.{svelte,ts}",
-    "lint": "eslint . --ext .svelte,.ts && yarn workspaces run check",
-    "lint:fix": "cd hierarchical-image-explorer && eslint --fix ./src/**/*.{js,ts,svelte} && cd ../baseline-webclient && eslint --fix ./src/**/*.{js,ts,svelte}",
-    "check": "cd hierarchical-image-explorer && svelte-check --tsconfig ./tsconfig.json"
+    "build": "yarn workspaces run build",
+    "format": "yarn workspaces run format",
+    "lint": "yarn workspaces run lint",
+    "lint:fix": "yarn workspaces run lint:fix",
+    "check": "yarn workspaces run check"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.16.3",
-    "@tsconfig/svelte": "^2.0.1",
-    "@typescript-eslint/eslint-plugin": "^4.33.0",
-    "@typescript-eslint/parser": "^4.33.0",
     "commitizen": "^4.2.4",
     "cz-conventional-changelog": "3.3.0",
-    "eslint": "^7.32.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-import": "^2.25.3",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^4.0.0",
-    "eslint-plugin-promise": "^5.2.0",
-    "eslint-plugin-svelte3": "^3.2.1",
-    "semantic-release": "^18.0.0",
-    "typescript": "^4.5.2"
+    "semantic-release": "^18.0.0"
   },
   "config": {
     "commitizen": {
@@ -37,6 +23,5 @@
     "hierarchical-image-explorer",
     "baseline-webclient",
     "backend"
-  ],
-  "include": ["hierarchical-image-explorer/src/**/*", "baseline-webclient/src/**/*", "backend/src/**/*"]
+  ]
 }
