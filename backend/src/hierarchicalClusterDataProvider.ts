@@ -1,5 +1,15 @@
 import fs from 'fs';
 
+type clustersDatum = {
+  clusterID: number;
+  ID: string;
+};
+
+type clusterTreeNodeDatum = {
+  node_id: number;
+  children: number[];
+};
+
 export default class HierarchicalClusterDataProvider {
   public root: HcNode; // root of the tree
   private nodes: [HcNode?]; // all nodes of the tree
@@ -13,7 +23,7 @@ export default class HierarchicalClusterDataProvider {
   public constructor(filePath: string) {
     const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
-    data.clusters.forEach((entry) =>
+    data.clusters.forEach((entry: clustersDatum) =>
       this.leafNodes.set(entry.clusterID, entry.ID)
     );
 
@@ -27,14 +37,14 @@ export default class HierarchicalClusterDataProvider {
 
     console.log('Implicit Nodes created');
     // create nodes
-    data.tree.forEach((node) => {
+    data.tree.forEach((node: clusterTreeNodeDatum) => {
       this.nodes.push(new HcNode(node.node_id));
     });
 
     this.root = this.nodes[this.nodes.length - 1] ?? new HcNode(-1);
     // create connections
     console.log('Starting Node Population');
-    data.tree.forEach((dataNode) => {
+    data.tree.forEach((dataNode: clusterTreeNodeDatum) => {
       const node = this.getNode(dataNode.node_id);
       for (const childNode of dataNode.children) {
         node.addChild(this.getNode(childNode));

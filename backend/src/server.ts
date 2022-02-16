@@ -54,7 +54,7 @@ function setUpData() {
         label: row.label,
       })
     )
-    .on('end', (rowCount) => {
+    .on('end', (rowCount: number) => {
       if (dataFrame.size == 0) throw new Error('Dataset empty');
       console.log('CSV read with ' + rowCount + ' rows');
     });
@@ -62,7 +62,7 @@ function setUpData() {
 }
 
 // functions
-function getPathFromId(id): string {
+function getPathFromId(id: string): string {
   return getDatumByID(id).file_path;
 }
 
@@ -70,7 +70,7 @@ function combineDatumWithID(datum: mnistDatum, id: string): mnistDatumWithID {
   return { image_id: id, file_path: datum.file_path, label: datum.label };
 }
 
-function getDatumByID(id): mnistDatumWithID {
+function getDatumByID(id: string): mnistDatumWithID {
   const result = dataFrame.get(id);
   if (result == undefined) throw new Error('ID not found');
   else return combineDatumWithID(result, id);
@@ -87,7 +87,7 @@ app.get('/', (req, res) => {
 
 app.get('/data/images/:id', (req, res) => {
   const file_path = getPathFromId(req.params.id);
-  const absolutPath = path.join(__dirname, '../',file_path);
+  const absolutPath = path.join(__dirname, '../', file_path);
   res.sendFile(absolutPath);
 });
 
@@ -101,7 +101,7 @@ app.get('/data/allids', (req, res) => {
 
 app.get('/data/label/:id', (req, res) => {
   const filteredResult = [...dataFrame.entries()].filter(
-    (d) => d[1].label === req.params.id
+    (d) => d[1].label === Number.parseInt(req.params.id)
   );
   res.send(filteredResult.map((row) => row[0]));
 });
@@ -109,8 +109,8 @@ app.get('/data/label/:id', (req, res) => {
 app.get('/annotations/pages/:id', (req, res) => {
   const batchSize = 20; // rows per page
   const result = [...dataFrame].slice(
-    req.params.id * batchSize,
-    req.params.id * batchSize + batchSize
+    Number.parseInt(req.params.id) * batchSize,
+    Number.parseInt(req.params.id) * batchSize + batchSize
   );
   res.send(
     result.map((e) => {
@@ -126,11 +126,11 @@ app.get('/data/heads', (req, res) => {
 // ----------------------------------------- hierarchical clustering
 
 app.get('/hc/nodes/:id', (req, res) => {
-  res.send(hcDataProvider.getNode(req.params.id));
+  res.send(hcDataProvider.getNode(Number.parseInt(req.params.id)));
 });
 
 app.get('/hc/allchildids/:id', (req, res) => {
-  res.send(hcDataProvider.getAllIDs(req.params.id));
+  res.send(hcDataProvider.getAllIDs(Number.parseInt(req.params.id)));
 });
 
 app.get('/hc/root', (req, res) => {
@@ -138,12 +138,12 @@ app.get('/hc/root', (req, res) => {
 });
 
 app.get('/hc/parent/:id', (req, res) => {
-  res.send(hcDataProvider.getParent(req.params.id));
+  res.send(hcDataProvider.getParent(Number.parseInt(req.params.id)));
 });
 
 // for testing random image
 app.get('/hc/repimage/:id', (req, res) => {
-  const dataIDS = hcDataProvider.getAllIDs(req.params.id);
+  const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
   const file_path = getPathFromId(
     dataIDS[Math.floor(Math.random() * dataIDS.length)]
   );
@@ -153,7 +153,7 @@ app.get('/hc/repimage/:id', (req, res) => {
 
 // for testing random image
 app.get('/hc/repimage/close/:id/:rank', (req, res) => {
-  const dataIDS = hcDataProvider.getAllIDs(req.params.id);
+  const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
   const file_path = getPathFromId(
     dataIDS[Math.floor(Math.random() * dataIDS.length)]
   );
@@ -163,7 +163,7 @@ app.get('/hc/repimage/close/:id/:rank', (req, res) => {
 
 // for testing random image
 app.get('/hc/repimage/distant/:id/:rank', (req, res) => {
-  const dataIDS = hcDataProvider.getAllIDs(req.params.id);
+  const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
   const file_path = getPathFromId(
     dataIDS[Math.floor(Math.random() * dataIDS.length)]
   );
@@ -172,9 +172,15 @@ app.get('/hc/repimage/distant/:id/:rank', (req, res) => {
 });
 
 app.get('/hc/clusterinfo/size/:id', (req, res) => {
-  res.send(hcDataProvider.getAllIDs(req.params.id).length.toString());
+  res.send(
+    hcDataProvider.getAllIDs(Number.parseInt(req.params.id)).length.toString()
+  );
 });
 
 app.get('/hc/clusterinfo/level/:id', (req, res) => {
-  res.send(hcDataProvider.getHierarchicalLevel(req.params.id).toString());
+  res.send(
+    hcDataProvider
+      .getHierarchicalLevel(Number.parseInt(req.params.id))
+      .toString()
+  );
 });
