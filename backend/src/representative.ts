@@ -15,7 +15,7 @@ export class LAB {
    * @param rgb Array containing RGB values of an image
    * @returns Array containing the LAB values
    */
-  public static fromRGB(rgb: number[]): LAB {
+  public static rgb2lab(rgb: number[]): LAB {
     let r = rgb[0] / 255,
       g = rgb[1] / 255,
       b = rgb[2] / 255,
@@ -50,7 +50,7 @@ async function computeAverageImageColor(
   return await Promise.all(
     imgPathArray.map(async (imgPath: string) => {
       const colorValue = await ColorThief.getColor(imgPath);
-      return LAB.fromRGB(colorValue);
+      return LAB.rgb2lab(colorValue);
     })
   );
 }
