@@ -1,4 +1,4 @@
-import express from 'express'
+import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import fs from 'fs';
@@ -54,7 +54,7 @@ function setUpData() {
         label: row.label,
       })
     )
-    .on('end', (rowCount:number) => {
+    .on('end', (rowCount: number) => {
       if (dataFrame.size == 0) throw new Error('Dataset empty');
       console.log('CSV read with ' + rowCount + ' rows');
     });
@@ -62,7 +62,7 @@ function setUpData() {
 }
 
 // functions
-function getPathFromId(id:string): string {
+function getPathFromId(id: string): string {
   return getDatumByID(id).file_path;
 }
 
@@ -70,7 +70,7 @@ function combineDatumWithID(datum: mnistDatum, id: string): mnistDatumWithID {
   return { image_id: id, file_path: datum.file_path, label: datum.label };
 }
 
-function getDatumByID(id:string): mnistDatumWithID {
+function getDatumByID(id: string): mnistDatumWithID {
   const result = dataFrame.get(id);
   if (result == undefined) throw new Error('ID not found');
   else return combineDatumWithID(result, id);
@@ -87,7 +87,7 @@ app.get('/', (req, res) => {
 
 app.get('/data/images/:id', (req, res) => {
   const file_path = getPathFromId(req.params.id);
-  const absolutPath = path.join(__dirname, '../',file_path);
+  const absolutPath = path.join(__dirname, '../', file_path);
   res.sendFile(absolutPath);
 });
 
@@ -172,9 +172,15 @@ app.get('/hc/repimage/distant/:id/:rank', (req, res) => {
 });
 
 app.get('/hc/clusterinfo/size/:id', (req, res) => {
-  res.send(hcDataProvider.getAllIDs(Number.parseInt(req.params.id)).length.toString());
+  res.send(
+    hcDataProvider.getAllIDs(Number.parseInt(req.params.id)).length.toString()
+  );
 });
 
 app.get('/hc/clusterinfo/level/:id', (req, res) => {
-  res.send(hcDataProvider.getHierarchicalLevel(Number.parseInt(req.params.id)).toString());
+  res.send(
+    hcDataProvider
+      .getHierarchicalLevel(Number.parseInt(req.params.id))
+      .toString()
+  );
 });

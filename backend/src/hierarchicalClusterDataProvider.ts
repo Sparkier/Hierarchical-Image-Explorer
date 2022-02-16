@@ -6,17 +6,15 @@ type clustersDatum = {
 };
 
 type clusterTreeNodeDatum = {
-  node_id: number,
-  children: number[]
-}
+  node_id: number;
+  children: number[];
+};
 
 export default class HierarchicalClusterDataProvider {
   public root: HcNode; // root of the tree
   private nodes: [HcNode?]; // all nodes of the tree
   private leafNodes: Map<number, string> = new Map(); // all leaf nodes in this case all nodes containing dataIDs
   private indexOffset: number; // first index of none-leaf node in nodes which is also the number of leafNodes
-
-
 
   /**
    * Loads the data from the given filePath and converts it to a tree structure
@@ -25,7 +23,7 @@ export default class HierarchicalClusterDataProvider {
   public constructor(filePath: string) {
     const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
-    data.clusters.forEach((entry:clustersDatum) =>
+    data.clusters.forEach((entry: clustersDatum) =>
       this.leafNodes.set(entry.clusterID, entry.ID)
     );
 
@@ -39,14 +37,14 @@ export default class HierarchicalClusterDataProvider {
 
     console.log('Implicit Nodes created');
     // create nodes
-    data.tree.forEach((node:clusterTreeNodeDatum) => {
+    data.tree.forEach((node: clusterTreeNodeDatum) => {
       this.nodes.push(new HcNode(node.node_id));
     });
 
     this.root = this.nodes[this.nodes.length - 1] ?? new HcNode(-1);
     // create connections
     console.log('Starting Node Population');
-    data.tree.forEach((dataNode:clusterTreeNodeDatum) => {
+    data.tree.forEach((dataNode: clusterTreeNodeDatum) => {
       const node = this.getNode(dataNode.node_id);
       for (const childNode of dataNode.children) {
         node.addChild(this.getNode(childNode));
