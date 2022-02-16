@@ -1,4 +1,4 @@
-import * as ColorThief from 'colorthief';
+const ColorThief = require('colorthief');
 import DeltaE = require('delta-e');
 import * as SSIM from 'ssim.js';
 import * as fs from 'fs';
@@ -186,13 +186,8 @@ function getRepresentative(
  * @returns path to BW image with the highest overall match
  */
 export function bwImageRepresentative(imgArrayBW: string[]): string {
-  try {
-    const avgArray = computeSSIMAverage(createDistanceMatrixSSIM(imgArrayBW));
-    return getRepresentative(imgArrayBW, avgArray, true);
-  } catch (e) {
-    console.log(e);
-    return e.message;
-  }
+  const avgArray = computeSSIMAverage(createDistanceMatrixSSIM(imgArrayBW));
+  return getRepresentative(imgArrayBW, avgArray, true);
 }
 
 /**
@@ -203,13 +198,8 @@ export function bwImageRepresentative(imgArrayBW: string[]): string {
 export async function coloredImageRepresentative(
   imgArray: string[]
 ): Promise<string> {
-  try {
-    const LABArray = await computeAverageImageColor(imgArray);
-    const deltaArray = createDistanceMatrixDE(LABArray);
-    const avgArray = computeDeltaEAverage(deltaArray);
-    return getRepresentative(imgArray, avgArray, false);
-  } catch (e) {
-    console.log(e);
-    return e.message;
-  }
+  const LABArray = await computeAverageImageColor(imgArray);
+  const deltaArray = createDistanceMatrixDE(LABArray);
+  const avgArray = computeDeltaEAverage(deltaArray);
+  return getRepresentative(imgArray, avgArray, false);
 }
