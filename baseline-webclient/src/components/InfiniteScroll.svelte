@@ -1,49 +1,46 @@
 <script>
-  import { onMount, onDestroy, createEventDispatcher } from "svelte";
+  import { onDestroy, createEventDispatcher } from 'svelte';
 
-  export let threshold = 0
-  export let horizontal = false
-  export let elementScroll
-  export let hasMore = true
+  export let threshold = 0;
+  export let horizontal = false;
+  export let elementScroll;
+  export let hasMore = true;
 
-  const dispatch = createEventDispatcher()
-  let isLoadMore = false
-  let component
+  const dispatch = createEventDispatcher();
+  let isLoadMore = false;
+  let component;
 
   $: {
     if (component || elementScroll) {
-      const element = elementScroll ? elementScroll : component.parentNode
-
-      element.addEventListener("scroll", onScroll)
-      element.addEventListener("resize", onScroll)
+      const element = elementScroll ? elementScroll : component.parentNode;
+      element.addEventListener('scroll', onScroll);
+      element.addEventListener('resize', onScroll);
     }
   }
 
   const onScroll = (e) => {
-    const element = e.target
-
     const offset = horizontal
       ? e.target.scrollWidth - e.target.clientWidth - e.target.scrollLeft
-      : e.target.scrollHeight - e.target.clientHeight - e.target.scrollTop
+      : e.target.scrollHeight - e.target.clientHeight - e.target.scrollTop;
 
     if (offset <= threshold) {
       if (!isLoadMore && hasMore) {
-        dispatch("loadMore")
+        dispatch('loadMore');
       }
-      isLoadMore = true
+      isLoadMore = true;
     } else {
-      isLoadMore = false
+      isLoadMore = false;
     }
-  }
+  };
 
   onDestroy(() => {
     if (component || elementScroll) {
-      const element = elementScroll ? elementScroll : component.parentNode
+      const element = elementScroll ? elementScroll : component.parentNode;
 
-      element.removeEventListener("scroll", null)
-      element.removeEventListener("resize", null)
+      element.removeEventListener('scroll', null);
+      element.removeEventListener('resize', null);
     }
-  })
+  });
 </script>
 
 <div bind:this={component} style="width:0px" />

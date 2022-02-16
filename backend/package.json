@@ -8,7 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write ./src/**/*.ts",
     "lint": "eslint ./src/**/*.ts",
-    "lint:fix": "eslint --fix ./src/**/*.ts"
+    "lint:fix": "eslint --fix ./src/**/*.ts",
+    "check": "echo \"Svelte-check is not configured for backend, skipping.\""
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.16.3",
