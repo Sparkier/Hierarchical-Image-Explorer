@@ -1,8 +1,8 @@
-const ColorThief = require('colorthief');
 import DeltaE = require('delta-e');
 import * as SSIM from 'ssim.js';
 import * as fs from 'fs';
 import * as jpeg from 'jpeg-js';
+import ColorThief from 'colorthief';
 import { ImageData } from 'ssim.js/dist/types';
 
 //Find the representative image by using the image color
