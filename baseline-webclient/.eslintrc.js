@@ -24,7 +24,6 @@ module.exports = {
     },
   ],
   rules: {
-    '@typescript-eslint/no-non-null-assertion': 'off',
   },
   settings: {
     "svelte3/typescript": require("typescript"),
