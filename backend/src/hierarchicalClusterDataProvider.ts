@@ -74,8 +74,11 @@ export default class HierarchicalClusterDataProvider {
   public nodeIDtoDataID(nodeID: number): string {
     if (this.leafNodes == null) throw new Error(`Undefined leaf node`);
     else {
-      if (this.leafNodes.has(nodeID)) return this.leafNodes.get(nodeID)!;
-      else throw new Error(`NodeID not a leaf node: ${nodeID}`);
+      if (this.leafNodes.has(nodeID)) {
+        const toReturn = this.leafNodes.get(nodeID);
+        if (toReturn) return toReturn;
+      }
+      throw new Error(`NodeID not a leaf node: ${nodeID}`);
     }
   }
 
@@ -91,16 +94,18 @@ export default class HierarchicalClusterDataProvider {
 
     while (nodePool.length > 0) {
       const node = nodePool.pop();
-      if (node!.isLeaf()) toReturn.push(this.nodeIDtoDataID(node!.nodeID));
-      else nodePool = nodePool.concat(node!.getChildren());
+      if (!node) continue;
+      if (node.isLeaf()) toReturn.push(this.nodeIDtoDataID(node.nodeID));
+      else nodePool = nodePool.concat(node.getChildren());
     }
     return toReturn;
   }
 
   public getParent(nodeID: number): HcNode {
     for (const node of this.nodes) {
-      if (node?.getChildren().filter((n) => n.nodeID == nodeID).length != 0) {
-        return node!;
+      if (!node) continue;
+      if (node.getChildren().filter((n) => n.nodeID == nodeID).length != 0) {
+        return node;
       }
     }
 
