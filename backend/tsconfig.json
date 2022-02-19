@@ -15,5 +15,11 @@
   "exclude": [
     "node_modules",
     "<node_internals>/**",
-  ]
+  ],
+  "files":[
+    "src/index.d.ts"
+  ],
+  "ts-node": {
+    "files":true
+  }
 }
