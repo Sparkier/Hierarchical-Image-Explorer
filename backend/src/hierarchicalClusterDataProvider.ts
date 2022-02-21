@@ -74,8 +74,8 @@ export default class HierarchicalClusterDataProvider {
   public nodeIDtoDataID(nodeID: number): string {
     if (this.leafNodes == null) throw new Error(`Undefined leaf node`);
     else {
-      const leaf = this.leafNodes.get(nodeID)
-      if(leaf) return leaf;
+      const leaf = this.leafNodes.get(nodeID);
+      if (leaf) return leaf;
       else throw new Error(`NodeID not a leaf node: ${nodeID}`);
     }
   }
