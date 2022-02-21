@@ -28,7 +28,7 @@ export class LAB {
     b = b > 0.04045 ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
 
     x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
-    y = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 1.0;
+    y = r * 0.2126 + g * 0.7152 + b * 0.0722;
     z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
 
     x = x > 0.008856 ? Math.pow(x, 1 / 3) : 7.787 * x + 16 / 116;
@@ -77,12 +77,11 @@ function createDistanceMatrixDE(LABArray: LAB[]): number[][] {
  * @returns Array containing the delta-e2000 average of the images
  */
 function computeDeltaEAverage(DeltaArray: number[][]): number[] {
-  const averageArray: number[] = DeltaArray.map((subArray) => {
+  return DeltaArray.map((subArray) => {
     return (
       subArray.reduce((partialSum, a) => partialSum + a, 0) / subArray.length
     );
   });
-  return averageArray;
 }
 
 //Find the representative image by using the structural similarity of an image
@@ -153,53 +152,98 @@ function imageDataFromUintArrRet(input: jpeg.UintArrRet): ImageData {
  * @returns Array containing the average ssim values
  */
 function computeSSIMAverage(mssimArray: number[][]): number[] {
-  const averageArray: number[] = mssimArray.map((subArray) => {
+  return mssimArray.map((subArray) => {
     return (
       subArray.reduce((partialSum, a) => partialSum + a, 0) / subArray.length
     );
   });
-  return averageArray;
-}
-
-/**
- * Determines the best suited image representative by choosing the lowest delta-e or the highest ssim value
- * @param imgArray Array containinng the image paths
- * @param averageArray Array containing the average delta-e/ssim values of the images
- * @param bwImages flag to set whether the lowest delta-e or the highest ssim is choosen
- * @returns path to image with the highest overall match
- */
-function getRepresentative(
-  imgArray: string[],
-  averageArray: number[],
-  bwImages: boolean
-): string {
-  if (bwImages) {
-    return imgArray[averageArray.indexOf(Math.max(...averageArray))];
-  } else {
-    return imgArray[averageArray.indexOf(Math.min(...averageArray))];
-  }
 }
 
 /**
  * Exported function containing all helper functions to find a BW image representative
- * @param imgArrayBW Array containinng the image paths
+ * @param imgArrayBW Array containing the image paths
+ * @param numberOfRep Number of representatives
  * @returns path to BW image with the highest overall match
  */
-export function bwImageRepresentative(imgArrayBW: string[]): string {
+export function bwImageRepresentative(
+  imgArrayBW: string[],
+  numberOfRep: number
+): string[] {
   const avgArray = computeSSIMAverage(createDistanceMatrixSSIM(imgArrayBW));
-  return getRepresentative(imgArrayBW, avgArray, true);
+  return getTopRepresentatives(imgArrayBW, avgArray, true, numberOfRep);
 }
 
 /**
  * Exported function containing all helper functions to find a colored image representative
- * @param imgArray Array containinng the image paths
+ * @param imgArray Array containing the image paths
+ * @param numberOfRep Number of representatives
  * @returns path to colored image with the highest overall match
  */
 export async function coloredImageRepresentative(
-  imgArray: string[]
-): Promise<string> {
+  imgArray: string[],
+  numberOfRep: number
+): Promise<string[]> {
   const LABArray = await computeAverageImageColor(imgArray);
   const deltaArray = createDistanceMatrixDE(LABArray);
   const avgArray = computeDeltaEAverage(deltaArray);
-  return getRepresentative(imgArray, avgArray, false);
+  return getTopRepresentatives(imgArray, avgArray, false, numberOfRep);
+}
+
+/**
+ * Determines the best suited image representative by choosing the lowest delta-e or the highest ssim value
+ * @param imgArray Array containing the image paths
+ * @param averageArray Array containing the average delta-e/ssim values of the images
+ * @param topRep flag to set whether the lowest delta-e or the highest ssim is chosen
+ * (best match for Delta-E: set topRep 'false' & best match for SSIM: set topRep 'true';
+ * to determine the lowest match the other way around)
+ * @param numOfRep Number of representatives
+ * @returns Array containing paths to images with the highest overall match
+ */
+function getTopRepresentatives(
+  imgArray: string[],
+  averageArray: number[],
+  topRep: boolean,
+  numOfRep: number
+): string[] {
+  if (topRep) {
+    return getTopN(imgArray, averageArray, numOfRep);
+  } else {
+    return getBotN(imgArray, averageArray, numOfRep);
+  }
+}
+
+function getTopN(
+  imgArray: string[],
+  averageArray: number[],
+  numOfRep: number
+): string[] {
+  const resultArr: string[] = [];
+  const averageArrayCopy = averageArray.slice();
+  const topNArray = averageArrayCopy
+    .sort(function (a, b) {
+      return b - a;
+    })
+    .slice(0, numOfRep);
+  for (const element of topNArray) {
+    resultArr.push(imgArray[averageArray.indexOf(element)]);
+  }
+  return resultArr;
+}
+
+function getBotN(
+  imgArray: string[],
+  averageArray: number[],
+  numOfRep: number
+): string[] {
+  const resultArr: string[] = [];
+  const averageArrayCopy = averageArray.slice();
+  const topNArray = averageArrayCopy
+    .sort(function (a, b) {
+      return a - b;
+    })
+    .slice(0, numOfRep);
+  for (const element of topNArray) {
+    resultArr.push(imgArray[averageArray.indexOf(element)]);
+  }
+  return resultArr;
 }
