@@ -19,6 +19,5 @@ module.exports = {
   },
   rules: {
     'prettier/prettier': 'warn',
-    '@typescript-eslint/no-non-null-assertion': 'off',
   },
 };
