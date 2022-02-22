@@ -13,7 +13,11 @@ from neo4j import GraphDatabase
 
 def start_neo4j_docker():
     """Starts a docker container with neo4j"""
-    docker_command_neo4j = "docker run --name hie_neo4j -p7474:7474 -p7687:7687 -d -v {pwd}/data/neo4j/data:/data -v {pwd}/data/neo4j/logs:/logs -v {pwd}/data/neo4j/import:/var/lib/neo4j/import -v {pwd}/data/neo4j/plugins:/plugins --env NEO4J_AUTH=neo4j/password neo4j:latest".format(
+    docker_command_neo4j = ("docker run --name hie_neo4j -p7474:7474 -p7687:7687 -d " +
+                            " -v {pwd}/data/neo4j/data:/data " +
+                            " -v {pwd}/data/neo4j/logs:/logs " +
+                            " -v {pwd}/data/neo4j/import:/var/lib/neo4j/import " +
+                            " -v {pwd}/data/neo4j/plugins:/plugins --env NEO4J_AUTH=neo4j/password neo4j:latest").format(
         pwd="\"%cd%\"")  # needs probably needs to be changed for linux systems
     os.system(docker_command_neo4j)
 
@@ -102,7 +106,9 @@ def save_clustering_neo4j(annotations, images, model):
             for node in treeview:
                 for child in node["children"]:
                     transaction.run(
-                        "MATCH (p), (c) WHERE p.clusterID = $parentID AND c.clusterID = $childID CREATE (p)-[r: RELTYPE {name: p.clusterID + '->' + c.clusterID}]-> (c)", parentID=node["node_id"], childID=child)
+                        "MATCH (p), (c) WHERE p.clusterID = $parentID AND c.clusterID = $childID " +
+                        " CREATE (p)-[r: RELTYPE {name: p.clusterID + '->' + c.clusterID}]-> (c)",
+                        parentID=node["node_id"], childID=child)
             transaction.commit()
 
     driver.close()
