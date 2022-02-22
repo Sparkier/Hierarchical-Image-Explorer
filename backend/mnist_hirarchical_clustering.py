@@ -4,16 +4,15 @@ import argparse
 import json
 import itertools
 import csv
-from time import sleep
+import os
 from PIL import Image
 from numpy import asarray
 from sklearn.cluster import AgglomerativeClustering
-import os
 from neo4j import GraphDatabase
-import pathlib
 
 
 def start_neo4j_docker():
+    """Starts a docker container with neo4j"""
     docker_command_neo4j = "docker run --name hie_neo4j -p7474:7474 -p7687:7687 -d -v {pwd}/data/neo4j/data:/data -v {pwd}/data/neo4j/logs:/logs -v {pwd}/data/neo4j/import:/var/lib/neo4j/import -v {pwd}/data/neo4j/plugins:/plugins --env NEO4J_AUTH=neo4j/password neo4j:latest".format(
         pwd="\"%cd%\"")  # needs probably needs to be changed for linux systems
     os.system(docker_command_neo4j)
@@ -78,11 +77,11 @@ def save_clustering_neo4j(annotations, images, model):
     driver = GraphDatabase.driver(uri, auth=("neo4j", "password"))
     with driver.session() as session:
         # create implicit nodes
-        with session.begin_transaction() as tx:
+        with session.begin_transaction() as transaction:
             for index, value in enumerate(annotations):
-                tx.run(
+                transaction.run(
                     "CREATE (a:leaf_node {id: $id, clusterID: $clusterID})", id=value[0], clusterID=index)
-            tx.commit()
+            transaction.commit()
 
         image_iterator = itertools.count(len(images))
         treeview = [{
@@ -90,21 +89,21 @@ def save_clustering_neo4j(annotations, images, model):
             'children': [int(x[0]), int(x[1])],
         } for x in model.children_]
         # create tree
-        with session.begin_transaction() as tx:
+        with session.begin_transaction() as transaction:
 
             # create nodes:
             for node in treeview:
-                tx.run(
+                transaction.run(
                     "CREATE (a:tree_node {clusterID: $clusterID})", clusterID=node["node_id"])
-            tx.commit()
+            transaction.commit()
 
-        with session.begin_transaction():
+        with session.begin_transaction() as transaction:
             # create tree relations
             for node in treeview:
                 for child in node["children"]:
-                    tx.run(
+                    transaction.run(
                         "MATCH (p), (c) WHERE p.clusterID = $parentID AND c.clusterID = $childID CREATE (p)-[r: RELTYPE {name: p.clusterID + '->' + c.clusterID}]-> (c)", parentID=node["node_id"], childID=child)
-            tx.commit()
+            transaction.commit()
 
     driver.close()
 
