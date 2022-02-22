@@ -4,9 +4,19 @@ import argparse
 import json
 import itertools
 import csv
+from time import sleep
 from PIL import Image
 from numpy import asarray
 from sklearn.cluster import AgglomerativeClustering
+import os
+from neo4j import GraphDatabase
+import pathlib
+
+
+def start_neo4j_docker():
+    docker_command_neo4j = "docker run --name hie_neo4j -p7474:7474 -p7687:7687 -d -v {pwd}/data/neo4j/data:/data -v {pwd}/data/neo4j/logs:/logs -v {pwd}/data/neo4j/import:/var/lib/neo4j/import -v {pwd}/data/neo4j/plugins:/plugins --env NEO4J_AUTH=neo4j/password neo4j:latest".format(
+        pwd="\"%cd%\"")  # needs probably needs to be changed for linux systems
+    os.system(docker_command_neo4j)
 
 
 def read_annoations(datapath):
@@ -30,10 +40,9 @@ def read_image_data(annotations):
     # load images from disk and convert them:
     for annotation in annotations:
         image = Image.open(annotation[1])
-        data = asarray(image).reshape(1,-1) # from 2D => 1D
+        data = asarray(image).reshape(1, -1)  # from 2D => 1D
         images.append(data[0])
     return images
-
 
 
 def cluster_data(images):
@@ -44,23 +53,60 @@ def cluster_data(images):
     return model
 
 
-
-def save_clustering(annotations, images, model, output_path):
+def save_clustering_json(annotations, images, model, output_path):
     """Saves the resulting hierarchical tree and image labesl to a json file"""
     print("Saving results")
     image_iterator = itertools.count(len(images))
     treeview = [{
-    'node_id': int(next(image_iterator)),
-    'children': [int(x[0]), int(x[1])],
+        'node_id': int(next(image_iterator)),
+        'children': [int(x[0]), int(x[1])],
     } for x in model.children_]
 
     labels = []
 
     for index, value in enumerate(annotations):
-        labels.append({"ID":value[0],"clusterID":index})
+        labels.append({"ID": value[0], "clusterID": index})
 
-    with open(output_path,'w', encoding='utf-8') as json_file:
-        json.dump({"tree":treeview,"clusters":labels},json_file, indent=4)
+    with open(output_path, 'w', encoding='utf-8') as json_file:
+        json.dump({"tree": treeview, "clusters": labels}, json_file, indent=4)
+
+
+def save_clustering_neo4j(annotations, images, model):
+    """Saves the resulting hierarchical tree and image labels to a freshly created neo4j database"""
+    # create driver
+    uri = "bolt://localhost:7687"
+    driver = GraphDatabase.driver(uri, auth=("neo4j", "password"))
+    with driver.session() as session:
+        # create implicit nodes
+        with session.begin_transaction() as tx:
+            for index, value in enumerate(annotations):
+                tx.run(
+                    "CREATE (a:leaf_node {id: $id, clusterID: $clusterID})", id=value[0], clusterID=index)
+            tx.commit()
+
+        image_iterator = itertools.count(len(images))
+        treeview = [{
+            'node_id': int(next(image_iterator)),
+            'children': [int(x[0]), int(x[1])],
+        } for x in model.children_]
+        # create tree
+        with session.begin_transaction() as tx:
+
+            # create nodes:
+            for node in treeview:
+                tx.run(
+                    "CREATE (a:tree_node {clusterID: $clusterID})", clusterID=node["node_id"])
+            tx.commit()
+
+        with session.begin_transaction():
+            # create tree relations
+            for node in treeview:
+                for child in node["children"]:
+                    tx.run(
+                        "MATCH (p), (c) WHERE p.clusterID = $parentID AND c.clusterID = $childID CREATE (p)-[r: RELTYPE {name: p.clusterID + '->' + c.clusterID}]-> (c)", parentID=node["node_id"], childID=child)
+            tx.commit()
+
+    driver.close()
 
 
 if __name__ == "__main__":
@@ -72,16 +118,22 @@ if __name__ == "__main__":
         default="data/mnist/mnist_test_swg.csv",
         type=str)
     parser.add_argument(
-    '-o',
-    '--output_file',
-    help='Path to output json file',
-    default='data/mnist/ClusteringTree.json',
-    type=str)
+        '-o',
+        '--output_file',
+        help='Path to output json file',
+        default='data/mnist/ClusteringTree.json',
+        type=str)
+    parser.add_argument('--no-neo4j', dest='use_neo4j', action='store_false')
+    parser.set_defaults(use_neo4j=True)
 
     args = parser.parse_args()
-
+    if args.use_neo4j:
+        start_neo4j_docker()
     mnist_annotations = read_annoations(args.annotation_file)
     mnist_images = read_image_data(mnist_annotations)
     mnist_model = cluster_data(mnist_images)
-    save_clustering(mnist_annotations, mnist_images, mnist_model, args.output_file)
+    save_clustering_json(mnist_annotations, mnist_images,
+                         mnist_model, args.output_file)
+    if args.use_neo4j:
+        save_clustering_neo4j(mnist_annotations, mnist_images, mnist_model)
     print("Done")

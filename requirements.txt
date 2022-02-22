@@ -10,6 +10,4 @@ typing_extensions==4.0.1
 wrapt==1.13.3
 
 # backend requirements
-Pillow
-numpy
-sklearn
+-r backend/requirements.txt
