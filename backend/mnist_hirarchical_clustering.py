@@ -11,17 +11,6 @@ from sklearn.cluster import AgglomerativeClustering
 from neo4j import GraphDatabase
 
 
-def start_neo4j_docker():
-    """Starts a docker container with neo4j"""
-    docker_command_neo4j = ("docker run --name hie_neo4j -p7474:7474 -p7687:7687 -d " +
-                            " -v {pwd}/data/neo4j/data:/data " +
-                            " -v {pwd}/data/neo4j/logs:/logs " +
-                            " -v {pwd}/data/neo4j/import:/var/lib/neo4j/import " +
-                            " -v {pwd}/data/neo4j/plugins:/plugins --env NEO4J_AUTH=neo4j/password neo4j:latest").format(
-        pwd="\"%cd%\"")  # needs probably needs to be changed for linux systems
-    os.system(docker_command_neo4j)
-
-
 def read_annoations(datapath):
     """Reads in a given csv file"""
     # read in annotations
@@ -74,6 +63,19 @@ def save_clustering_json(annotations, images, model, output_path):
         json.dump({"tree": treeview, "clusters": labels}, json_file, indent=4)
 
 
+def start_neo4j_docker():
+    """Starts a docker container with neo4j"""
+    docker_command_neo4j = (
+        "docker run --name hie_neo4j -p7474:7474 -p7687:7687 -d " +
+        " -v {pwd}/data/neo4j/data:/data " +
+        " -v {pwd}/data/neo4j/logs:/logs " +
+        " -v {pwd}/data/neo4j/import:/var/lib/neo4j/import " +
+        " -v {pwd}/data/neo4j/plugins:/plugins " +
+        " --env NEO4J_AUTH=neo4j/password neo4j:latest").format(
+        pwd="\"%cd%\"")  # needs probably needs to be changed for linux systems
+    os.system(docker_command_neo4j)
+
+
 def save_clustering_neo4j(annotations, images, model):
     """Saves the resulting hierarchical tree and image labels to a freshly created neo4j database"""
     # create driver
@@ -84,7 +86,8 @@ def save_clustering_neo4j(annotations, images, model):
         with session.begin_transaction() as transaction:
             for index, value in enumerate(annotations):
                 transaction.run(
-                    "CREATE (a:leaf_node {id: $id, clusterID: $clusterID})", id=value[0], clusterID=index)
+                    "CREATE (a:leaf_node {id: $id, clusterID: $clusterID})",
+                    id=value[0], clusterID=index)
             transaction.commit()
 
         image_iterator = itertools.count(len(images))
@@ -94,7 +97,6 @@ def save_clustering_neo4j(annotations, images, model):
         } for x in model.children_]
         # create tree
         with session.begin_transaction() as transaction:
-
             # create nodes:
             for node in treeview:
                 transaction.run(
