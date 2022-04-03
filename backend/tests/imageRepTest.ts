@@ -33,8 +33,8 @@ const imgArrayBW: string[] = [
 
 async function testBof(){
   try{
-  const repSSIM = bwImageRepresentative(imgArrayBW);
-  const repDeltaE = await coloredImageRepresentative(imgArray)
+  const repSSIM = bwImageRepresentative(imgArrayBW, 1);
+  const repDeltaE = await coloredImageRepresentative(imgArray, 1)
   console.log(`BW: ${repSSIM} \r\nDeltaE: ${repDeltaE}`)
   }
   catch(e){
