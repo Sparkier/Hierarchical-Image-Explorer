@@ -1,5 +1,5 @@
-""" Geneartes similarity matrix code adjusted from 
-    https://towardsdatascience.com/image-similarity-detection-in-action-with-tensorflow-2-0-b8d9a78b2509"""
+"""Geneartes similarity matrix code adjusted from
+https://towardsdatascience.com/image-similarity-detection-in-action-with-tensorflow-2-0-b8d9a78b2509"""
 
 import argparse
 import csv
