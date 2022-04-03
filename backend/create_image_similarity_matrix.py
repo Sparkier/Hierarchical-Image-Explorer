@@ -1,30 +1,30 @@
-"""Geneartes similarity matrix code adjusted from https://towardsdatascience.com/image-similarity-detection-in-action-with-tensorflow-2-0-b8d9a78b2509"""
+""" Geneartes similarity matrix code adjusted from 
+    https://towardsdatascience.com/image-similarity-detection-in-action-with-tensorflow-2-0-b8d9a78b2509"""
 
 import argparse
 import csv
 import json
-import os
 from pathlib import Path
-from turtle import distance
 import tensorflow as tf
 import tensorflow_hub as hub
 from scipy.spatial.distance import cdist
-import pickle
 
 import numpy as np
 
 
 def read_annotations(swg_path):
-    annotations = []
-    with open(swg_path, 'r') as csvfile:
+    """Reads annotations from given file"""
+    annotation_list = []
+    with open(swg_path, 'r', encoding="utf8") as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader)
         for row in reader:
-            annotations.append(row)
-        return annotations
+            annotation_list.append(row)
+        return annotation_list
 
 
 def load_images(path):
+    """Loads an images from file and converts it to 224x224x3 numpy array"""
     img = tf.io.read_file(path)
     img = tf.io.decode_jpeg(img, channels=3)
     img = tf.image.resize_with_pad(img, 224, 224)
@@ -33,6 +33,7 @@ def load_images(path):
 
 
 def get_image_feature_vectors(image_paths):
+    """Runs feature-detection with a pretrained model on images"""
 
     module_handle = "https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/feature_vector/4"
     module = hub.load(module_handle)
@@ -43,8 +44,8 @@ def get_image_feature_vectors(image_paths):
     for filename in image_paths:
         print(f"File {index} / {len(image_paths)}", end="\r")
         img = load_images(filename)
-        features = module(img)
-        feature_set = np.squeeze(features)
+        img_features = module(img)
+        feature_set = np.squeeze(img_features)
         image_features.append(feature_set)
         index += 1
 
@@ -52,12 +53,14 @@ def get_image_feature_vectors(image_paths):
 
 
 def create_distance_matrix(feature_list):
+    """Converts a feature list to a distance matrix by cosine similarity"""
     return cdist(feature_list, feature_list, metric='cosine')
 
 
 def save_to_json(distance_matrix, out_dir, file_name):
+    """Saves distance matrix to json file"""
     Path(out_dir).mkdir(parents=True, exist_ok=True)
-    with open(Path(out_dir) / file_name, "w") as json_file:
+    with open(Path(out_dir) / file_name, "w", encoding="utf8") as json_file:
         distance_matrix = np.around(distance_matrix, 8)
         data = distance_matrix.tolist()
         json.dump(data, json_file)
