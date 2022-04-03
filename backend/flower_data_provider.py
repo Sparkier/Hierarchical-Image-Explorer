@@ -1,4 +1,4 @@
-
+"""Download and extract the mnistJPG data"""
 import argparse
 import csv
 import urllib.request
@@ -6,19 +6,21 @@ import tarfile
 from pathlib import Path
 
 
-dataset_URL = "http://download.tensorflow.org/example_images/flower_photos.tgz"
-tgz_name = "flower_photos.tgz"
+DATASET_URL = "http://download.tensorflow.org/example_images/flower_photos.tgz"
+TGZ_NAME = "flower_photos.tgz"
 
 
 def download_and_extract(file_path):
+    """Downloads and extraxcts the dataset to a give file path"""
     print("Downloading Data")
-    urllib.request.urlretrieve(dataset_URL, tgz_name)
+    urllib.request.urlretrieve(DATASET_URL, TGZ_NAME)
     print("Unzipping Data - this may take a while")
-    tar = tarfile.open(tgz_name, "r")
+    tar = tarfile.open(TGZ_NAME, "r")
     tar.extractall(path=file_path)
 
 
 def parse_annotations(file_path):
+    """Generates SWG File based on the downloaded file structure ids are generated sequentially"""
     print("Parsing annotations to compatible format")
     with open(file_path / "flowers_swg.csv", "w", newline='', encoding="utf8") as csv_file:
         writer = csv.writer(csv_file)
@@ -43,7 +45,8 @@ def parse_annotations(file_path):
 
 
 def cleanup():
-    Path(tgz_name).unlink()
+    """Deletes the downloaded tgz file"""
+    Path(TGZ_NAME).unlink()
 
 
 if __name__ == "__main__":
