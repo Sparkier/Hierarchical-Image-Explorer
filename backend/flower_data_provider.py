@@ -1,4 +1,4 @@
-"""Download and extract the mnistJPG data"""
+"""Download and extract the flower dataset (https://www.tensorflow.org/datasets/catalog/tf_flowers)"""
 import argparse
 import csv
 import urllib.request
@@ -11,7 +11,7 @@ TGZ_NAME = "flower_photos.tgz"
 
 
 def download_and_extract(file_path):
-    """Downloads and extraxcts the dataset to a give file path"""
+    """Downloads and extraxcts the dataset to a given file path"""
     print("Downloading Data")
     urllib.request.urlretrieve(DATASET_URL, TGZ_NAME)
     print("Unzipping Data - this may take a while")
@@ -59,6 +59,6 @@ if __name__ == "__main__":
         type=str)
     args = parser.parse_args()
 
-    # download_and_extract(Path(args.path))
+    download_and_extract(Path(args.path))
     parse_annotations(Path(args.path))
-    # cleanup()
+    cleanup()
