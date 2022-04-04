@@ -23,8 +23,8 @@ def read_annotations(swg_path):
         return annotation_list
 
 
-def load_images(path):
-    """Loads an images from file and converts it to 224x224x3 numpy array"""
+def load_image(path):
+    """Loads a single image from file and converts it to 224x224x3 numpy array"""
     img = tf.io.read_file(path)
     img = tf.io.decode_jpeg(img, channels=3)
     img = tf.image.resize_with_pad(img, 224, 224)
@@ -43,7 +43,7 @@ def get_image_feature_vectors(image_paths):
     print("")  # new line to write progress in
     for filename in image_paths:
         print(f"File {index} / {len(image_paths)}", end="\r")
-        img = load_images(filename)
+        img = load_image(filename)
         img_features = module(img)
         feature_set = np.squeeze(img_features)
         image_features.append(feature_set)
