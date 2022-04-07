@@ -1,4 +1,5 @@
-"""Takes a fature list representation of an image and runs dimensionality reduction to 2D using t-sne"""
+"""Takes a fature list representation of an image
+and runs dimensionality reduction to 2D using t-sne"""
 import argparse
 from pathlib import Path
 import json
