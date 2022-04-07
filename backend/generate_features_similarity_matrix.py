@@ -77,22 +77,24 @@ def save_feature_vectors_to_json(annos, features, out_dir, file_name):
         json.dump(feature_list, json_file)
 
 
-def main(args):
+def main(parameters):
+    """Main Method"""
     print("Reading annotations")
-    annotations = read_annotations(args.swg_file)
+    annotations = read_annotations(parameters.swg_file)
     file_names = map(lambda e: e[1], annotations)
     print("Detecting features")
     features = get_image_feature_vectors(list(file_names))
     print("Calculating similarities", end="\n")
-    dm = create_distance_matrix(features)
+    distance_matrix = create_distance_matrix(features)
     print("Saving results to file")
-    out_file_name_sim = Path(args.swg_file).name.replace(
+    out_file_name_sim = Path(parameters.swg_file).name.replace(
         "_swg.csv", "_sim.json")
     out_file_name_features = Path(
-        args.swg_file).name.replace("_swg.csv", "_feat.json")
-    save_similarity_to_json(dm, args.output_dir, out_file_name_sim)
+        parameters.swg_file).name.replace("_swg.csv", "_feat.json")
+    save_similarity_to_json(
+        distance_matrix, parameters.output_dir, out_file_name_sim)
     save_feature_vectors_to_json(
-        annotations, features, args.output_dir, out_file_name_features)
+        annotations, features, parameters.output_dir, out_file_name_features)
     print("Done")
 
 
