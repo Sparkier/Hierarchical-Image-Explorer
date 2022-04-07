@@ -1,4 +1,4 @@
-"""Geneartes similarity matrix code adjusted from
+"""Geneartes feature vectors and from that a similarity matrix. Code adjusted from
 https://towardsdatascience.com/image-similarity-detection-in-action-with-tensorflow-2-0-b8d9a78b2509"""
 
 import argparse
@@ -73,22 +73,11 @@ def save_feature_vectors_to_json(annos, features, out_dir, file_name):
         feature_list.append({
             "ID": row[0],
             "features": features[index].tolist()})
-    with open(Path(out_dir) / file_name, "w") as jf:
-        json.dump(feature_list, jf)
+    with open(Path(out_dir) / file_name, "w", encoding="utf8") as json_file:
+        json.dump(feature_list, json_file)
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description='Generate similarity matrix from swg file')
-    parser.add_argument('swg_file', type=str,
-                        help='path to swg file')
-    parser.add_argument(
-        '-o',
-        '--output_dir',
-        help='Path to output directory',
-        default='data/sim/',
-        type=str)
-    args = parser.parse_args()
+def main(args):
     print("Reading annotations")
     annotations = read_annotations(args.swg_file)
     file_names = map(lambda e: e[1], annotations)
@@ -105,3 +94,18 @@ if __name__ == "__main__":
     save_feature_vectors_to_json(
         annotations, features, args.output_dir, out_file_name_features)
     print("Done")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='Generate similarity matrix from swg file')
+    parser.add_argument('swg_file', type=str,
+                        help='path to swg file')
+    parser.add_argument(
+        '-o',
+        '--output_dir',
+        help='Path to output directory',
+        default='data/sim/',
+        type=str)
+    args = parser.parse_args()
+    main(args)
