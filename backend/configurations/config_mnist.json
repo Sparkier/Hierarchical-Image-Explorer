@@ -1,5 +1,5 @@
 {
-  "swg":"./data/mnist/mnist_test_swg.csv",
+  "swg": "./data/mnist/mnist_test_swg.csv",
   "cluster": "./data/mnist/ClusteringTree.json",
   "similarityMatrix": "tbd",
   "points2d": "tbd"

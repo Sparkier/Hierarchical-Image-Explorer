@@ -7,9 +7,7 @@ import path from 'path';
 import HierarchicalClusterDataProvider from './hierarchicalClusterDataProvider';
 import { HIEConfiguration } from './configuration';
 
-
-
-var hieConfig: HIEConfiguration
+var hieConfig: HIEConfiguration;
 type mnistDatum = {
   file_path: string;
   label: number;
@@ -22,14 +20,16 @@ type mnistDatumWithID = {
 };
 
 // parse commandline arguments
-if(process.argv.length < 3){
-  throw new Error("Missing arguments please use yarn run start <config_path>")
+if (process.argv.length < 3) {
+  throw new Error('Missing arguments please use yarn run start <config_path>');
 }
-const configParameter = process.argv[2]
+const configParameter = process.argv[2];
 
-console.log("Loading configuration from " + configParameter);
-const confData = JSON.parse(fs.readFileSync(configParameter, 'utf-8')) as HIEConfiguration
-hieConfig = confData
+console.log('Loading configuration from ' + configParameter);
+const confData = JSON.parse(
+  fs.readFileSync(configParameter, 'utf-8')
+) as HIEConfiguration;
+hieConfig = confData;
 
 //const dataPath = './data/mnist/';
 
