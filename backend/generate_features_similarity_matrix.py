@@ -8,7 +8,6 @@ from pathlib import Path
 import tensorflow as tf
 import tensorflow_hub as hub
 from scipy.spatial.distance import cdist
-
 import numpy as np
 
 
@@ -39,15 +38,13 @@ def get_image_feature_vectors(image_paths):
     module = hub.load(module_handle)
 
     image_features = []
-    index = 1
     print("")  # new line to write progress in
-    for filename in image_paths:
-        print(f"File {index} / {len(image_paths)}", end="\r")
+    for index, filename in enumerate(image_paths):
+        print(f"File {index+1} / {len(image_paths)}", end="\r")
         img = load_image(filename)
         img_features = module(img)
         feature_set = np.squeeze(img_features)
         image_features.append(feature_set)
-        index += 1
 
     return image_features
 
