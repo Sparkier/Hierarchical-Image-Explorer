@@ -7,7 +7,7 @@ import path from 'path';
 import HierarchicalClusterDataProvider from './hierarchicalClusterDataProvider';
 import { HIEConfiguration } from './configuration';
 
-var hieConfig: HIEConfiguration;
+let hieConfig: HIEConfiguration;
 type mnistDatum = {
   file_path: string;
   label: number;
@@ -30,8 +30,6 @@ const confData = JSON.parse(
   fs.readFileSync(configParameter, 'utf-8')
 ) as HIEConfiguration;
 hieConfig = confData;
-
-//const dataPath = './data/mnist/';
 
 const port = 25679;
 
