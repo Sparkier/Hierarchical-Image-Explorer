@@ -5,16 +5,11 @@ import fs from 'fs';
 import * as csv from 'fast-csv';
 import path from 'path';
 import HierarchicalClusterDataProvider from './hierarchicalClusterDataProvider';
+import { HIEConfiguration } from './configuration';
 
-const dataPath = './data/mnist/';
 
-const port = 25679;
 
-const dataFrame: Map<string, mnistDatum> = new Map();
-const app = express();
-const hcDataProvider: HierarchicalClusterDataProvider =
-  new HierarchicalClusterDataProvider(`${dataPath}/ClusteringTree.json`);
-
+var hieConfig: HIEConfiguration
 type mnistDatum = {
   file_path: string;
   label: number;
@@ -25,6 +20,25 @@ type mnistDatumWithID = {
   file_path: string;
   label: number;
 };
+
+// parse commandline arguments
+if(process.argv.length < 3){
+  throw new Error("Missing arguments please use yarn run start <config_path>")
+}
+const configParameter = process.argv[2]
+
+console.log("Loading configuration from " + configParameter);
+const confData = JSON.parse(fs.readFileSync(configParameter, 'utf-8')) as HIEConfiguration
+hieConfig = confData
+
+//const dataPath = './data/mnist/';
+
+const port = 25679;
+
+const dataFrame: Map<string, mnistDatum> = new Map();
+const app = express();
+const hcDataProvider: HierarchicalClusterDataProvider =
+  new HierarchicalClusterDataProvider(hieConfig.cluster);
 
 startServer();
 function startServer() {
@@ -45,7 +59,7 @@ function startServer() {
 
 function setUpData() {
   // read and parse annotation file
-  fs.createReadStream(`${dataPath}mnist_test_swg.csv`)
+  fs.createReadStream(hieConfig.swg)
     .pipe(csv.parse({ headers: true }))
     .on('error', (e) => console.log(e))
     .on('data', (row) =>
