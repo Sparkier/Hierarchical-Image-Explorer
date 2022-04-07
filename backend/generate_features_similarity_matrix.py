@@ -57,13 +57,24 @@ def create_distance_matrix(feature_list):
     return cdist(feature_list, feature_list, metric='cosine')
 
 
-def save_to_json(distance_matrix, out_dir, file_name):
+def save_similarity_to_json(distance_matrix, out_dir, file_name):
     """Saves distance matrix to json file"""
     Path(out_dir).mkdir(parents=True, exist_ok=True)
     with open(Path(out_dir) / file_name, "w", encoding="utf8") as json_file:
         distance_matrix = np.around(distance_matrix, 8)
         data = distance_matrix.tolist()
         json.dump(data, json_file)
+
+
+def save_feature_vectors_to_json(annos, features, out_dir, file_name):
+    """Saves features list to json file"""
+    feature_list = []
+    for index, row in enumerate(annos):
+        feature_list.append({
+            "ID": row[0],
+            "features": features[index].tolist()})
+    with open(Path(out_dir) / file_name, "w") as jf:
+        json.dump(feature_list, jf)
 
 
 if __name__ == "__main__":
@@ -86,6 +97,11 @@ if __name__ == "__main__":
     print("Calculating similarities", end="\n")
     dm = create_distance_matrix(features)
     print("Saving results to file")
-    out_file_name = Path(args.swg_file).name.replace("_swg.csv", "_sim.json")
-    save_to_json(dm, args.output_dir, out_file_name)
+    out_file_name_sim = Path(args.swg_file).name.replace(
+        "_swg.csv", "_sim.json")
+    out_file_name_features = Path(
+        args.swg_file).name.replace("_swg.csv", "_feat.json")
+    save_similarity_to_json(dm, args.output_dir, out_file_name_sim)
+    save_feature_vectors_to_json(
+        annotations, features, args.output_dir, out_file_name_features)
     print("Done")
