@@ -6,21 +6,22 @@ import * as csv from 'fast-csv';
 import path from 'path';
 import HierarchicalClusterDataProvider from './hierarchicalClusterDataProvider';
 import { HIEConfiguration } from './configuration';
+import { DataProvider2D } from './2dDataProvider';
 
 
-type mnistDatum = {
+export type mnistDatum = {
   file_path: string;
-  label: number;
+  label: string;
 };
 
 type mnistDatumWithID = {
   image_id: string;
   file_path: string;
-  label: number;
+  label: string;
 };
 
 // parse commandline arguments
-if (process.argv.length === 3) {
+if (process.argv.length !== 3) {
   throw new Error('Missing arguments please use yarn run start <config_path>');
 }
 const configParameter = process.argv[2];
@@ -34,6 +35,7 @@ const hieConfig = confData;
 const port = 25679;
 
 const dataFrame: Map<string, mnistDatum> = new Map();
+var dataProvider2D:DataProvider2D|null = null
 const app = express();
 const hcDataProvider: HierarchicalClusterDataProvider =
   new HierarchicalClusterDataProvider(hieConfig.cluster);
@@ -69,8 +71,9 @@ function setUpData() {
     .on('end', (rowCount: number) => {
       if (dataFrame.size == 0) throw new Error('Dataset empty');
       console.log('CSV read with ' + rowCount + ' rows');
+      dataProvider2D = new DataProvider2D(hieConfig.points2d, dataFrame)
     });
-  // setup hierarchical clustering data
+  // setup 2d data
 }
 
 // functions
@@ -113,7 +116,7 @@ app.get('/data/allids', (req, res) => {
 
 app.get('/data/label/:id', (req, res) => {
   const filteredResult = [...dataFrame.entries()].filter(
-    (d) => d[1].label === Number.parseInt(req.params.id)
+    (d) => d[1].label === req.params.id
   );
   res.send(filteredResult.map((row) => row[0]));
 });
@@ -196,3 +199,10 @@ app.get('/hc/clusterinfo/level/:id', (req, res) => {
       .toString()
   );
 });
+
+
+// 2d ------------------------------------------------------------------------
+
+app.get('/2d/all', (req, res) => {
+  res.send(dataProvider2D?.getAllPoints())
+})
