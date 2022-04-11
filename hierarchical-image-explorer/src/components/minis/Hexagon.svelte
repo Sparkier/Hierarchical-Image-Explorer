@@ -27,10 +27,11 @@
   const r = `${Right.x},${Right.y}`;
   const tr = `${TopRight.x},${TopRight.y}`;
 
-  $: fill = `url(#image-bg_${image})`;
-  if (image == '') {
-    fill = color;
-  }
+  $: fill = (() => {
+    if (image == '') {
+      return color;
+    } else return `url(#image-bg_${image})`;
+  })();
 </script>
 
 <defs>

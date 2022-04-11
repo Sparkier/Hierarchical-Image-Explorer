@@ -52,20 +52,8 @@ export default class BackendService {
   public static getOutlierImageUrl(clusterID: number, rank = 0): string {
     return `${this.serverAdress}hc/repimage/distant/${clusterID}/${rank}`;
   }
+
   public static async getAllDataPoints(): Promise<PointData[]>{
-    // let test = [
-    //   {imgID: "mnist-12", x: 0, y: 0, label:"1"},
-    //   {imgID: "mnist-14", x: -100, y: -100, label:"1"},
-    //   {imgID: "mnist-13", x: 0, y: -100, label:"1"},
-    //   {imgID: "mnist-15", x: -100, y: 0, label:"1"},
-    //   {imgID: "mnist-16", x: -100, y: 100, label:"1"},
-    //   {imgID: "mnist-16", x: -100, y: 100, label:"1"},
-    // ]
-    // return test;
     return this.getEndpoint("2d/all") as  Promise<PointData[]>
-  }
-  public static async getDataPoint(id: string, x: number, y: number, label: string): Promise<PointData>{
-    let test = {id: "mnist-1", x: 60, y: 60, label:"4"}
-    return test;
   }
 }
