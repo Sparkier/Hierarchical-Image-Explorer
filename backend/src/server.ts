@@ -8,7 +8,6 @@ import HierarchicalClusterDataProvider from './hierarchicalClusterDataProvider';
 import { HIEConfiguration } from './configuration';
 import { DataProvider2D } from './2dDataProvider';
 
-
 export type mnistDatum = {
   file_path: string;
   label: string;
@@ -35,7 +34,7 @@ const hieConfig = confData;
 const port = 25679;
 
 const dataFrame: Map<string, mnistDatum> = new Map();
-var dataProvider2D:DataProvider2D|null = null
+let dataProvider2D: DataProvider2D | null = null;
 const app = express();
 const hcDataProvider: HierarchicalClusterDataProvider =
   new HierarchicalClusterDataProvider(hieConfig.cluster);
@@ -71,7 +70,7 @@ function setUpData() {
     .on('end', (rowCount: number) => {
       if (dataFrame.size == 0) throw new Error('Dataset empty');
       console.log('CSV read with ' + rowCount + ' rows');
-      dataProvider2D = new DataProvider2D(hieConfig.points2d, dataFrame)
+      dataProvider2D = new DataProvider2D(hieConfig.points2d, dataFrame);
     });
   // setup 2d data
 }
@@ -200,9 +199,8 @@ app.get('/hc/clusterinfo/level/:id', (req, res) => {
   );
 });
 
-
 // 2d ------------------------------------------------------------------------
 
 app.get('/2d/all', (req, res) => {
-  res.send(dataProvider2D?.getAllPoints())
-})
+  res.send(dataProvider2D?.getAllPoints());
+});
