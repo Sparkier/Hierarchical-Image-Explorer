@@ -1,11 +1,13 @@
 <script lang="ts">
-  import Hierarchical from "./components/Hierarchical.svelte";
+  //import Hierarchical from "./components/Hierarchical.svelte";
+  import GraphicalView from "./components/GraphicalView.svelte";
 </script>
 
 <main>
   <h1>Hierarchical Demo</h1>
   <div class="container">
-    <Hierarchical></Hierarchical>
+    <!-- <Hierarchical></Hierarchical> -->
+    <GraphicalView> </GraphicalView>
   </div>
 </main>
 
