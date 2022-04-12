@@ -88,7 +88,9 @@
 </script>
 
 <div>
-  <h2>2D Dimensionality Reduction Demo</h2>
+  <div class="text-center text-3xl font-thin">
+    2D Dimensionality Reduction Demo
+  </div>
   <div class="csv-container">
     <div bind:clientWidth={svgWidth}>
       <svg width="100%" height="580px" bind:this={svgElement}>
@@ -112,7 +114,7 @@
   </div>
 </div>
 
-<style>
+<style lang="postcss">
   .csv-container {
     padding-left: 150px;
     padding-right: 150px;

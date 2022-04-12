@@ -27,7 +27,7 @@
   const r = `${Right.x},${Right.y}`;
   const tr = `${TopRight.x},${TopRight.y}`;
 
-  $: fill = image == '' ? color : 'url(#image-bg_${image})';
+  $: fill = image == '' ? color : `url(#image-bg_${image})`;
 </script>
 
 <defs>

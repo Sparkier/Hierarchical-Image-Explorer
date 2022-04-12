@@ -137,7 +137,7 @@
   {/if}
 </div>
 
-<style>
+<style lang="postcss">
   #svg {
     background-color: transparent;
   }
