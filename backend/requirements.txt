@@ -2,3 +2,4 @@ Pillow
 numpy
 sklearn
 neo4j
+pandas
