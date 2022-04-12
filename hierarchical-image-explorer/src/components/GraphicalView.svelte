@@ -77,7 +77,6 @@
    * @param label
    * @returns assigned color
    */
-
   function getColor(label: string) {
     if (colorMap.has(label)) return colorMap.get(label);
     else {
