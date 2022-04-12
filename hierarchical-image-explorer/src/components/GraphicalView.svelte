@@ -1,40 +1,40 @@
 <script lang="ts">
   import Hexagon from './minis/Hexagon.svelte';
   import BackendService, { PointData } from '../services/backendService';
+  import { ColorUtils } from '../services/colorUtil';
 
-  let data: PointData[];
-  const colors = [
-    '#DF2935',
-    '#7D5BA6',
-    '#55D6BE',
-    '#F19A3E',
-    '#F8E16C',
-    '#5DA9E9',
-  ]; //! expand later
   export let hexaSide = 4;
-  const padding = 20;
-  let xExtent: number[] = [];
-  let yExtent: number[] = [];
+  export let padding = 20;
+
+  let svgElement: SVGSVGElement;
+  let svgWidth: number;
+
+  var data: PointData[];
+  var xExtent: number[] = [];
+  var yExtent: number[] = [];
+  const colorMap: Map<string, string> = new Map();
+
+  $: scaleY = generateScale(
+    yExtent,
+    svgElement == undefined ? 0 : svgElement.clientHeight
+  );
+  $: scaleX = generateScale(xExtent, svgWidth);
 
   /**
    * Gets all data points
    */
   async function setupData() {
-    const response = await BackendService.getAllDataPoints();
-    data = response;
-    xExtent = getExtent((p: PointData) => p.x, data);
-    yExtent = getExtent((p: PointData) => p.y, data);
-    console.log(xExtent);
+    try {
+      const response = await BackendService.getAllDataPoints();
+      data = response;
+      xExtent = getExtent((p: PointData) => p.x, data);
+      yExtent = getExtent((p: PointData) => p.y, data);
+    } catch (e) {
+      console.log(e);
+      alert(e);
+    }
   }
 
-  /**
-   * Returns SVG width
-   */
-  function getSVG() {
-    const svgElement = document.getElementById('svg');
-    if (svgElement == undefined) throw new Error("No Element with id 'svg'");
-    return svgElement;
-  }
   /**
    * @param accessor accesor function for parameters of elements of pointsList
    * @param poinstList list of 2dPoint
@@ -47,7 +47,7 @@
     var max = Number.MIN_VALUE;
 
     pointsList.forEach((p) => {
-      const value = parseFloat(accessor(p).toString());
+      const value = accessor(p);
       if (value > max) max = value;
       if (value < min) min = value;
     });
@@ -56,28 +56,20 @@
   }
 
   /**
-   * Scales a given value to svg x-domain
-   * @param v value to scale
-   * @returns svg x coordinate
+   * Generates a scale that maps input points of a given extent to the svg size.
+   * In this scale 0 is always in the middle the values are scaled to fit
+   * @param extent extent of scale
+   * @param domain available height/width to display scale
+   * @returns a scale function
    */
-  function scaleX(v: number) {
-    const svgWidth = getSVG().clientWidth;
-    const xExtentAbsMax =
-      Math.max(Math.abs(xExtent[0]), Math.abs(xExtent[1])) * 2;
-
-    return (v / xExtentAbsMax + 0.5) * (svgWidth - 2 * padding) + padding;
-  }
-
-  /**
-   * Scales a given value to svg y-domain
-   * @param v value to scale
-   * @returns svg y coordinate
-   */
-  function scaleY(v: number) {
-    const svgHeight = getSVG().clientHeight;
-    const yExtentAbsMax =
-      Math.max(Math.abs(yExtent[0]), Math.abs(yExtent[1])) * 2;
-    return (v / yExtentAbsMax + 0.5) * (svgHeight - 2 * padding) + padding;
+  function generateScale(extent: number[], domain: number) {
+    return (v: number) => {
+      // maximum distance from zero *2
+      const extentAbsMax =
+        Math.max(Math.abs(extent[0]), Math.abs(extent[1])) * 2;
+      // normalize to [0,1] and then scale with available space
+      return (v / extentAbsMax + 0.5) * (domain - 2 * padding) + padding;
+    };
   }
 
   /**
@@ -85,42 +77,45 @@
    * @param label
    * @returns assigned color
    */
-  const colorMap: Map<string, string> = new Map();
+
   function getColor(label: string) {
     if (colorMap.has(label)) return colorMap.get(label);
     else {
-      colorMap.set(label, colors[colorMap.size]);
-      return colors[colorMap.size];
+      const color = ColorUtils.colors[colorMap.size];
+      colorMap.set(label, color);
+      return color;
     }
   }
 </script>
 
 <div>
   <h2>2D Dimensionality Reduction Demo</h2>
-  <div style="padding-left: 150px; padding-right:150px;">
-    <svg id="svg" width="100%" height="580px">
-      {#await setupData()}
-        <p>Loading data</p>
-      {:then}
-        <!-- "svelte for" over the PointData -->
-        {#each data as point}
-          <Hexagon
-            side={hexaSide}
-            x={scaleX(parseFloat(point.x.toString()))}
-            y={scaleY(parseFloat(point.y.toString()))}
-            image=""
-            color={getColor(point.label)}
-          />
-        {/each}
-      {:catch error}
-        <p>{error.message}</p>
-      {/await}
-    </svg>
+  <div class="csv-container">
+    <div bind:clientWidth={svgWidth}>
+      <svg width="100%" height="580px" bind:this={svgElement}>
+        {#await setupData()}
+          <p>Loading data</p>
+        {:then}
+          <!-- "svelte for" over the PointData -->
+          {#each data as point}
+            <Hexagon
+              side={hexaSide}
+              x={scaleX(point.x)}
+              y={scaleY(point.y)}
+              color={getColor(point.label)}
+            />
+          {/each}
+        {:catch error}
+          <p>{error.message}</p>
+        {/await}
+      </svg>
+    </div>
   </div>
 </div>
 
 <style>
-  #svg {
-    background-color: transparent;
+  .csv-container {
+    padding-left: 150px;
+    padding-right: 150px;
   }
 </style>
