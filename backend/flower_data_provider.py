@@ -1,4 +1,5 @@
-"""Download and extract the flower dataset (https://www.tensorflow.org/datasets/catalog/tf_flowers)"""
+"""Download and extract the flower dataset
+(https://www.tensorflow.org/datasets/catalog/tf_flowers)"""
 import argparse
 import csv
 import urllib.request
@@ -8,6 +9,7 @@ from pathlib import Path
 
 DATASET_URL = "http://download.tensorflow.org/example_images/flower_photos.tgz"
 TGZ_NAME = "flower_photos.tgz"
+SWG_NAME = "flowers_swg.csv"
 
 
 def download_and_extract(file_path):
@@ -15,14 +17,14 @@ def download_and_extract(file_path):
     print("Downloading Data")
     urllib.request.urlretrieve(DATASET_URL, TGZ_NAME)
     print("Unzipping Data - this may take a while")
-    tar = tarfile.open(TGZ_NAME, "r")
-    tar.extractall(path=file_path)
+    with tarfile.open(TGZ_NAME, "r") as tar:
+        tar.extractall(path=file_path)
 
 
 def parse_annotations(file_path):
     """Generates SWG File based on the downloaded file structure ids are generated sequentially"""
     print("Parsing annotations to compatible format")
-    with open(file_path / "flowers_swg.csv", "w", newline='', encoding="utf8") as csv_file:
+    with open(file_path / SWG_NAME, "w", newline='', encoding="utf8") as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(["image_id", "file_path", "label"])
 
@@ -33,12 +35,9 @@ def parse_annotations(file_path):
         for class_name in class_names:
             if class_name.name == "LICENSE.txt":
                 continue
-
             path = Path(file_path / "flower_photos" / class_name.name)
-            print(path)
             files = path.glob("*")
             for file in files:
-                print(file.name)
                 writer.writerow([f"flower-{flower_id}", file, class_name.name])
                 flower_id += 1
         print("Annotation parsing complete")
@@ -54,7 +53,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '-p',
         '--path',
-        help='Path to download the files and generate the annotations to',
+        help='Path to download the images to and generate the swg file in',
         default="data/flowers",
         type=str)
     args = parser.parse_args()
