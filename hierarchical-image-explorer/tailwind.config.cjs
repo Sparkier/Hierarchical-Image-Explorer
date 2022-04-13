@@ -6,9 +6,11 @@ module.exports = {
     extend: {},
     colors: {
       transparent: 'transparent',
-      'hie-red': '#ff3e00',
+      'hie-red': '#d87472',
       'hie-gray': '#dfdfdf',
+      'white': colors.white,
       neutral: colors.neutral,
+      'hie-orange': '#f7bca6',
     },
   },
   plugins: []

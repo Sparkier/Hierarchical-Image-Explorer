@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Hexagon from './minis/Hexagon.svelte';
-  import ClusterInfoHover from './ClusterInfoHover.svelte';
-  import BackendService, { HcNode } from '../services/backendService';
+  import BackendService, { HcNode } from '../../services/backendService';
+  import ClusterInfoHover from '../ClusterInfoHover.svelte';
+  import Hexagon from '../minis/Hexagon.svelte';
 
   let parentNode: HcNode;
   let children: HcNode[];
@@ -81,6 +81,9 @@
 </script>
 
 <div>
+  <div class="text-center text-5xl uppercase font-thin text-hie-red">
+    Hierarchical Demo
+  </div>
   <svg id="svg" class="bg-transparent w-full h-[80vh]">
     {#await setupTree()}
       <p>Loading data</p>
