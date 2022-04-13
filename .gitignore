@@ -196,9 +196,6 @@ dist
 # .pnp.*
 
 # End of https://www.toptal.com/developers/gitignore/api/node,macos,yarn,visualstudiocode
-.idea/HIE.iml
-.idea/jsLibraryMappings.xml
-.idea/modules.xml
-.idea/vcs.xml
-.idea/workspace.xml
-.idea/inspectionProfiles/Project_Default.xml
+
+# IDE stuff
+.idea/*
