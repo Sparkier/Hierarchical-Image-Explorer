@@ -6,6 +6,13 @@ export type HcNode = {
   nodeID: number;
 };
 
+export type PointData = {
+  id: string,
+  x: number,
+  y: number,
+  label: string
+};
+
 export default class BackendService {
   private static serverAdress = 'http://localhost:25679/';
 
@@ -44,5 +51,9 @@ export default class BackendService {
 
   public static getOutlierImageUrl(clusterID: number, rank = 0): string {
     return `${this.serverAdress}hc/repimage/distant/${clusterID}/${rank}`;
+  }
+
+  public static async getAllDataPoints(): Promise<PointData[]>{
+    return this.getEndpoint("2d/all") as  Promise<PointData[]>
   }
 }
