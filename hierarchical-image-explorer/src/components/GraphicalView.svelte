@@ -87,13 +87,13 @@
   }
 </script>
 
-<div>
+<div class="">
   <div class="text-center text-3xl font-thin">
     2D Dimensionality Reduction Demo
   </div>
-  <div class="csv-container">
+  <div class="px-24">
     <div bind:clientWidth={svgWidth}>
-      <svg width="100%" height="580px" bind:this={svgElement}>
+      <svg class="w-full h-[80vh]" bind:this={svgElement}>
         {#await setupData()}
           <p>Loading data</p>
         {:then}
@@ -113,10 +113,3 @@
     </div>
   </div>
 </div>
-
-<style lang="postcss">
-  .csv-container {
-    padding-left: 150px;
-    padding-right: 150px;
-  }
-</style>

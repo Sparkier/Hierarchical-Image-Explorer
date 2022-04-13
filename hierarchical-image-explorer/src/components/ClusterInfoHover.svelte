@@ -12,7 +12,7 @@
   })();
 </script>
 
-<div class="bg-gray-400 rounded-lg p-5" style="width:550px">
+<div class="bg-neutral-300 rounded-lg p-5" style="width:550px">
   <h1>{clusterID}</h1>
   <table class="hoverTable">
     <tr>
@@ -43,27 +43,17 @@
       alt="outlier0"
     />
     <img
-      class="centroidImage"
       src={BackendService.getCentroidImageUrl(clusterID, 1)}
       alt="centroid1"
     />
     <img
-      class="centroidImage"
       src={BackendService.getCentroidImageUrl(clusterID, 0)}
       alt="centroid0"
     />
     <img
-      class="centroidImage"
       src={BackendService.getCentroidImageUrl(clusterID, 2)}
       alt="centroid2"
     />
-    <img
-      class="outlierImage"
-      src={BackendService.getOutlierImageUrl(clusterID, 1)}
-      alt="outlier1"
-    />
+    <img src={BackendService.getOutlierImageUrl(clusterID, 1)} alt="outlier1" />
   </div>
 </div>
-
-<style>
-</style>
