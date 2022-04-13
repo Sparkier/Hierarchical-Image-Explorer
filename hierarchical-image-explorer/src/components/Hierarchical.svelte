@@ -81,7 +81,7 @@
 </script>
 
 <div>
-  <svg id="svg" width="100%" height="580px">
+  <svg id="svg" class="bg-transparent w-full h-[80vh]">
     {#await setupTree()}
       <p>Loading data</p>
     {:then}
@@ -129,20 +129,12 @@
   <!-- Cluster Info Hover -->
   {#if parentNode != undefined && showHover}
     <div
-      class="hoverInfoContainer"
+      class="absolute"
       style="left:{hoverPosX - 550 / 2}px;top:{hoverPosY + 20}px"
     >
-      <ClusterInfoHover clusterID={hoverClusterID} />
+      <div>
+        <ClusterInfoHover clusterID={hoverClusterID} />
+      </div>
     </div>
   {/if}
 </div>
-
-<style>
-  #svg {
-    background-color: transparent;
-  }
-
-  .hoverInfoContainer {
-    position: absolute;
-  }
-</style>

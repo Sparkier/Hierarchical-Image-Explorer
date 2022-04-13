@@ -1,32 +1,20 @@
 <script lang="ts">
   import GraphicalView from './components/GraphicalView.svelte';
+  import Hierarchical from './components/Hierarchical.svelte';
 </script>
 
-<main>
-  <h1>Hierarchical Demo</h1>
+<main class="text-center p-4">
   <div class="container">
+    <div class="text-center text-5xl uppercase font-thin text-hie-red">
+      Hierarchical Demo
+    </div>
     <GraphicalView />
+    <Hierarchical />
   </div>
 </main>
 
-<style>
-  main {
-    text-align: center;
-    padding: 1em;
-    max-width: 240px;
-    margin: 0 auto;
-  }
-
-  h1 {
-    color: #ff3e00;
-    text-transform: uppercase;
-    font-size: 3em;
-    font-weight: 100;
-  }
-
-  @media (min-width: 640px) {
-    main {
-      max-width: none;
-    }
-  }
+<style global lang="postcss">
+  @tailwind base;
+  @tailwind elements;
+  @tailwind utilities;
 </style>

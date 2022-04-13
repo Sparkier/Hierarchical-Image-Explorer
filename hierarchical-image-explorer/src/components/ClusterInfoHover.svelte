@@ -12,7 +12,7 @@
   })();
 </script>
 
-<div class="hoverBox">
+<div class="bg-neutral-300 rounded-lg p-5" style="width:550px">
   <h1>{clusterID}</h1>
   <table class="hoverTable">
     <tr>
@@ -36,68 +36,24 @@
       </td>
     </tr>
   </table>
-  <hr />
-  <img
-    class="outlierImage"
-    src={BackendService.getOutlierImageUrl(clusterID, 1)}
-    alt="outlier0"
-  />
-  <img
-    class="centroidImage"
-    src={BackendService.getCentroidImageUrl(clusterID, 1)}
-    alt="centroid1"
-  />
-  <img
-    class="centroidImage"
-    src={BackendService.getCentroidImageUrl(clusterID, 0)}
-    alt="centroid0"
-  />
-  <img
-    class="centroidImage"
-    src={BackendService.getCentroidImageUrl(clusterID, 2)}
-    alt="centroid2"
-  />
-  <img
-    class="outlierImage"
-    src={BackendService.getOutlierImageUrl(clusterID, 1)}
-    alt="outlier1"
-  />
+  <div class="grid grid-cols-5 gap-2 mt-4">
+    <img
+      class=""
+      src={BackendService.getOutlierImageUrl(clusterID, 1)}
+      alt="outlier0"
+    />
+    <img
+      src={BackendService.getCentroidImageUrl(clusterID, 1)}
+      alt="centroid1"
+    />
+    <img
+      src={BackendService.getCentroidImageUrl(clusterID, 0)}
+      alt="centroid0"
+    />
+    <img
+      src={BackendService.getCentroidImageUrl(clusterID, 2)}
+      alt="centroid2"
+    />
+    <img src={BackendService.getOutlierImageUrl(clusterID, 1)} alt="outlier1" />
+  </div>
 </div>
-
-<style>
-  h1 {
-    text-align: left;
-  }
-
-  hr {
-    color: transparent;
-    height: 10px;
-    border-style: none;
-  }
-
-  .hoverBox {
-    background-color: darkgray;
-    color: white;
-    width: 550px;
-    padding-left: 20px;
-    padding-bottom: 10px;
-    border-radius: 5px;
-  }
-
-  table {
-    table-layout: auto;
-    text-align: left;
-  }
-
-  td {
-    padding-right: 20px;
-  }
-
-  .centroidImage {
-    width: 100px;
-  }
-
-  .outlierImage {
-    width: 70px;
-  }
-</style>
