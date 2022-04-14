@@ -7,19 +7,14 @@
   let currentView = 'home';
 </script>
 
-<main>
-  <HieNav
-    currentSelection={currentView}
-    on:navigate={(v) => (currentView = v.detail)}
-  />
+<main class="font-body">
+  <HieNav bind:currentView />
   <div class="container">
     {#if currentView === 'home'}
-      <HomeScreen on:navigate={(v) => (currentView = v.detail)} />
-    {/if}
-    {#if currentView === '2d'}
+      <HomeScreen bind:currentView />
+    {:else if currentView === '2d'}
       <GraphicalView />
-    {/if}
-    {#if currentView === 'hierarchical'}
+    {:else if currentView === 'hierarchical'}
       <Hierarchical />
     {/if}
   </div>
@@ -29,9 +24,4 @@
   @tailwind base;
   @tailwind elements;
   @tailwind utilities;
-
-  * {
-    font-family: 'Quicksand';
-    font-size: 22px;
-  }
 </style>

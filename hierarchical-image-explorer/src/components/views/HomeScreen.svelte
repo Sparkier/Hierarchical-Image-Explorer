@@ -1,12 +1,11 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
   import ArrowUp from '../icons/ArrowUp.svelte';
-  const dispatch = createEventDispatcher();
+  export let currentView: string;
 </script>
 
 <!-- Background and Headline-->
 <div class="bg-hie-orange pb-12">
-  <div class="w-full h-screen pt-16 home-svg-bg-overlay bg-no-repeat bg-cover">
+  <div class="w-full h-screen pt-16 bg-hie-background bg-no-repeat bg-cover">
     <div class="text-center flex justify-center text-white">
       <div class="font-thin text-5xl">Hierarchical Image</div>
       <div class="font-bold text-5xl">&nbsp;Explorer</div>
@@ -30,7 +29,7 @@
     <div class="bg-white bg-opacity-50 rounded-lg col-span-3 p-2">
       <div
         class="underline text-lg underline-offset-4 hover:text-hie-red cursor-pointer w-64"
-        on:click={() => dispatch('navigate', 'hierarchical')}
+        on:click={() => (currentView = 'hierarchical')}
       >
         Hierarchical View
       </div>
@@ -48,7 +47,7 @@
     <div class="bg-white bg-opacity-50 rounded-lg col-span-3 p-2">
       <div
         class="underline text-lg underline-offset-4 hover:text-hie-red cursor-pointer w-64"
-        on:click={() => dispatch('navigate', '2d')}
+        on:click={() => (currentView = '2d')}
       >
         2D-Visualization
       </div>
@@ -75,9 +74,3 @@
     </button>
   </div>
 </div>
-
-<style>
-  .home-svg-bg-overlay {
-    background-image: url(/img/HIE_HERO_2.svg);
-  }
-</style>
