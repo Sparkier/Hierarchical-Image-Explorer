@@ -3,7 +3,7 @@
   import BackendService, { PointData } from '../../services/backendService';
   import { ColorUtils } from '../../services/colorUtil';
   import ColorLegend from '../ColorLegend.svelte';
-  import SingleImageDisplay from '../SingleImageViewer.svelte';
+  import SingleImageDisplay from '../SingleImageDisplay.svelte';
 
   export let hexaSide = 4;
   export let padding = 20;
