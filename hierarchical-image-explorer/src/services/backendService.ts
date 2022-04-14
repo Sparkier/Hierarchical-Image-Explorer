@@ -53,6 +53,10 @@ export default class BackendService {
     return `${this.serverAdress}hc/repimage/distant/${clusterID}/${rank}`;
   }
 
+  public static getImageUrl(dataID:string): string {
+    return `${this.serverAdress}data/images/${dataID}`;
+  }
+
   public static async getAllDataPoints(): Promise<PointData[]>{
     return this.getEndpoint("2d/all") as  Promise<PointData[]>
   }
