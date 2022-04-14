@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Hexagon from './minis/Hexagon.svelte';
-  import BackendService, { PointData } from '../services/backendService';
-  import { ColorUtils } from '../services/colorUtil';
+  import Hexagon from '../minis/Hexagon.svelte';
+  import BackendService, { PointData } from '../../services/backendService';
+  import { ColorUtils } from '../../services/colorUtil';
 
   export let hexaSide = 4;
   export let padding = 20;
