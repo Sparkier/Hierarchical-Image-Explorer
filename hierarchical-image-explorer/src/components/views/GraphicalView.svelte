@@ -2,8 +2,8 @@
   import Hexagon from '../minis/Hexagon.svelte';
   import BackendService, { PointData } from '../../services/backendService';
   import { ColorUtils } from '../../services/colorUtil';
-  import ColorLegend from '../ColorLegend..svelte';
-  import SingleImageDisplay from '../singleImageDisplay.svelte';
+  import ColorLegend from '../ColorLegend.svelte';
+  import SingleImageDisplay from '../SingleImageDisplay.svelte';
 
   export let hexaSide = 4;
   export let padding = 20;
@@ -119,7 +119,7 @@
         <div class="w-fit absolute top-0">
           <ColorLegend {colorMap} />
         </div>
-        {#if imgHoverUrl != ''}
+        {#if imgHoverUrl !== ''}
           <div class="absolute bottom-0 left-0">
             <SingleImageDisplay imgUrl={imgHoverUrl} />
           </div>

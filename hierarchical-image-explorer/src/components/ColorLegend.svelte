@@ -2,8 +2,6 @@
   import Hexagon from './minis/Hexagon.svelte';
 
   export let colorMap: Map<string, string>;
-
-  $: colorMap, console.log(colorMap);
 </script>
 
 <div class="px-3 py-1 bg-neutral-200 rounded-lg">
