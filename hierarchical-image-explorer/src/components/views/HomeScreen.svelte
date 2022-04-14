@@ -1,5 +1,6 @@
 <script lang="ts">
   import ArrowUp from '../icons/ArrowUp.svelte';
+
   export let currentView: string;
 </script>
 
