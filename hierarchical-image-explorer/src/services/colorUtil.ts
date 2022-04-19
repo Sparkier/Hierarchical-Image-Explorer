@@ -6,5 +6,9 @@ export class ColorUtils {
     '#F19A3E',
     '#F8E16C',
     '#5DA9E9',
+    '#DD5589',
+    '#08605F',
+    '#00B800',
+    '#FFA07A'
   ];
 }

@@ -2,6 +2,8 @@
   import Hexagon from '../minis/Hexagon.svelte';
   import BackendService, { PointData } from '../../services/backendService';
   import { ColorUtils } from '../../services/colorUtil';
+  import ColorLegend from '../ColorLegend.svelte';
+  import SingleImageDisplay from '../SingleImageDisplay.svelte';
 
   export let hexaSide = 4;
   export let padding = 20;
@@ -12,7 +14,8 @@
   var data: PointData[];
   var xExtent: number[] = [];
   var yExtent: number[] = [];
-  const colorMap: Map<string, string> = new Map();
+  var colorMap: Map<string, string> = new Map();
+  var imgHoverUrl: string = '';
 
   $: scaleY = generateScale(
     yExtent,
@@ -81,7 +84,7 @@
     if (colorMap.has(label)) return colorMap.get(label);
     else {
       const color = ColorUtils.colors[colorMap.size];
-      colorMap.set(label, color);
+      colorMap = colorMap.set(label, color);
       return color;
     }
   }
@@ -93,23 +96,37 @@
   </div>
   <div class="px-24">
     <div bind:clientWidth={svgWidth}>
-      <svg class="w-full h-[80vh]" bind:this={svgElement}>
-        {#await setupData()}
-          <p>Loading data</p>
-        {:then}
-          <!-- "svelte for" over the PointData -->
+      {#await setupData()}
+        <p>Loading data</p>
+      {:then}
+        <!-- "svelte for" over the PointData -->
+        <svg class="w-full h-[80vh]" bind:this={svgElement}>
           {#each data as point}
             <Hexagon
               side={hexaSide}
               x={scaleX(point.x)}
               y={scaleY(point.y)}
               color={getColor(point.label)}
+              on:mouseenter={() => {
+                imgHoverUrl = BackendService.getImageUrl(point.id.toString());
+              }}
+              on:mouseleave={() => {
+                imgHoverUrl = '';
+              }}
             />
           {/each}
-        {:catch error}
-          <p>{error.message}</p>
-        {/await}
-      </svg>
+        </svg>
+        <div class="w-fit absolute top-0">
+          <ColorLegend {colorMap} />
+        </div>
+        {#if imgHoverUrl !== ''}
+          <div class="absolute bottom-0 left-0">
+            <SingleImageDisplay imgUrl={imgHoverUrl} />
+          </div>
+        {/if}
+      {:catch error}
+        <p>{error.message}</p>
+      {/await}
     </div>
   </div>
 </div>
