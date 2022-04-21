@@ -20,18 +20,35 @@ type mnistDatumWithID = {
 };
 
 // parse commandline arguments
-if (process.argv.length !== 3) {
-  throw new Error('Missing arguments please use yarn run start <config_path>');
-}
-const configParameter = process.argv[2];
+var port = 25679;
+var configParameter = ""
+
+var nextAction = ""
+process.argv.forEach(arg => {
+  if(arg === "--port" || arg === "-p") nextAction = "setPort"
+  else if(arg === "--config" || arg === "-c") nextAction = "setConfig"
+  else if(nextAction === "setPort"){
+    port = parseInt(arg)
+    if(isNaN(port)) throw new Error("Invalid Port")
+    nextAction = ""
+  }
+  else if(nextAction === "setConfig"){
+    configParameter = arg;
+    nextAction = ""
+  }
+})
+
+if(configParameter === "") throw new Error("Please provide a configuration argument with -c or --config")
+
 
 console.log('Loading configuration from ' + configParameter);
+console.log("Port is " + port)
 const confData = JSON.parse(
   fs.readFileSync(configParameter, 'utf-8')
 ) as HIEConfiguration;
 const hieConfig = confData;
 
-const port = 25679;
+
 
 const dataFrame: Map<string, mnistDatum> = new Map();
 const app = express();
