@@ -35,8 +35,5 @@ jobs:
       - name: Adding Known Hosts
         run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Branch name
-        run: echo $GITHUB_REF_NAME
-
       - name: Deploy with rsync
         run: rsync -avz ./backend/build/ www-data@${{ secrets.SSH_HOST }}:/var/www/hie-server/${GITHUB_REF_NAME}/
