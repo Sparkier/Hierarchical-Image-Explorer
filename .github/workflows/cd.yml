@@ -41,3 +41,9 @@ jobs:
 
       - name: Deploy with rsync
         run: rsync -aPvz ./backend/build/ www-data@${{ secrets.SSH_HOST }}:/var/www/hie-server/${GITHUB_REF_NAME}/
+
+      - name: Create lockfile
+        run: echo "$(date)" > lockfile
+
+      - name: Deploy lockfile
+        run: rsync -aPvz lockfile www-data@${{ secrets.SSH_HOST }}:/var/www/hie-server/lockfile
