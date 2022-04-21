@@ -36,4 +36,4 @@ jobs:
         run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy with rsync
-        run: rsync -avz ./backend/build/ www-data@${{ secrets.SSH_HOST }}:/var/www/hie-server/${{ GITHUB_REF_NAME }}
+        run: rsync -avz ./backend/build/ www-data@${{ secrets.SSH_HOST }}:/var/www/hie-server/${{ env.GITHUB_REF_NAME }}
