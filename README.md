@@ -7,7 +7,7 @@ The goal of this project is to develop a Level of Detail visualization for large
 1. Clone the repository using your method of choice
 2. run `yarn` to initialize the project and install all necessary packages
 3. run `yarn build` to compile and build the project
-4. run `yarn start` to start the backend server (navigate to [localhost:5000](http://localhost:5000))
+4. run `yarn start -c <config_path> -p <port(default = 25679)>` to start the backend server (navigate to [localhost:5000](http://localhost:5000))
 
 #### Further commands
 
