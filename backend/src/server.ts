@@ -20,7 +20,7 @@ type mnistDatumWithID = {
 };
 
 // parse commandline arguments
-if (process.argv.length === 3) {
+if (process.argv.length !== 3) {
   throw new Error('Missing arguments please use yarn run start <config_path>');
 }
 const configParameter = process.argv[2];
