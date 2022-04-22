@@ -7,6 +7,7 @@
     "module": "commonjs",
     "rootDir": "./src",
     "outDir": "./build",
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*.ts",

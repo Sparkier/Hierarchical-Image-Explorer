@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "tsc --project ./",
+    "postbuild": "copyfiles package.json build && copyfiles yarn.lock build && cd build && yarn",
     "start": "nodemon src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write ./src/**/*.ts",
@@ -29,6 +30,7 @@
     "@types/delta-e": "^0.0.0",
     "body-parser": "^1.19.0",
     "colorthief": "^2.3.2",
+    "copyfiles": "^2.4.1",
     "cors": "^2.8.5",
     "delta-e": "^0.0.8",
     "express": "^4.17.1",
