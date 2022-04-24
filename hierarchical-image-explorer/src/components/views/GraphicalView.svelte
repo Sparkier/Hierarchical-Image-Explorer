@@ -1,4 +1,5 @@
 <script lang="ts">
+
   import Hexagon from '../minis/Hexagon.svelte';
   import BackendService, { PointData } from '../../services/backendService';
   import { ColorUtils } from '../../services/colorUtil';
@@ -9,13 +10,17 @@
   export let padding = 20;
 
   let svgElement: SVGSVGElement;
+  let svgElement2: SVGSVGElement;
   let svgWidth: number;
 
   var data: PointData[];
+  var quantisedData: PointData[][][];
   var xExtent: number[] = [];
   var yExtent: number[] = [];
   var colorMap: Map<string, string> = new Map();
   var imgHoverUrl: string = '';
+
+  
 
   $: scaleY = generateScale(
     yExtent,
@@ -32,6 +37,8 @@
       data = response;
       xExtent = getExtent((p: PointData) => p.x, data);
       yExtent = getExtent((p: PointData) => p.y, data);
+
+      quantisedData = calculateQuantisation(data)
     } catch (e) {
       console.log(e);
       alert(e);
@@ -88,6 +95,33 @@
       return color;
     }
   }
+
+  
+  function calculateQuantisation(input: PointData[]):PointData[][][]  {
+    const columns = 6;
+    const rows = 10;
+    const quantised:PointData[][][] = []
+    for(var x = 0; x < columns; x++) {
+      quantised.push([])
+      for (var y = 0; y < rows; y++){
+        quantised[x].push([])
+      }
+    }
+
+    input.forEach(e => {
+      const quantisedX = Math.floor(((e.x + 100)/200) * columns)
+      const quantisedY = Math.floor(((e.x + 100)/200) * rows)
+      quantised[quantisedX][quantisedY].push(e)
+    })
+
+    console.log(quantised)
+    return quantised
+  }
+
+  function getCellColor(input: PointData[]){
+
+  }
+
 </script>
 
 <div class="">
@@ -124,6 +158,16 @@
             <SingleImageDisplay imgUrl={imgHoverUrl} />
           </div>
         {/if}
+
+        <svg class="w-full h-[80vh] mt-10" bind:this={svgElement2}>
+          {#each quantisedData as row, x}
+            {#each row as cell, y}
+              {#if cell.length > 0}
+                <Hexagon side={hexaSide} x={1000*(x/row.length)} y={400*(y/quantisedData.length)}/>
+              {/if}
+            {/each}
+          {/each}
+        </svg>
       {:catch error}
         <p>{error.message}</p>
       {/await}
