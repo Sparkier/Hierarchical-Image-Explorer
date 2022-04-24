@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "tsc --project ./",
+    "build": "tsc-bundle ./tsconfig.json --outFile ./build/server.js",
     "start": "nodemon src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write ./src/**/*.ts",
@@ -35,7 +35,8 @@
     "fast-csv": "^4.3.6",
     "nodemon": "^2.0.15",
     "ssim.js": "^3.5.0",
-    "ts-node": "^10.4.0"
+    "ts-node": "^10.4.0",
+    "typescript-bundle": "^1.0.17"
   },
   "main": "server.js"
 }
