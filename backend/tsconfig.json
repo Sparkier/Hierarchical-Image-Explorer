@@ -7,7 +7,7 @@
     "target": "es6",
     "module": "commonjs",
     "rootDir": "./src",
-    "outDir": "./build",
+    "outDir": "./build-ts",
   },
   "include": [
     "src/**/*.ts",

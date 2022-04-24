@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "tsc-bundle ./tsconfig.json --outFile ./build/server.js",
+    "prebuild": "tsc --project ./",
+    "build": "rollup -c",
     "start": "nodemon src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write ./src/**/*.ts",
@@ -26,6 +27,9 @@
     "typescript": "^4.5.2"
   },
   "dependencies": {
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^13.2.1",
     "@types/delta-e": "^0.0.0",
     "body-parser": "^1.19.0",
     "colorthief": "^2.3.2",
@@ -34,6 +38,7 @@
     "express": "^4.17.1",
     "fast-csv": "^4.3.6",
     "nodemon": "^2.0.15",
+    "rollup": "^2.70.2",
     "ssim.js": "^3.5.0",
     "ts-node": "^10.4.0",
     "typescript-bundle": "^1.0.17"
