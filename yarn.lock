@@ -456,6 +456,19 @@
     magic-string "^0.25.7"
     resolve "^1.17.0"
 
+"@rollup/plugin-commonjs@^22.0.0":
+  version "22.0.0"
+  resolved "https://registry.yarnpkg.com/@rollup/plugin-commonjs/-/plugin-commonjs-22.0.0.tgz#f4d87016e2fbf187a593ab9f46626fe05b59e8bd"
+  integrity sha512-Ktvf2j+bAO+30awhbYoCaXpBcyPmJbaEUYClQns/+6SNCYFURbvBiNbWgHITEsIgDDWCDUclWRKEuf8cwZCFoQ==
+  dependencies:
+    "@rollup/pluginutils" "^3.1.0"
+    commondir "^1.0.1"
+    estree-walker "^2.0.1"
+    glob "^7.1.6"
+    is-reference "^1.2.1"
+    magic-string "^0.25.7"
+    resolve "^1.17.0"
+
 "@rollup/plugin-json@^4.1.0":
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-json/-/plugin-json-4.1.0.tgz#54e09867ae6963c593844d8bd7a9c718294496f3"
@@ -467,6 +480,18 @@
   version "11.2.1"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-node-resolve/-/plugin-node-resolve-11.2.1.tgz#82aa59397a29cd4e13248b106e6a4a1880362a60"
   integrity sha512-yc2n43jcqVyGE2sqV5/YCmocy9ArjVAP/BeXyTtADTBBX6V0e5UMqwO8CdQ0kzjb6zu5P1qMzsScCMRvE9OlVg==
+  dependencies:
+    "@rollup/pluginutils" "^3.1.0"
+    "@types/resolve" "1.17.1"
+    builtin-modules "^3.1.0"
+    deepmerge "^4.2.2"
+    is-module "^1.0.0"
+    resolve "^1.19.0"
+
+"@rollup/plugin-node-resolve@^13.2.1":
+  version "13.2.1"
+  resolved "https://registry.yarnpkg.com/@rollup/plugin-node-resolve/-/plugin-node-resolve-13.2.1.tgz#cdee815cf02c180ff0a42536ca67a8f67e299f84"
+  integrity sha512-btX7kzGvp1JwShQI9V6IM841YKNPYjKCvUbNrQ2EcVYbULtUd/GH6wZ/qdqH13j9pOHBER+EZXNN2L8RSJhVRA==
   dependencies:
     "@rollup/pluginutils" "^3.1.0"
     "@types/resolve" "1.17.1"
@@ -5477,6 +5502,13 @@ rollup@^2.3.4:
   optionalDependencies:
     fsevents "~2.3.2"
 
+rollup@^2.70.2:
+  version "2.70.2"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.70.2.tgz#808d206a8851628a065097b7ba2053bd83ba0c0d"
+  integrity sha512-EitogNZnfku65I1DD5Mxe8JYRUCy0hkK5X84IlDtUs+O6JRMpRciXTzyCUuX11b5L5pvjH+OmFXiQ3XjabcXgg==
+  optionalDependencies:
+    fsevents "~2.3.2"
+
 run-async@^2.2.0:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/run-async/-/run-async-2.4.1.tgz#8440eccf99ea3e70bd409d49aab88e10c189a455"
@@ -6324,6 +6356,11 @@ typedarray-to-buffer@^3.1.5:
   integrity sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==
   dependencies:
     is-typedarray "^1.0.0"
+
+typescript-bundle@^1.0.17:
+  version "1.0.17"
+  resolved "https://registry.yarnpkg.com/typescript-bundle/-/typescript-bundle-1.0.17.tgz#5e2ed1c270176c2326caab3791a9df81bff9cda7"
+  integrity sha512-mxplyRn77W1CpBBXjC1F9ZmqpYlsx/IdLkfnoIBXhszjXGgt6RJ9UpHo3gmWJUDmuY9UeMMdJgJ3FuOV7Zz24Q==
 
 typescript@*, typescript@^4.4.3, typescript@^4.5.2:
   version "4.5.5"
