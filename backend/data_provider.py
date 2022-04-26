@@ -13,12 +13,23 @@ import urllib.request
 import zipfile
 
 datasets = [
-    {"name": "mnist_test", "url": "https://github.com//teavanist/MNIST-JPG/blob/master/MNIST%20Dataset%20JPG%20format.zip?raw=true",
-        "filetype": "zip", "img_root": "MNIST Dataset JPG format/MNIST - JPG - testing/", "label_source": "folder", "id_source": "filename"},
-    {"name": "mnist_train", "url": "https://github.com//teavanist/MNIST-JPG/blob/master/MNIST%20Dataset%20JPG%20format.zip?raw=true",
-     "filetype": "zip", "img_root": "MNIST Dataset JPG format/MNIST - JPG - training/", "label_source": "folder", "id_source": "filename"},
-    {"name": "flowers", "url": "http://download.tensorflow.org/example_images/flower_photos.tgz",
-        "filetype": "tgz", "img_root": "flower_photos/", "label_source": "folder", "id_source": "generate"}
+    {"name": "mnist_test",
+     "url": "https://github.com//teavanist/MNIST-JPG/blob/master/MNIST%20Dataset%20JPG%20format.zip?raw=true",
+     "filetype": "zip",
+     "img_root": "MNIST Dataset JPG format/MNIST - JPG - testing/",
+     "label_source": "folder", "id_source": "filename"},
+    {"name": "mnist_train",
+     "url": "https://github.com//teavanist/MNIST-JPG/blob/master/MNIST%20Dataset%20JPG%20format.zip?raw=true",
+     "filetype": "zip",
+     "img_root": "MNIST Dataset JPG format/MNIST - JPG - training/",
+     "label_source": "folder",
+     "id_source": "filename"},
+    {"name": "flowers",
+     "url": "http://download.tensorflow.org/example_images/flower_photos.tgz",
+     "filetype": "tgz",
+     "img_root": "flower_photos/",
+     "label_source": "folder",
+     "id_source": "generate"}
 ]
 
 tmp_archive_name = "downloaded_archive"
