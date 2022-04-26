@@ -14,12 +14,12 @@ import zipfile
 
 datasets = [
     {"name": "mnist_test",
-     "url": "https://github.com//teavanist/MNIST-JPG/blob/master/MNIST%20Dataset%20JPG%20format.zip?raw=true",
+     "url": "https://github.com//teavanist/MNIST-JPG/blob/master/MNIST%20Dataset%20JPG%20format.zip?raw=true",  # pylint: disable=line-too-long
      "filetype": "zip",
      "img_root": "MNIST Dataset JPG format/MNIST - JPG - testing/",
      "label_source": "folder", "id_source": "filename"},
     {"name": "mnist_train",
-     "url": "https://github.com//teavanist/MNIST-JPG/blob/master/MNIST%20Dataset%20JPG%20format.zip?raw=true",
+     "url": "https://github.com//teavanist/MNIST-JPG/blob/master/MNIST%20Dataset%20JPG%20format.zip?raw=true",  # pylint: disable=line-too-long
      "filetype": "zip",
      "img_root": "MNIST Dataset JPG format/MNIST - JPG - training/",
      "label_source": "folder",
@@ -32,12 +32,12 @@ datasets = [
      "id_source": "generate"}
 ]
 
-tmp_archive_name = "downloaded_archive"
+TMP_ARCHIVE_NAME = "downloaded_archive"
 
 
 def download_file(url, filetype):
     print("Downloading Data")
-    urllib.request.urlretrieve(url, tmp_archive_name + "." + filetype)
+    urllib.request.urlretrieve(url, TMP_ARCHIVE_NAME + "." + filetype)
 
 
 def delete_file(filename):
@@ -46,14 +46,14 @@ def delete_file(filename):
 
 
 def extract_file_zip(destination, img_root):
-    with zipfile.ZipFile(tmp_archive_name + ".zip", "r") as zip_file:
+    with zipfile.ZipFile(TMP_ARCHIVE_NAME + ".zip", "r") as zip_file:
         for file in zip_file.namelist():
             if file.startswith(img_root):
                 zip_file.extract(file, path=destination)
 
 
 def extract_file_tgz(destination, img_root, filetype):
-    with tarfile.open(tmp_archive_name + "." + filetype) as tar:
+    with tarfile.open(TMP_ARCHIVE_NAME + "." + filetype) as tar:
         subdir_and_files = [
             tarinfo for tarinfo in tar.getmembers()
             if tarinfo.name.startswith(img_root)
@@ -65,7 +65,7 @@ def extract_file(filetype, destination, img_root):
     print("Extracting archive")
     if filetype == "zip":
         extract_file_zip(destination, img_root)
-    if filetype == "tgz" or filetype == "tar":
+    if filetype in ("tgz", "tar", "tar.gz"):
         extract_file_tgz(destination, img_root, filetype)
 
 
@@ -73,12 +73,13 @@ def download_and_extract(dataset, destination):
     download_file(dataset["url"], dataset["filetype"])
     extract_file(dataset["filetype"], destination + "/" +
                  dataset["name"] + "/", dataset["img_root"])
-    delete_file(tmp_archive_name + "." + dataset["filetype"])
+    delete_file(TMP_ARCHIVE_NAME + "." + dataset["filetype"])
 
 
 def generate_annotations_from_folders(destination, dataset):
     swg_name = dataset["name"] + ".csv"
-    with open(Path(destination) / dataset["name"] / swg_name, "w", newline='', encoding="utf8") as csv_file:
+    with open(Path(destination) / dataset["name"] / swg_name,
+              "w", newline='', encoding="utf8") as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(["image_id", "file_path", "label"])
 
@@ -108,9 +109,9 @@ def generate_annotations(destination, dataset):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    dataset_options = str(list(map(lambda e: e["name"], datasets)))
+    DATASET_OPTIONS = str(list(map(lambda e: e["name"], datasets)))
     parser.add_argument('dataset', type=str,
-                        help='the dataset to download one of: ' + dataset_options)
+                        help='the dataset to download one of: ' + DATASET_OPTIONS)
     parser.add_argument(
         '-p',
         '--path',
@@ -118,8 +119,9 @@ if __name__ == "__main__":
         default="data/",
         type=str)
     args = parser.parse_args()
-    if not dataset_options.__contains__(args.dataset):
-        sys.exit("Dataset must be one of: " + dataset_options)
-    dataset = list(filter(lambda e: e["name"] == args.dataset, datasets))[0]
-    download_and_extract(dataset, args.path)
-    generate_annotations(args.path, dataset)
+    if not DATASET_OPTIONS.__contains__(args.dataset):
+        sys.exit("Dataset must be one of: " + DATASET_OPTIONS)
+    dataset_selected = list(
+        filter(lambda e: e["name"] == args.dataset, datasets))[0]
+    download_and_extract(dataset_selected, args.path)
+    generate_annotations(args.path, dataset_selected)
