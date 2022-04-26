@@ -1,9 +1,4 @@
-# content
-# * donwload archive
-# * extract archive
-# * generate annotation from folder structure
-
-
+"""Module that downloads datasets and generates corresponding swg-files"""
 import argparse
 import csv
 import sys
@@ -36,16 +31,19 @@ TMP_ARCHIVE_NAME = "downloaded_archive"
 
 
 def download_file(url, filetype):
+    """Downloads a file from a given url"""
     print("Downloading Data")
     urllib.request.urlretrieve(url, TMP_ARCHIVE_NAME + "." + filetype)
 
 
 def delete_file(filename):
+    """Deletes a given file"""
     print("Cleaning up")
     Path(filename).unlink()
 
 
 def extract_file_zip(destination, img_root):
+    """Extracts files from a zip file in (sub)folders in img_root"""
     with zipfile.ZipFile(TMP_ARCHIVE_NAME + ".zip", "r") as zip_file:
         for file in zip_file.namelist():
             if file.startswith(img_root):
@@ -53,6 +51,7 @@ def extract_file_zip(destination, img_root):
 
 
 def extract_file_tgz(destination, img_root, filetype):
+    """Extracts files from a tar file in (sub)folders in img_root"""
     with tarfile.open(TMP_ARCHIVE_NAME + "." + filetype) as tar:
         subdir_and_files = [
             tarinfo for tarinfo in tar.getmembers()
@@ -62,6 +61,7 @@ def extract_file_tgz(destination, img_root, filetype):
 
 
 def extract_file(filetype, destination, img_root):
+    """Determines the correct function to extract an archive"""
     print("Extracting archive")
     if filetype == "zip":
         extract_file_zip(destination, img_root)
@@ -70,6 +70,7 @@ def extract_file(filetype, destination, img_root):
 
 
 def download_and_extract(dataset, destination):
+    """Downloads extracts and removes the archive"""
     download_file(dataset["url"], dataset["filetype"])
     extract_file(dataset["filetype"], destination + "/" +
                  dataset["name"] + "/", dataset["img_root"])
@@ -77,6 +78,7 @@ def download_and_extract(dataset, destination):
 
 
 def generate_annotations_from_folders(destination, dataset):
+    """Generates a swg file based on the folder structure of a dataset"""
     swg_name = dataset["name"] + ".csv"
     with open(Path(destination) / dataset["name"] / swg_name,
               "w", newline='', encoding="utf8") as csv_file:
@@ -102,6 +104,7 @@ def generate_annotations_from_folders(destination, dataset):
 
 
 def generate_annotations(destination, dataset):
+    """Determines the correct function to generate annotations"""
     print("Generating annotations")
     if dataset["label_source"] == "folder":
         generate_annotations_from_folders(destination, dataset)
