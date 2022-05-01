@@ -100,6 +100,7 @@ if __name__ == "__main__":
         description='Generate similarity matrix from swg file')
     parser.add_argument('swg_file', type=str,
                         help='path to swg file')
+    # pylint: disable=duplicate-code
     parser.add_argument(
         '-o',
         '--output_dir',
