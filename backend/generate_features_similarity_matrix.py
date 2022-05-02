@@ -96,7 +96,7 @@ def main(parameters):
 
 
 if __name__ == "__main__":
-    # pylint: disable=duplicate-code
+    # pylint: ignore=duplicate-code
     parser = argparse.ArgumentParser(
         description='Generate similarity matrix from swg file')
     parser.add_argument('swg_file', type=str,
