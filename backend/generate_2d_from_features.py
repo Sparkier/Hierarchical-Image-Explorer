@@ -50,11 +50,11 @@ def main(parameters):
 
 
 if __name__ == "__main__":
+    # pylint: disable=duplicate-code
     parser = argparse.ArgumentParser(
         description='Generate 2D points from features')
     parser.add_argument('feature_json', type=str,
                         help='path to feature json')
-        # pylint: disable=duplicate-code
     parser.add_argument(
         '-o',
         '--output_dir',
