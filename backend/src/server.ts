@@ -120,9 +120,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/data/images/:id', (req, res) => {
-  const filePath = getImagePathByID(req.params.id)
-  console.log(filePath)
-  res.sendFile(filePath)
+  res.sendFile(getImagePathByID(req.params.id))
 });
 
 app.get('/data/annotations/:id', (req, res) => {
@@ -178,31 +176,19 @@ app.get('/hc/parent/:id', (req, res) => {
 // for testing random image
 app.get('/hc/repimage/:id', (req, res) => {
   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  const file_path = getPathFromId(
-    dataIDS[Math.floor(Math.random() * dataIDS.length)]
-  );
-  const absolutPath = path.join(__dirname, '../', file_path);
-  res.sendFile(absolutPath);
+  res.sendFile(getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)]));
 });
 
 // for testing random image
 app.get('/hc/repimage/close/:id/:rank', (req, res) => {
   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  const file_path = getPathFromId(
-    dataIDS[Math.floor(Math.random() * dataIDS.length)]
-  );
-  const absolutPath = path.join(__dirname, '../', file_path);
-  res.sendFile(absolutPath);
+  res.sendFile(getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)]));
 });
 
 // for testing random image
 app.get('/hc/repimage/distant/:id/:rank', (req, res) => {
   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  const file_path = getPathFromId(
-    dataIDS[Math.floor(Math.random() * dataIDS.length)]
-  );
-  const absolutPath = path.join(__dirname, '../', file_path);
-  res.sendFile(absolutPath);
+  res.sendFile(getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)]));
 });
 
 app.get('/hc/clusterinfo/size/:id', (req, res) => {
