@@ -8,9 +8,10 @@
   export let columns = 50;
   export let rows = 80;
 
-  var svgWidth: number;
-  var quantisedData: PointData[][][] = [];
-  var hexaSide = -1;
+  let svgWidth: number;
+  let quantisedData: PointData[][][] = [];
+  let hexaSide = -1;
+  const hexaShortDiag = Math.sqrt(3) / 2;
 
   $: scaleQuantisedX = (v: number, row: number) => {
     return svgWidth == undefined
@@ -19,7 +20,7 @@
   };
 
   $: scaleQuantisedY = (v: number) => {
-    return (Math.sqrt(3) / 2) * hexaSide * v;
+    return hexaShortDiag * hexaSide * v;
   };
 
   onMount(() => {
@@ -41,12 +42,12 @@
 
     // calculate possible hexagon center points:
     hexaSide = svgWidth / (3 * columns);
-    for (var x = 0; x < columns; x++) {
-      for (var y = 0; y < rows; y++) {
+    for (let x = 0; x < columns; x++) {
+      for (let y = 0; y < rows; y++) {
         const topleftX = scaleQuantisedX(x, y);
         const topleftY = scaleQuantisedY(y);
         const centerX = topleftX + hexaSide;
-        const centerY = topleftY + hexaSide * (Math.sqrt(3) / 2);
+        const centerY = topleftY + hexaSide * hexaShortDiag;
         possiblePoints.push({
           xCoord: centerX,
           xQuantised: x,
@@ -58,9 +59,9 @@
 
     // initialize empty 3d Array
     const quantised: PointData[][][] = [];
-    for (var x = 0; x < columns; x++) {
+    for (let x = 0; x < columns; x++) {
       quantised.push([]);
-      for (var y = 0; y < rows; y++) {
+      for (let y = 0; y < rows; y++) {
         quantised[x].push([]);
       }
     }
@@ -68,8 +69,7 @@
     // check which possible point is closest to datum (modeling hexagons as circles)
     input.forEach((e) => {
       const scaledX = ((e.x + 100) / 200) * svgWidth;
-      const scaledY =
-        ((e.y + 100) / 200) * rows * hexaSide * (Math.sqrt(3) / 2);
+      const scaledY = ((e.y + 100) / 200) * rows * hexaSide * hexaShortDiag;
 
       const distances = possiblePoints.map((p) =>
         Math.sqrt((p.xCoord - scaledX) ** 2 + (p.yCoord - scaledY) ** 2)
