@@ -107,15 +107,22 @@ function getAllIds(): string[] {
   return [...dataFrame.keys()];
 }
 
+function getImagePathByID(id:string){
+  const filePath = getPathFromId(id)
+  // relative path?
+    return path.join(confData.imgDataRoot.startsWith(".")?__dirname:"", confData.imgDataRoot, filePath)
+
+}
+
 // endpoints
 app.get('/', (req, res) => {
   res.send('Server is running and listening on port ' + port);
 });
 
 app.get('/data/images/:id', (req, res) => {
-  const file_path = getPathFromId(req.params.id);
-  const absolutPath = path.join(__dirname, '../', file_path);
-  res.sendFile(absolutPath);
+  const filePath = getImagePathByID(req.params.id)
+  console.log(filePath)
+  res.sendFile(filePath)
 });
 
 app.get('/data/annotations/:id', (req, res) => {
