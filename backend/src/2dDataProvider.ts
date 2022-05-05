@@ -52,9 +52,9 @@ export class DataProvider2D {
     return toReturn;
   }
 
-  public getPointByID(id:string){
-    const mapEntry = this.pointMap.get(id)
-    if(mapEntry == undefined) throw new Error("ID does not exist")
-    return {id: id, x:mapEntry.x, y:mapEntry.y, label:mapEntry.label}
+  public getPointByID(id: string) {
+    const mapEntry = this.pointMap.get(id);
+    if (mapEntry == undefined) throw new Error('ID does not exist');
+    return { id: id, x: mapEntry.x, y: mapEntry.y, label: mapEntry.label };
   }
 }

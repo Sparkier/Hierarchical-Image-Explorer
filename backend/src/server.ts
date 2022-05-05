@@ -223,6 +223,6 @@ app.get('/2d/all', (req, res) => {
   res.send(dataProvider2D?.getAllPoints());
 });
 
-app.get('/2d/single/:id', (req,res) => {
-  res.send(dataProvider2D?.getPointByID(req.params.id))
-})
+app.get('/2d/single/:id', (req, res) => {
+  res.send(dataProvider2D?.getPointByID(req.params.id));
+});
