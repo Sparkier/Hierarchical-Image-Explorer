@@ -3,5 +3,5 @@ export interface HIEConfiguration {
   cluster: string;
   similarityMatrix: string;
   points2d: string;
-  imgDataRoot: string
+  imgDataRoot: string;
 }

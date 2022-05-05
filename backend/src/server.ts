@@ -107,11 +107,14 @@ function getAllIds(): string[] {
   return [...dataFrame.keys()];
 }
 
-function getImagePathByID(id:string){
-  const filePath = getPathFromId(id)
+function getImagePathByID(id: string) {
+  const filePath = getPathFromId(id);
   // relative path?
-    return path.join(confData.imgDataRoot.startsWith(".")?__dirname:"", confData.imgDataRoot, filePath)
-
+  return path.join(
+    confData.imgDataRoot.startsWith('.') ? __dirname : '',
+    confData.imgDataRoot,
+    filePath
+  );
 }
 
 // endpoints
@@ -120,7 +123,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/data/images/:id', (req, res) => {
-  res.sendFile(getImagePathByID(req.params.id))
+  res.sendFile(getImagePathByID(req.params.id));
 });
 
 app.get('/data/annotations/:id', (req, res) => {
@@ -176,19 +179,25 @@ app.get('/hc/parent/:id', (req, res) => {
 // for testing random image
 app.get('/hc/repimage/:id', (req, res) => {
   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  res.sendFile(getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)]));
+  res.sendFile(
+    getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
+  );
 });
 
 // for testing random image
 app.get('/hc/repimage/close/:id/:rank', (req, res) => {
   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  res.sendFile(getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)]));
+  res.sendFile(
+    getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
+  );
 });
 
 // for testing random image
 app.get('/hc/repimage/distant/:id/:rank', (req, res) => {
   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  res.sendFile(getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)]));
+  res.sendFile(
+    getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
+  );
 });
 
 app.get('/hc/clusterinfo/size/:id', (req, res) => {
