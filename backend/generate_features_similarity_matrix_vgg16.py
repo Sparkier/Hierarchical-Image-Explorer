@@ -5,8 +5,6 @@ import argparse
 import csv
 import json
 from pathlib import Path
-import tensorflow as tf
-import tensorflow_hub as hub
 from scipy.spatial.distance import cdist
 import numpy as np
 from tensorflow import keras
@@ -33,10 +31,10 @@ def read_annotations(swg_path):
 def load_image(path):
     """Loads an image from a given path"""
     img = image.load_img(path, target_size=model.input_shape[1:3])
-    x = image.img_to_array(img)
-    x = np.expand_dims(x, axis=0)
-    x = preprocess_input(x)
-    return img, x
+    reshape = image.img_to_array(img)
+    reshape = np.expand_dims(reshape, axis=0)
+    reshape = preprocess_input(reshape)
+    return img, reshape
 
 
 def get_image_feature_vectors(image_paths):
@@ -45,8 +43,8 @@ def get_image_feature_vectors(image_paths):
     print("")  # new line to write progress in
     for index, filename in enumerate(image_paths):
         print(f"File {index+1} / {len(image_paths)}", end="\r")
-        _, x = load_image(filename)
-        img_features = feat_extractor.predict(x)
+        _, reshape = load_image(filename)
+        img_features = feat_extractor.predict(reshape)
         feature_set = np.squeeze(img_features)
         image_features.append(feature_set)
 
@@ -78,7 +76,7 @@ def save_feature_vectors_to_json(annos, features, out_dir, file_name):
         json.dump(feature_list, json_file)
 
 
-def main(parameters):
+def feature_extraction_similarity(parameters):
     """Main Method"""
     print("Reading annotations")
     annotations = read_annotations(parameters.swg_file)
@@ -111,4 +109,4 @@ if __name__ == "__main__":
         default='data/sim/',
         type=str)
     args = parser.parse_args()
-    main(args)
+    feature_extraction_similarity(args)
