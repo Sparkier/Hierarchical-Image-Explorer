@@ -3,3 +3,5 @@ numpy
 sklearn
 neo4j
 pandas
+tensorflow
+tensorflow_hub
