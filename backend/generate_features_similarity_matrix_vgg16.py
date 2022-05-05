@@ -7,13 +7,11 @@ import json
 from pathlib import Path
 from scipy.spatial.distance import cdist
 import numpy as np
+import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.applications.imagenet_utils import preprocess_input
-from tensorflow.keras.models import Model
 
 model = keras.applications.VGG16(weights='imagenet', include_top=True)
-feat_extractor = Model(
+feat_extractor = tf.keras.Model(
     inputs=model.input, outputs=model.get_layer("fc2").output)
 
 
@@ -29,12 +27,12 @@ def read_annotations(swg_path):
 
 
 def load_image(path):
-    """Loads an image from a given path"""
-    img = image.load_img(path, target_size=model.input_shape[1:3])
-    reshape = image.img_to_array(img)
-    reshape = np.expand_dims(reshape, axis=0)
-    reshape = preprocess_input(reshape)
-    return img, reshape
+    """Loads a single image from file and converts it to 224x224x3 numpy array"""
+    img = tf.io.read_file(path)
+    img = tf.io.decode_jpeg(img, channels=3)
+    img = tf.image.resize_with_pad(img, 224, 224)
+    img = tf.image.convert_image_dtype(img, tf.float32)[tf.newaxis, ...]
+    return img
 
 
 def get_image_feature_vectors(image_paths):
@@ -43,8 +41,8 @@ def get_image_feature_vectors(image_paths):
     print("")  # new line to write progress in
     for index, filename in enumerate(image_paths):
         print(f"File {index+1} / {len(image_paths)}", end="\r")
-        _, reshape = load_image(filename)
-        img_features = feat_extractor.predict(reshape)
+        img = load_image(filename)
+        img_features = feat_extractor.predict(img)
         feature_set = np.squeeze(img_features)
         image_features.append(feature_set)
 
