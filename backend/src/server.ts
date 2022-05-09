@@ -107,15 +107,23 @@ function getAllIds(): string[] {
   return [...dataFrame.keys()];
 }
 
+function getImagePathByID(id: string) {
+  const filePath = getPathFromId(id);
+  // relative path?
+  return path.join(
+    confData.imgDataRoot.startsWith('.') ? __dirname : '',
+    confData.imgDataRoot,
+    filePath
+  );
+}
+
 // endpoints
 app.get('/', (req, res) => {
   res.send('Server is running and listening on port ' + port);
 });
 
 app.get('/data/images/:id', (req, res) => {
-  const file_path = getPathFromId(req.params.id);
-  const absolutPath = path.join(__dirname, '../', file_path);
-  res.sendFile(absolutPath);
+  res.sendFile(getImagePathByID(req.params.id));
 });
 
 app.get('/data/annotations/:id', (req, res) => {
@@ -171,31 +179,25 @@ app.get('/hc/parent/:id', (req, res) => {
 // for testing random image
 app.get('/hc/repimage/:id', (req, res) => {
   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  const file_path = getPathFromId(
-    dataIDS[Math.floor(Math.random() * dataIDS.length)]
+  res.sendFile(
+    getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
   );
-  const absolutPath = path.join(__dirname, '../', file_path);
-  res.sendFile(absolutPath);
 });
 
 // for testing random image
 app.get('/hc/repimage/close/:id/:rank', (req, res) => {
   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  const file_path = getPathFromId(
-    dataIDS[Math.floor(Math.random() * dataIDS.length)]
+  res.sendFile(
+    getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
   );
-  const absolutPath = path.join(__dirname, '../', file_path);
-  res.sendFile(absolutPath);
 });
 
 // for testing random image
 app.get('/hc/repimage/distant/:id/:rank', (req, res) => {
   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  const file_path = getPathFromId(
-    dataIDS[Math.floor(Math.random() * dataIDS.length)]
+  res.sendFile(
+    getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
   );
-  const absolutPath = path.join(__dirname, '../', file_path);
-  res.sendFile(absolutPath);
 });
 
 app.get('/hc/clusterinfo/size/:id', (req, res) => {
