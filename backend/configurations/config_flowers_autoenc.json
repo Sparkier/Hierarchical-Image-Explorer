@@ -1,0 +1,6 @@
+{
+  "swg": "./data/flowers/flowers_swg.csv",
+  "cluster": "./data/clustering/flowers_clustering.json",
+  "similarityMatrix": "./data/sim/flowers_sim.json",
+  "points2d": "./data/sim/flowers_autoenc_2d_points.csv"
+}
