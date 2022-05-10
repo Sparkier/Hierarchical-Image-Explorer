@@ -22,7 +22,6 @@ export class DataProvider2D {
     fs.createReadStream(filePath)
       .pipe(csv.parse({ headers: true }))
       .on('error', (e) => console.log(e))
-
       .on('data', (row: csvRow2D) => {
         const datapoint = dataFrame.get(row.id);
         if (datapoint == undefined)
@@ -40,16 +39,12 @@ export class DataProvider2D {
   }
 
   public getAllPoints(): datum2dPoint[] {
-    const toReturn: datum2dPoint[] = [];
-    this.pointMap.forEach((v, k) =>
-      toReturn.push({
-        id: k,
-        x: v.x,
-        y: v.y,
-        label: v.label,
-      })
-    );
-    return toReturn;
+    return Array.from(this.pointMap).map(([k,v]) => {return {
+      id: k,
+      x: v.x,
+      y: v.y,
+      label: v.label,
+    }})
   }
 
   public getPointByID(id: string) {
