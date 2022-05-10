@@ -39,12 +39,14 @@ export class DataProvider2D {
   }
 
   public getAllPoints(): datum2dPoint[] {
-    return Array.from(this.pointMap).map(([k,v]) => {return {
-      id: k,
-      x: v.x,
-      y: v.y,
-      label: v.label,
-    }})
+    return Array.from(this.pointMap).map(([k, v]) => {
+      return {
+        id: k,
+        x: v.x,
+        y: v.y,
+        label: v.label,
+      };
+    });
   }
 
   public getPointByID(id: string) {
