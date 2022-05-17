@@ -6,4 +6,4 @@ pandas
 tensorflow
 keras
 hdbscan
-umap-leanr
+umap-learn
