@@ -204,7 +204,7 @@ def run_similarity_generation(args, features, file_name_prefix):
         if features is None:
             sys.exit("Generating a similarity matrix requires a feature set. \
                 Please provide either a metric or a path to a previously generated feature list")
-        if args.similarity_metric == "euclidean" or args.similarity_metric == "cosine":
+        if args.similarity_metric in ('euclidean', 'cosine'):
             similarity_matrix = create_distance_matrix(
                 features, args.similarity_metric)
         else:
@@ -217,7 +217,7 @@ def run_similarity_generation(args, features, file_name_prefix):
 
 
 def run_clustering(args, annotations, file_name_prefix, similarity_matrix):
-    """if args contains a floag runs the
+    """if args contains a flag runs the
         corresponding clustering algorithm"""
     if args.clustering is not None:
         print("Running clustering")
@@ -240,16 +240,9 @@ def run_clustering(args, annotations, file_name_prefix, similarity_matrix):
             sys.exit("Unknown clusterer")
 
 
-def run_pipeline(args):
-    """Runs through the processing pipeline given by the command line args"""
-    print("Reading annotations")
-    annotations = read_annotations(args.swg_file)
-    file_name_prefix = Path(args.swg_file).stem
-    features = run_feature_extraction(args, annotations, file_name_prefix)
-    similarity_matrix = run_similarity_generation(
-        args, features, file_name_prefix)
-    run_clustering(args, annotations, file_name_prefix, similarity_matrix)
-
+def run_dimensionality_reduction(args, annotations, file_name_prefix, features):
+    """if args contains a flag runs the
+    corresponding dimensionality reduction"""
     if args.dimensionality_reduction is not None:
         if features is None:
             sys.exit("Running dimensionality reduction requires a feature set. \
@@ -267,6 +260,20 @@ def run_pipeline(args):
                 "_" + args.name + "_umap.csv"
             save_points_data(Path(args.output_dir) /
                              dim_red_file_name, points_df)
+        else:
+            sys.exit("unknown dimensionality reduction method")
+
+
+def run_pipeline(args):
+    """Runs through the processing pipeline given by the command line args"""
+    print("Reading annotations")
+    annotations = read_annotations(args.swg_file)
+    file_name_prefix = Path(args.swg_file).stem
+    features = run_feature_extraction(args, annotations, file_name_prefix)
+    similarity_matrix = run_similarity_generation(
+        args, features, file_name_prefix)
+    run_clustering(args, annotations, file_name_prefix, similarity_matrix)
+    run_dimensionality_reduction(args, annotations, file_name_prefix, features)
 
 
 if __name__ == "__main__":
