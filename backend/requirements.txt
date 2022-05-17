@@ -3,3 +3,7 @@ numpy
 sklearn
 neo4j
 pandas
+tensorflow
+keras
+hdbscan
+umap
