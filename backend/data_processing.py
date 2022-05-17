@@ -23,10 +23,8 @@ def read_annotations(swg_path):
     with open(swg_path, 'r', encoding="utf8") as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader)
-        for i, row in enumerate(reader):
+        for row in reader:
             annotation_list.append(row)
-            if i == 20:  # ! remove me after debugging!
-                break
         return annotation_list
 
 
