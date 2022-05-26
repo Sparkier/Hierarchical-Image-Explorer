@@ -48,7 +48,6 @@ export class ColorUtil {
     })
     
     const sortedList = [...countMap.entries()].sort((a,b) => b[1]-a[1])
-    console.log(sortedList)
     return this.getColor(sortedList[0][0]);
   }
 }

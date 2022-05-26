@@ -19,7 +19,7 @@
             transform = [x, y];
             select(g).attr('transform', `translate(${x}, ${y}) scale(${k})`);
           })
-          .scaleExtent([1, 100])
+          .scaleExtent([1, 200])
       );
     }
   });

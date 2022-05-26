@@ -35,4 +35,20 @@ export function getExtent(
       // normalize to [0,1] and then scale with available space
       return (v / extentAbsMax + 0.5) * (domain - 2 * padding) + padding;
     };
-  }  
+  }
+
+  export class LinearScale{
+    private extentAbsMax = Math.max(Math.abs(this.extent[0]), Math.abs(this.extent[1])) * 2;
+    constructor(private extent: number[], private domain: number, private padding: number){
+
+    }
+
+    public scale(v:number){
+      return (v / this.extentAbsMax + 0.5) * (this.domain - 2 * this.padding) + this.padding;
+    }
+
+    public invert(w:number){
+      return -1*(this.extentAbsMax*(this.domain-2*w))/(2*(this.domain-2*this.padding))
+    }
+
+  }

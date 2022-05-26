@@ -4,7 +4,7 @@
   import { ColorUtil } from '../services/colorUtil';
   import { onMount } from 'svelte';
   import ZoomSVG from './ZoomSVG.svelte';
-  import { generateScale } from '../services/scaleUtilities';
+  import { generateScale, LinearScale } from '../services/scaleUtilities';
   import BackendService from '../services/backendService';
 
   export let data: PointData[];
@@ -36,16 +36,16 @@
     return hexaShortDiag * hexaSide * v;
   };
 
-  $: scaleY = generateScale(
+  onMount(() => {
+    quantisedData = calculateQuantisation(data);
+  });
+
+  $: scaleY = new LinearScale(
     [-100, 100],
     svgWidth == undefined ? 0 : svgHeight,
     0
   );
-  $: scaleX = generateScale([-100, 100], svgWidth, 0);
-
-  onMount(() => {
-    quantisedData = calculateQuantisation(data);
-  });
+  $: scaleX = new LinearScale([-100, 100], svgWidth, 0);
 
   $: filteredData =
     extent > lodBreakpoint && transform != undefined
@@ -117,13 +117,14 @@
 
     const topLeft = svgPoint(svg, x1_dom, y1_dom, g);
     const bottomRight = svgPoint(svg, x2_dom, y2_dom, g);
-    console.log(topLeft, bottomRight);
+
+    const x_1_inv = scaleX.invert(topLeft.x);
+    const x_2_inv = scaleX.invert(bottomRight.x);
+    const y_1_inv = scaleY.invert(topLeft.y);
+    const y_2_inv = scaleY.invert(bottomRight.y);
+
     const filtered = data.filter(
-      (p) =>
-        scaleX(p.x) > topLeft.x &&
-        scaleX(p.x) < bottomRight.x &&
-        scaleY(p.y) > topLeft.y &&
-        scaleY(p.y) < bottomRight.y
+      (p) => p.x > x_1_inv && p.x < x_2_inv && p.y > y_1_inv && p.y < y_2_inv
     );
     console.log('Filtered ' + filtered.length);
     console.log('Stopped filtering');
@@ -189,10 +190,11 @@
           <image
             width={imageWidth}
             height={imageWidth}
-            x={scaleX(point.x) - imageWidth / 2}
-            y={scaleY(point.y) - imageWidth / 2}
+            x={scaleX.scale(point.x) - imageWidth / 2}
+            y={scaleY.scale(point.y) - imageWidth / 2}
             href={BackendService.getImageUrl(point.id)}
             preserveAspectRatio="true"
+            style="image-rendering: pixelated;"
           />
         {/each}
       {/if}
