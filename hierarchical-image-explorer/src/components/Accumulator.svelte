@@ -23,7 +23,7 @@
   let transform: [number, number];
   let filteredData: PointData[] = [];
   const lodBreakpoint = 10;
-  $: imageWidth = hexaSide / 4;
+  $: imageWidth = hexaSide / 6;
   $: svgHeight = rows * hexaSide * hexaShortDiag;
 
   $: scaleQuantisedX = (v: number, row: number) => {
@@ -178,7 +178,10 @@
               x={scaleQuantisedX(x, y)}
               y={scaleQuantisedY(y)}
               color={ColorUtil.getCellColor(quantisedData[x][y])}
-              strokeWidth={extent > lodBreakpoint ? 0.1 : 1}
+              strokeWidth={extent > lodBreakpoint ? 0.2 : 1}
+              stroke={extent > lodBreakpoint
+                ? ColorUtil.getCellColor(quantisedData[x][y])
+                : 'black'}
             />
           {/if}
         {/each}
