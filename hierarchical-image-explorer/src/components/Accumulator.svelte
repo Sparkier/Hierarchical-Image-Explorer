@@ -5,13 +5,13 @@
   import { onMount } from 'svelte';
   import ZoomSVG from './ZoomSVG.svelte';
   import { generateScale } from '../services/scaleUtilities';
+  import BackendService from '../services/backendService';
 
   export let data: PointData[];
   export let columns = 50;
   export let rows = 80;
 
   let svgWidth: number;
-  const svgHeight = 600;
   let svg: SVGSVGElement;
   let g: SVGSVGElement;
   let svgContainer: HTMLElement;
@@ -22,6 +22,9 @@
   let extent: number;
   let transform: [number, number];
   let filteredData: PointData[] = [];
+  const lodBreakpoint = 10;
+  $: imageWidth = hexaSide / 4;
+  $: svgHeight = rows * hexaSide * hexaShortDiag;
 
   $: scaleQuantisedX = (v: number, row: number) => {
     return svgWidth == undefined
@@ -35,7 +38,7 @@
 
   $: scaleY = generateScale(
     [-100, 100],
-    svgWidth == undefined ? 0 : svgWidth,
+    svgWidth == undefined ? 0 : svgHeight,
     0
   );
   $: scaleX = generateScale([-100, 100], svgWidth, 0);
@@ -44,8 +47,10 @@
     quantisedData = calculateQuantisation(data);
   });
 
-  // $: filteredData =
-  //   extent > 1 && transform != undefined ? filterPointsBoundingRect() : [];
+  $: filteredData =
+    extent > lodBreakpoint && transform != undefined
+      ? filterPointsBoundingRect()
+      : [];
 
   /**
    * Calculate a quantisation of our values, to combine multiple points
@@ -152,6 +157,7 @@
   >
   <div>
     Ich bringe frohe Kunde: die Anzahl an gefilterten Bildern ist: {filteredData.length}
+    Zoom ist {extent}
   </div>
   <ZoomSVG
     viewBox="0 0 {svgWidth} {svgHeight}"
@@ -163,33 +169,33 @@
     {#if hexaSide != 0}
       {#each quantisedData as columnsList, x}
         {#each columnsList as cell, y}
+          <g />
           {#if cell.length > 0}
+            <!-- Agrregated hexagons -->
             <Hexagon
               side={hexaSide}
               x={scaleQuantisedX(x, y)}
               y={scaleQuantisedY(y)}
               color={ColorUtil.getCellColor(quantisedData[x][y])}
+              strokeWidth={extent > lodBreakpoint ? 0.1 : 1}
             />
-            {#if true}
-              <!--insert new hexagons-->
-              {#each filteredData as point}
-                <!-- <Hexagon
-                  side={hexaSide / 2}
-                  x={scaleX(point.x)}
-                  y={scaleY(point.y)}
-                  color={'deeppink'}
-                /> -->
-                <circle
-                  cx={scaleX(point.x)}
-                  cy={scaleY(point.y)}
-                  r="5"
-                  fill="deeppink"
-                />
-              {/each}
-            {/if}
           {/if}
         {/each}
       {/each}
+
+      {#if extent > lodBreakpoint}
+        <!--insert detail hexagons-->
+        {#each filteredData as point}
+          <image
+            width={imageWidth}
+            height={imageWidth}
+            x={scaleX(point.x) - imageWidth / 2}
+            y={scaleY(point.y) - imageWidth / 2}
+            href={BackendService.getImageUrl(point.id)}
+            preserveAspectRatio="true"
+          />
+        {/each}
+      {/if}
     {/if}
   </ZoomSVG>
   <div />

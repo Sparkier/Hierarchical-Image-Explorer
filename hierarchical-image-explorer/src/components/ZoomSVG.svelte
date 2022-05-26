@@ -8,15 +8,18 @@
   export let extent;
   export let g;
   export let svg;
+
   onMount(() => {
     if (svg && g) {
       select(svg).call(
-        zoom().on('zoom', ({ transform: transformNew }) => {
-          const { k, x, y } = transformNew;
-          extent = k;
-          transform = [x, y];
-          select(g).attr('transform', `translate(${x}, ${y}) scale(${k})`);
-        })
+        zoom()
+          .on('zoom', ({ transform: transformNew }) => {
+            const { k, x, y } = transformNew;
+            extent = k;
+            transform = [x, y];
+            select(g).attr('transform', `translate(${x}, ${y}) scale(${k})`);
+          })
+          .scaleExtent([1, 100])
       );
     }
   });
