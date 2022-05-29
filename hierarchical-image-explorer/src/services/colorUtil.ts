@@ -38,7 +38,7 @@ export class ColorUtil {
   public static getCellColor(input: PointData[]) {
     const countMap = new Map<string,number>()
     input.forEach(p => {
-      let prevCount = countMap.get(p.label)
+      const prevCount = countMap.get(p.label)
       if (prevCount == undefined){
         countMap.set(p.label,1)
       } else {
