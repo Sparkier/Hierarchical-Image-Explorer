@@ -49,13 +49,13 @@
   on:mouseleave
 >
   <polygon
-    class="hex"
     {stroke}
     stroke-width={strokeWidth}
     points="{r} {br} {bl} {l} {tl} {tr}"
     {fill}
   />
   <text
+    class="pointer-events-none"
     transform="translate({side},{side})"
     font-family="Verdana"
     font-size="30"
@@ -65,9 +65,3 @@
     {text}
   </text>
 </g>
-
-<style>
-  text {
-    pointer-events: none;
-  }
-</style>

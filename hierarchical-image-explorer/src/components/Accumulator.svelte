@@ -16,15 +16,15 @@
   let g: SVGSVGElement;
   let svgContainer: HTMLElement;
 
-  let quantisedData: PointData[][][] = [];
+  let quantizedData: PointData[][][] = [];
   let hexaSide = -1;
   const hexaShortDiag = Math.sqrt(3) / 2;
-  let extent: number;
+  let zoomLevel: number;
   let transform: [number, number];
   let filteredData: PointData[] = [];
   const lodBreakpoint = 10;
   $: imageWidth = hexaSide / 6;
-  $: svgHeight = rows * hexaSide * hexaShortDiag;
+  $: svgHeight = rows * hexaSide * hexaShortDiag; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
 
   $: scaleQuantisedX = (v: number, row: number) => {
     return svgWidth == undefined
@@ -37,18 +37,15 @@
   };
 
   onMount(() => {
-    quantisedData = calculateQuantisation(data);
+    quantizedData = calculateQuantisation(data);
   });
 
-  $: scaleY = new LinearScale(
-    [-100, 100],
-    svgWidth == undefined ? 0 : svgHeight,
-    0
-  );
+  $: scaleY = new LinearScale([-100, 100], svgHeight, 0);
   $: scaleX = new LinearScale([-100, 100], svgWidth, 0);
 
+  // when lodBreakpoint is reached filter points to only points visible on screen
   $: filteredData =
-    extent > lodBreakpoint && transform != undefined
+    zoomLevel > lodBreakpoint && transform != undefined
       ? filterPointsBoundingRect()
       : [];
 
@@ -107,30 +104,41 @@
     return quantised;
   }
 
+  /**
+   * Filters datapoints to only points visible on screen.
+   */
   function filterPointsBoundingRect(): PointData[] {
-    console.log('Started filtering');
+    // get dom coordinates
     const rect = svgContainer.getBoundingClientRect();
     const x1_dom = rect.x;
     const x2_dom = rect.x + rect.width;
     const y1_dom = rect.y;
     const y2_dom = rect.y + rect.height;
 
+    // transform dom coordinates to svg coordinates
     const topLeft = svgPoint(svg, x1_dom, y1_dom, g);
     const bottomRight = svgPoint(svg, x2_dom, y2_dom, g);
 
+    // transform svg coordinates to dimensionality reduction coordinates
     const x_1_inv = scaleX.invert(topLeft.x);
     const x_2_inv = scaleX.invert(bottomRight.x);
     const y_1_inv = scaleY.invert(topLeft.y);
     const y_2_inv = scaleY.invert(bottomRight.y);
 
+    // filter points
     const filtered = data.filter(
       (p) => p.x > x_1_inv && p.x < x_2_inv && p.y > y_1_inv && p.y < y_2_inv
     );
-    console.log('Filtered ' + filtered.length);
-    console.log('Stopped filtering');
     return filtered;
   }
 
+  /**
+   * Takes a point in dom coordinate space and maps it to a svg coordinate point
+   * @param element svg element
+   * @param x
+   * @param y
+   * @param group SVGSVGElement of which to use the transform property
+   */
   function svgPoint(
     element: SVGSVGElement,
     x: number,
@@ -142,7 +150,6 @@
     pt.y = y;
     const matrix = group.getScreenCTM()?.inverse();
     if (matrix == undefined) throw new Error('Transformation Matrix undefined');
-    console.log(matrix);
     return pt.matrixTransform(matrix);
   }
 </script>
@@ -153,53 +160,52 @@
   style="height: {svgHeight}px"
   class="overflow-hidden"
 >
-  <button on:click={() => (filteredData = filterPointsBoundingRect())}
-    >Click for recalculation</button
-  >
   <div>
-    Ich bringe frohe Kunde: die Anzahl an gefilterten Bildern ist: {filteredData.length}
-    Zoom ist {extent}
+    Filtered image count {filteredData.length}
+    Zoom is {zoomLevel}
   </div>
   <ZoomSVG
     viewBox="0 0 {svgWidth} {svgHeight}"
-    bind:extent
+    bind:zoomLevel
     bind:transform
     bind:svg
     bind:g
   >
     {#if hexaSide != 0}
-      {#each quantisedData as columnsList, x}
-        {#each columnsList as cell, y}
-          <g />
-          {#if cell.length > 0}
-            <!-- Agrregated hexagons -->
-            <Hexagon
-              side={hexaSide}
-              x={scaleQuantisedX(x, y)}
-              y={scaleQuantisedY(y)}
-              color={ColorUtil.getCellColor(quantisedData[x][y])}
-              strokeWidth={extent > lodBreakpoint ? 0.2 : 1}
-              stroke={extent > lodBreakpoint
-                ? ColorUtil.getCellColor(quantisedData[x][y])
-                : 'black'}
+      <g>
+        {#each quantizedData as columnsList, x}
+          {#each columnsList as cell, y}
+            {#if cell.length > 0}
+              <!-- Agrregated hexagons -->
+              <Hexagon
+                side={hexaSide}
+                x={scaleQuantisedX(x, y)}
+                y={scaleQuantisedY(y)}
+                color={ColorUtil.getCellColor(quantizedData[x][y])}
+                strokeWidth={zoomLevel > lodBreakpoint ? 0.2 : 1}
+                stroke={zoomLevel > lodBreakpoint
+                  ? ColorUtil.getCellColor(quantizedData[x][y])
+                  : 'black'}
+              />
+            {/if}
+          {/each}
+        {/each}
+      </g>
+      {#if zoomLevel > lodBreakpoint}
+        <!--insert image details-->
+        <g>
+          {#each filteredData as point}
+            <image
+              width={imageWidth}
+              height={imageWidth}
+              x={scaleX.scale(point.x) - imageWidth / 2}
+              y={scaleY.scale(point.y) - imageWidth / 2}
+              href={BackendService.getImageUrl(point.id)}
+              preserveAspectRatio="true"
+              style="image-rendering: pixelated;"
             />
-          {/if}
-        {/each}
-      {/each}
-
-      {#if extent > lodBreakpoint}
-        <!--insert detail hexagons-->
-        {#each filteredData as point}
-          <image
-            width={imageWidth}
-            height={imageWidth}
-            x={scaleX.scale(point.x) - imageWidth / 2}
-            y={scaleY.scale(point.y) - imageWidth / 2}
-            href={BackendService.getImageUrl(point.id)}
-            preserveAspectRatio="true"
-            style="image-rendering: pixelated;"
-          />
-        {/each}
+          {/each}
+        </g>
       {/if}
     {/if}
   </ZoomSVG>

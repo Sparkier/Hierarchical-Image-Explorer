@@ -5,7 +5,7 @@
 
   export let viewBox = '0 0 300 150';
   export let transform;
-  export let extent;
+  export let zoomLevel;
   export let g;
   export let svg;
 
@@ -15,7 +15,7 @@
         zoom()
           .on('zoom', ({ transform: transformNew }) => {
             const { k, x, y } = transformNew;
-            extent = k;
+            zoomLevel = k;
             transform = [x, y];
             select(g).attr('transform', `translate(${x}, ${y}) scale(${k})`);
           })

@@ -40,11 +40,10 @@ export class ColorUtil {
     input.forEach(p => {
       let prevCount = countMap.get(p.label)
       if (prevCount == undefined){
-        prevCount = 0;
-        countMap.set(p.label,0)
+        countMap.set(p.label,1)
+      } else {
+        countMap.set(p.label, prevCount+1)
       }
-      prevCount += 1
-      countMap.set(p.label, prevCount)
     })
     
     const sortedList = [...countMap.entries()].sort((a,b) => b[1]-a[1])
