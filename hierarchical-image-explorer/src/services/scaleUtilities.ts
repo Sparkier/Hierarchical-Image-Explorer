@@ -39,15 +39,16 @@ export function getExtent(
   }
 
   export class LinearScale{
-    private extentAbsMax = Math.max(Math.abs(this.extent[0]), Math.abs(this.extent[1])) * 2;
+    private readonly extentAbsMax;
 
     constructor(private extent: number[], private domain: number, private padding: number){
+        this.extentAbsMax = Math.max(Math.abs(this.extent[0]), Math.abs(this.extent[1])) * 2;
     }
 
     /**
      * Scales a given value in the domain to the extent with padding
-     * @param v 
-     * @returns 
+     * @param v point in domain space
+     * @returns point in extent space
      */
     public scale(v:number){
       return (v / this.extentAbsMax + 0.5) * (this.domain - 2 * this.padding) + this.padding;

@@ -3,7 +3,7 @@
   import { zoom } from 'd3-zoom';
   import { select } from 'd3-selection';
 
-  export let viewBox = '0 0 300 150';
+  export let viewBox = '0 0 300 150'; // default svg height and width
   export let transform;
   export let zoomLevel;
   export let g;

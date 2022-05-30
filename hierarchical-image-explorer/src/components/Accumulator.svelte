@@ -106,6 +106,7 @@
 
   /**
    * Filters datapoints to only points visible on screen.
+   * @returns data filtered to visible points
    */
   function filterPointsBoundingRect(): PointData[] {
     // get dom coordinates
