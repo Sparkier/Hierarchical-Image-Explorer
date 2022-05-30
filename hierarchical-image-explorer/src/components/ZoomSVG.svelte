@@ -25,7 +25,7 @@
   });
 </script>
 
-<svg {viewBox} bind:this={svg} id="jens-joachim">
+<svg {viewBox} bind:this={svg}>
   <g bind:this={g}>
     <slot />
   </g>

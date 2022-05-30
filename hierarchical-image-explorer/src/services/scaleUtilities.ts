@@ -57,8 +57,8 @@ export function getExtent(
     /**
      * Inverts the operation of scale
      * For a given value in the extent gives the corresponding original value in the domain
-     * @param w 
-     * @returns 
+     * @param w extent value
+     * @returns original value in the domain
      */
     public invert(w:number){
       return -1 * (this.extentAbsMax * (this.domain -2 * w)) / (2 * (this.domain -2 * this.padding))

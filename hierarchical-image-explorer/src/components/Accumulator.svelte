@@ -136,8 +136,8 @@
   /**
    * Takes a point in dom coordinate space and maps it to a svg coordinate point
    * @param element svg element
-   * @param x
-   * @param y
+   * @param x coordinate
+   * @param y coordinate
    * @param group SVGSVGElement of which to use the transform property
    */
   function svgPoint(
