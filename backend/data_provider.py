@@ -6,6 +6,8 @@ import tarfile
 from pathlib import Path
 import urllib.request
 import zipfile
+import numpy as np
+from PIL import Image
 import pickle
 
 datasets = [
@@ -73,12 +75,30 @@ def unpickle(file):
     return dict
 
 
-def extract_convert_cifar(destination, img_root):
+def extract_convert_cifar(destination, img_root, dataset):
     """Extracts cifar dataset, loads images and converts them to jpg"""
     extract_file_tgz(destination, img_root, "cifar")
+    datapath = Path(destination) / dataset["img_root"]
+    # get classes
+    meta_file = unpickle(datapath / "batches.meta")
+    label_names = meta_file[b"label_names"]
+    for label in label_names:
+        Path(datapath / label.decode("utf-8")).mkdir(parents=True, exist_ok=True)
+    # unpickle cifar
+    archives = (datapath).glob("*")
+    for file in archives:
+        if(file.suffix != "" or not file.is_file()):
+            continue
+        unpickeled = unpickle(file)
+        for i,img in enumerate(unpickeled[b'data']):
+            im = Image.fromarray(img.reshape(3,32,32).transpose(1,2,0))
+            im.save(datapath / label_names[unpickeled[b'labels'][i]].decode("utf-8") / unpickeled[b'filenames'][i].decode("utf-8").replace(".png", ".jpg"))
 
 
-def extract_file(filetype, destination, img_root):
+
+
+
+def extract_file(filetype, destination, img_root, dataset):
     """Determines the correct function to extract an archive"""
     print("Extracting archive")
     if filetype == "zip":
@@ -86,14 +106,14 @@ def extract_file(filetype, destination, img_root):
     if filetype in ("tgz", "tar", "tar.gz"):
         extract_file_tgz(destination, img_root, filetype)
     if filetype == "cifar":
-        extract_convert_cifar(destination, img_root)
+        extract_convert_cifar(destination, img_root, dataset)
 
 
 def download_and_extract(dataset, destination):
     """Downloads extracts and removes the archive"""
     download_file(dataset["url"], dataset["filetype"])
     extract_file(dataset["filetype"], destination + "/" +
-                 dataset["name"] + "/", dataset["img_root"])
+                 dataset["name"] + "/", dataset["img_root"], dataset)
     delete_file(TMP_ARCHIVE_NAME + "." + dataset["filetype"])
 
 
