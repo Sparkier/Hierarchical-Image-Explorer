@@ -3,9 +3,12 @@ import argparse
 import csv
 import sys
 import tarfile
+import pickle
 from pathlib import Path
 import urllib.request
 import zipfile
+from PIL import Image
+
 
 datasets = [
     {"name": "mnist_test",
@@ -24,7 +27,13 @@ datasets = [
      "filetype": "tgz",
      "img_root": "flower_photos/",
      "label_source": "folder",
-     "id_source": "generate"}
+     "id_source": "generate"},
+    {"name": "cifar-10",
+     "url": "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz",
+     "filetype": "cifar",
+     "img_root": "cifar-10-batches-py",
+     "label_source": "folder",
+     "id_source": "filename"}
 ]
 
 TMP_ARCHIVE_NAME = "downloaded_archive"
@@ -60,20 +69,52 @@ def extract_file_tgz(destination, img_root, filetype):
         tar.extractall(members=subdir_and_files, path=destination)
 
 
-def extract_file(filetype, destination, img_root):
+def unpickle(file):
+    """method provdided by cifar to read binary files"""
+    with open(file, 'rb') as file_open:
+        data_dict = pickle.load(file_open, encoding='bytes')
+    return data_dict
+
+
+def extract_convert_cifar(destination, img_root, dataset):
+    """Extracts cifar dataset, loads images and converts them to jpg"""
+    extract_file_tgz(destination, img_root, "cifar")
+    datapath = Path(destination) / dataset["img_root"]
+    # get classes
+    meta_file = unpickle(datapath / "batches.meta")
+    label_names = meta_file[b"label_names"]
+    for label in label_names:
+        Path(datapath / label.decode("utf-8")).mkdir(parents=True, exist_ok=True)
+    # unpickle cifar
+    archives = (datapath).glob("*")
+    for file in archives:
+        if(file.suffix != "" or not file.is_file()):
+            continue
+        unpickeled = unpickle(file)
+        for i,img in enumerate(unpickeled[b'data']):
+            img_reshape = Image.fromarray(img.reshape(3,32,32).transpose(1,2,0))
+            img_reshape.save(
+                datapath /
+                label_names[unpickeled[b'labels'][i]].decode("utf-8") /
+                unpickeled[b'filenames'][i].decode("utf-8").replace(".png", ".jpg"))
+
+
+def extract_file(filetype, destination, img_root, dataset):
     """Determines the correct function to extract an archive"""
     print("Extracting archive")
     if filetype == "zip":
         extract_file_zip(destination, img_root)
     if filetype in ("tgz", "tar", "tar.gz"):
         extract_file_tgz(destination, img_root, filetype)
+    if filetype == "cifar":
+        extract_convert_cifar(destination, img_root, dataset)
 
 
 def download_and_extract(dataset, destination):
     """Downloads extracts and removes the archive"""
     download_file(dataset["url"], dataset["filetype"])
     extract_file(dataset["filetype"], destination + "/" +
-                 dataset["name"] + "/", dataset["img_root"])
+                 dataset["name"] + "/", dataset["img_root"], dataset)
     delete_file(TMP_ARCHIVE_NAME + "." + dataset["filetype"])
 
 
