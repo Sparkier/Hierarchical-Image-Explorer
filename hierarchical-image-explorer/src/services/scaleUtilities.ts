@@ -1,8 +1,8 @@
 import type { PointData } from "./backendService";
 
 /**
- * @param accessor accesor function for parameters of elements of pointsList
- * @param poinstList list of 2dPoint
+ * @param accessor accessor function for parameters of elements of pointsList
+ * @param pointsList list of 2dPoint
  */
 export function getExtent(
   accessor: (el: PointData) => number,
@@ -21,12 +21,13 @@ export function getExtent(
 }
   
 /**
-   * Generates a scale that maps input points of a given extent to the svg size.
-   * In this scale 0 is always in the middle the values are scaled to fit
-   * @param extent extent of scale
-   * @param domain available height/width to display scale
-   * @returns a scale function
-   */
+ * Generates a scale that maps input points of a given extent to the svg size.
+ * In this scale 0 is always in the middle the values are scaled to fit
+ * @param extent extent of scale
+ * @param domain available height/width to display scale
+ * @param padding surrounding the scale
+ * @returns a scale function
+ */
  export function generateScale(extent: number[], domain: number, padding:number):(v: number) => number {
     return (v: number) => {
       // maximum distance from zero *2
@@ -59,6 +60,6 @@ export function getExtent(
      * @returns 
      */
     public invert(w:number){
-      return -1*(this.extentAbsMax*(this.domain-2*w))/(2*(this.domain-2*this.padding))
+      return -1 * (this.extentAbsMax * (this.domain -2 * w)) / (2 * (this.domain -2 * this.padding))
     }
   }
