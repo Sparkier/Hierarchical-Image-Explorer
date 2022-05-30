@@ -3,12 +3,12 @@ import argparse
 import csv
 import sys
 import tarfile
+import pickle
 from pathlib import Path
 import urllib.request
 import zipfile
-import numpy as np
 from PIL import Image
-import pickle
+
 
 datasets = [
     {"name": "mnist_test",
@@ -70,9 +70,10 @@ def extract_file_tgz(destination, img_root, filetype):
 
 
 def unpickle(file):
-    with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='bytes')
-    return dict
+    """method provdided by cifar to read binary files"""
+    with open(file, 'rb') as file_open:
+        data_dict = pickle.load(file_open, encoding='bytes')
+    return data_dict
 
 
 def extract_convert_cifar(destination, img_root, dataset):
@@ -91,11 +92,11 @@ def extract_convert_cifar(destination, img_root, dataset):
             continue
         unpickeled = unpickle(file)
         for i,img in enumerate(unpickeled[b'data']):
-            im = Image.fromarray(img.reshape(3,32,32).transpose(1,2,0))
-            im.save(datapath / label_names[unpickeled[b'labels'][i]].decode("utf-8") / unpickeled[b'filenames'][i].decode("utf-8").replace(".png", ".jpg"))
-
-
-
+            img_reshape = Image.fromarray(img.reshape(3,32,32).transpose(1,2,0))
+            img_reshape.save(
+                datapath /
+                label_names[unpickeled[b'labels'][i]].decode("utf-8") /
+                unpickeled[b'filenames'][i].decode("utf-8").replace(".png", ".jpg"))
 
 
 def extract_file(filetype, destination, img_root, dataset):
