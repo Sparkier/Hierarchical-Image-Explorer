@@ -6,6 +6,8 @@
   export let x: number = 0;
   export let y: number = 0;
   export let text: string = '';
+  export let stroke: string = 'black';
+  export let strokeWidth: number = 1;
 
   const t = (120 * Math.PI) / 180; // 120 degrees in radians
   const a = (side * Math.sqrt(3)) / 2; // distance from a side to center of hexagon
@@ -46,8 +48,14 @@
   on:mouseenter
   on:mouseleave
 >
-  <polygon class="hex" points="{r} {br} {bl} {l} {tl} {tr}" {fill} />
+  <polygon
+    {stroke}
+    stroke-width={strokeWidth}
+    points="{r} {br} {bl} {l} {tl} {tr}"
+    {fill}
+  />
   <text
+    class="pointer-events-none"
     transform="translate({side},{side})"
     font-family="Verdana"
     font-size="30"
@@ -57,14 +65,3 @@
     {text}
   </text>
 </g>
-
-<style>
-  .hex {
-    stroke: black;
-    stroke-width: 1;
-  }
-
-  text {
-    pointer-events: none;
-  }
-</style>

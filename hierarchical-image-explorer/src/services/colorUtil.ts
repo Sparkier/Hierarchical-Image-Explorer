@@ -36,13 +36,18 @@ export class ColorUtil {
    * @returns most occuring color
    */
   public static getCellColor(input: PointData[]) {
-    const maxOccurence = input.reduce((previous, current, i, arr) =>
-      arr.filter((item) => item === previous).length >
-      arr.filter((item) => item === current).length
-        ? previous
-        : current
-    );
-    return this.getColor(maxOccurence.label);
+    const countMap = new Map<string,number>()
+    input.forEach(p => {
+      const prevCount = countMap.get(p.label)
+      if (prevCount == undefined){
+        countMap.set(p.label,1)
+      } else {
+        countMap.set(p.label, prevCount+1)
+      }
+    })
+    
+    const sortedList = [...countMap.entries()].sort((a,b) => b[1]-a[1])
+    return this.getColor(sortedList[0][0]);
   }
 }
 

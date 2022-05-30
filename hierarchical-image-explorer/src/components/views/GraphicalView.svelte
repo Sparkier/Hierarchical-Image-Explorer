@@ -78,6 +78,7 @@
           </div>
         {/if}
         <Accumulator {data} />
+        <div>Under ACC</div>
       {:catch error}
         <p>{error.message}</p>
       {/await}

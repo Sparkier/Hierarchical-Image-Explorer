@@ -4,7 +4,7 @@
   import Hierarchical from './components/views/Hierarchical.svelte';
   import HomeScreen from './components/views/HomeScreen.svelte';
 
-  let currentView = 'home';
+  let currentView = '2d';
 </script>
 
 <main class="font-body">
