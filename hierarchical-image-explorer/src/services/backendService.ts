@@ -7,10 +7,10 @@ export type HcNode = {
 };
 
 export type PointData = {
-  id: string,
-  x: number,
-  y: number,
-  label: string
+  id: string;
+  x: number;
+  y: number;
+  label: string;
 };
 
 export default class BackendService {
@@ -53,11 +53,11 @@ export default class BackendService {
     return `${this.serverAdress}hc/repimage/distant/${clusterID}/${rank}`;
   }
 
-  public static getImageUrl(dataID:string): string {
+  public static getImageUrl(dataID: string): string {
     return `${this.serverAdress}data/images/${dataID}`;
   }
 
-  public static async getAllDataPoints(): Promise<PointData[]>{
-    return this.getEndpoint("2d/all") as  Promise<PointData[]>
+  public static async getAllDataPoints(): Promise<PointData[]> {
+    return this.getEndpoint('2d/all') as Promise<PointData[]>;
   }
 }
