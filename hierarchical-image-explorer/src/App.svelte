@@ -3,8 +3,9 @@
   import GraphicalView from './components/views/GraphicalView.svelte';
   import Hierarchical from './components/views/Hierarchical.svelte';
   import HomeScreen from './components/views/HomeScreen.svelte';
+  import AppView from './components/views/AppView.svelte';
 
-  let currentView = '2d';
+  let currentView = 'appview';
 </script>
 
 <main class="font-body">
@@ -16,6 +17,8 @@
       <GraphicalView />
     {:else if currentView === 'hierarchical'}
       <Hierarchical />
+    {:else if currentView === 'appview'}
+      <AppView />
     {/if}
   </div>
 </main>

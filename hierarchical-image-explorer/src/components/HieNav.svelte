@@ -45,5 +45,13 @@
     >
       2D-Visualization
     </div>
+    <div
+      class={`ml-8 text-lg cursor-pointer transition ease-in-out duration-100 ${isCurrentViewClasses(
+        'appview'
+      )}`}
+      on:click={() => (currentView = 'appview')}
+    >
+      Appview
+    </div>
   </div>
 </nav>

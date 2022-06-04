@@ -1,15 +1,17 @@
 <script lang="ts">
-  import type { PointData } from '../services/backendService';
-  import Hexagon from './minis/Hexagon.svelte';
-  import { ColorUtil } from '../services/colorUtil';
-  import { onMount } from 'svelte';
-  import ZoomSVG from './ZoomSVG.svelte';
-  import { generateScale, LinearScale } from '../services/scaleUtilities';
-  import BackendService from '../services/backendService';
+    import type {PointData} from '../services/backendService';
+    import BackendService from '../services/backendService';
+    import Hexagon from './minis/Hexagon.svelte';
+    import {ColorUtil} from '../services/colorUtil';
+    import {onMount} from 'svelte';
+    import ZoomSVG from './ZoomSVG.svelte';
+    import {LinearScale} from '../services/scaleUtilities';
 
-  export let data: PointData[];
+    export let data: PointData[];
   export let columns = 50;
   export let rows = 80;
+  export const selectedImageID = 'mnist-10';
+  export let imageScaling = 1;
 
   let svgWidth: number;
   let svg: SVGSVGElement;
@@ -21,7 +23,7 @@
   const hexaShortDiag = Math.sqrt(3) / 2;
   let zoomLevel: number;
   let transform: [number, number];
-  let filteredData: PointData[] = [];
+  let filteredData: PointData[];
   const lodBreakpoint = 10;
   $: imageWidth = hexaSide / 6;
   $: svgHeight = rows * hexaSide * hexaShortDiag; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
@@ -127,10 +129,9 @@
     const y_2_inv = scaleY.invert(bottomRight.y);
 
     // filter points
-    const filtered = data.filter(
-      (p) => p.x > x_1_inv && p.x < x_2_inv && p.y > y_1_inv && p.y < y_2_inv
+      return data.filter(
+        (p) => p.x > x_1_inv && p.x < x_2_inv && p.y > y_1_inv && p.y < y_2_inv
     );
-    return filtered;
   }
 
   /**
@@ -163,7 +164,10 @@
 >
   <div>
     Filtered image count {filteredData.length}
-    Zoom is {zoomLevel}
+    Zoom is {zoomLevel} Colums: {columns} Rows: {rows} Data length: {data !==
+    undefined
+      ? data.length
+      : 'no data'} image scaling: {imageScaling}
   </div>
   <ZoomSVG
     viewBox="0 0 {svgWidth} {svgHeight}"
@@ -172,7 +176,7 @@
     bind:svg
     bind:g
   >
-    {#if hexaSide != 0}
+    {#if hexaSide !== 0}
       <g>
         {#each quantizedData as columnsList, x}
           {#each columnsList as cell, y}
@@ -210,5 +214,5 @@
       {/if}
     {/if}
   </ZoomSVG>
-  <div />
+  <div/>
 </div>
