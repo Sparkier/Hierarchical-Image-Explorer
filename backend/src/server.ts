@@ -7,6 +7,7 @@ import path from 'path';
 import HierarchicalClusterDataProvider from './hierarchicalClusterDataProvider';
 import { HIEConfiguration } from './configuration';
 import { DataProvider2D } from './2dDataProvider';
+import { HexagonAggregator } from './hexagonAggregator';
 
 export type mnistDatum = {
   file_path: string;
@@ -51,9 +52,10 @@ const hieConfig = confData;
 
 const dataFrame: Map<string, mnistDatum> = new Map();
 let dataProvider2D: DataProvider2D | null = null;
+let hexagonAggregator: HexagonAggregator | null = null;
 const app = express();
-const hcDataProvider: HierarchicalClusterDataProvider =
-  new HierarchicalClusterDataProvider(hieConfig.cluster);
+//const hcDataProvider: HierarchicalClusterDataProvider =
+//  new HierarchicalClusterDataProvider(hieConfig.cluster);
 
 startServer();
 function startServer() {
@@ -87,6 +89,7 @@ function setUpData() {
       if (dataFrame.size == 0) throw new Error('Dataset empty');
       console.log('CSV read with ' + rowCount + ' rows');
       dataProvider2D = new DataProvider2D(hieConfig.points2d, dataFrame);
+      hexagonAggregator = new HexagonAggregator(dataProvider2D);
     });
   // setup hierarchical clustering data
 }
@@ -161,61 +164,75 @@ app.get('/data/heads', (req, res) => {
   res.send(Object.keys(getDatumByID(getAllIds()[0])));
 });
 
-// ----------------------------------------- hierarchical clustering
+//  -------------------------------------------------------------------
 
-app.get('/hc/nodes/:id', (req, res) => {
-  res.send(hcDataProvider.getNode(Number.parseInt(req.params.id)));
-});
-
-app.get('/hc/allchildids/:id', (req, res) => {
-  res.send(hcDataProvider.getAllIDs(Number.parseInt(req.params.id)));
-});
-
-app.get('/hc/root', (req, res) => {
-  res.send(hcDataProvider.root);
-});
-
-app.get('/hc/parent/:id', (req, res) => {
-  res.send(hcDataProvider.getParent(Number.parseInt(req.params.id)));
-});
-
-// for testing random image
-app.get('/hc/repimage/:id', (req, res) => {
-  const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  res.sendFile(
-    getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
-  );
-});
-
-// for testing random image
-app.get('/hc/repimage/close/:id/:rank', (req, res) => {
-  const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  res.sendFile(
-    getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
-  );
-});
-
-// for testing random image
-app.get('/hc/repimage/distant/:id/:rank', (req, res) => {
-  const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  res.sendFile(
-    getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
-  );
-});
-
-app.get('/hc/clusterinfo/size/:id', (req, res) => {
+app.get('/data/quantized', (req, res) => {
   res.send(
-    hcDataProvider.getAllIDs(Number.parseInt(req.params.id)).length.toString()
+    hexagonAggregator?.quantise(
+      100,
+      { x: -100, y: -100 },
+      { x: 100, y: 100 },
+      [-10, 10],
+      10
+    )
   );
 });
 
-app.get('/hc/clusterinfo/level/:id', (req, res) => {
-  res.send(
-    hcDataProvider
-      .getHierarchicalLevel(Number.parseInt(req.params.id))
-      .toString()
-  );
-});
+// // ----------------------------------------- hierarchical clustering
+
+// app.get('/hc/nodes/:id', (req, res) => {
+//   res.send(hcDataProvider.getNode(Number.parseInt(req.params.id)));
+// });
+
+// app.get('/hc/allchildids/:id', (req, res) => {
+//   res.send(hcDataProvider.getAllIDs(Number.parseInt(req.params.id)));
+// });
+
+// app.get('/hc/root', (req, res) => {
+//   res.send(hcDataProvider.root);
+// });
+
+// app.get('/hc/parent/:id', (req, res) => {
+//   res.send(hcDataProvider.getParent(Number.parseInt(req.params.id)));
+// });
+
+// // for testing random image
+// app.get('/hc/repimage/:id', (req, res) => {
+//   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
+//   res.sendFile(
+//     getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
+//   );
+// });
+
+// // for testing random image
+// app.get('/hc/repimage/close/:id/:rank', (req, res) => {
+//   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
+//   res.sendFile(
+//     getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
+//   );
+// });
+
+// // for testing random image
+// app.get('/hc/repimage/distant/:id/:rank', (req, res) => {
+//   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
+//   res.sendFile(
+//     getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
+//   );
+// });
+
+// app.get('/hc/clusterinfo/size/:id', (req, res) => {
+//   res.send(
+//     hcDataProvider.getAllIDs(Number.parseInt(req.params.id)).length.toString()
+//   );
+// });
+
+// app.get('/hc/clusterinfo/level/:id', (req, res) => {
+//   res.send(
+//     hcDataProvider
+//       .getHierarchicalLevel(Number.parseInt(req.params.id))
+//       .toString()
+//   );
+// });
 
 // 2d ------------------------------------------------------------------------
 

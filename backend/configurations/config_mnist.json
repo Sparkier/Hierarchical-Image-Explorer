@@ -1,7 +1,7 @@
 {
-  "swg": "./data/mnist/mnist_test_swg.csv",
-  "cluster": "./data/mnist/ClusteringTree.json",
+  "swg": "./data/mnist_test/mnist_test.csv",
+  "cluster": "./data/mnist_test/mnist_test__agg_clustering.json",
   "similarityMatrix": "tbd",
-  "points2d": "./data/sim/mnist_test_2d_points.csv",
+  "points2d": "./data/mnist_test/mnist_test__umap.csv",
   "imgDataRoot": "../"
 }
