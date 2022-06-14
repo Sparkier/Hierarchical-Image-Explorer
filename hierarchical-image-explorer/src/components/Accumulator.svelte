@@ -28,6 +28,8 @@
 
   $: imageWidth = hexaSide / 6;
   $: svgHeight = rows * hexaSide * hexaShortDiag; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
+  $: lodLevel = Math.ceil(Math.log(zoomLevel) / 2)
+
 
   $: scaleQuantisedX = (v: number, row: number) => {
     return svgWidth == undefined
@@ -39,8 +41,17 @@
     return hexaShortDiag * hexaSide * v;
   };
 
+<<<<<<< HEAD
   $: scaleY = new LinearScale([-100, 100], svgHeight, 0);
   $: scaleX = new LinearScale([-100, 100], svgWidth, 0);
+=======
+  onMount(() => {
+    quantizedData = calculateQuantisation(data);
+  });
+
+  $: scaleY = new LinearScale([-10, 10], svgHeight, 0);
+  $: scaleX = new LinearScale([-10, 10], svgWidth, 0);
+>>>>>>> 7b2fef5 (feat: beginning work)
 
   // when lodBreakpoint is reached filter points to only points visible on screen
   $: filteredData =
@@ -93,8 +104,8 @@
 
     // check which possible point is closest to datum (modeling hexagons as circles)
     input.forEach((e) => {
-      const scaledX = ((e.x + 100) / 200) * svgWidth;
-      const scaledY = ((e.y + 100) / 200) * rows * hexaSide * hexaShortDiag;
+      const scaledX = ((e.x + 10) / 20) * svgWidth;
+      const scaledY = ((e.y + 10) / 20) * rows * hexaSide * hexaShortDiag;
 
       const distances = possiblePoints.map((p) =>
         Math.sqrt((p.xCoord - scaledX) ** 2 + (p.yCoord - scaledY) ** 2)
@@ -190,11 +201,9 @@
   class="overflow-hidden"
 >
   <div>
-    Filtered image count {filteredData.length}
-    Zoom is {zoomLevel} Colums: {columns} Rows: {rows} Data length: {data !==
-    undefined
-      ? data.length
-      : 'no data'} image scaling: {imageScaling}
+    Filtered image count {filteredData.length} <br />
+    Zoom is {zoomLevel} <br />
+    Lod Number {lodLevel}
   </div>
   <ZoomSVG
     viewBox="0 0 {svgWidth} {svgHeight}"
