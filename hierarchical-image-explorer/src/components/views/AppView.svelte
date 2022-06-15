@@ -2,39 +2,53 @@
   import BackendService, { PointData } from '../../services/backendService';
   import Accumulator from '../Accumulator.svelte';
   import { getExtent } from '../../services/scaleUtilities';
-  import { onMount } from 'svelte';
+  import {onDestroy, onMount} from 'svelte';
   import { scale } from 'svelte/transition';
   import RangeSlider from 'svelte-range-slider-pips';
+  import {DEFAULT_NUM_OF_ROWS, DEFAULT_NUM_OF_COLUMNS, DEFAULT_SLIDER_VALUE} from '../../config.ts';
+
+  const handleOutsideClick = (event) => {
+    if (show && !menu.contains(event.target)) {
+      show = false;
+    }
+  };
+
+  const handleEscape = (event) => {
+    if (show && event.key === 'Escape') {
+      show = false;
+    }
+  };
 
   let svgElement: SVGSVGElement;
   let svgWidth: number;
-
   let xExtent: number[] = [];
   let yExtent: number[] = [];
-
   let data: PointData[];
-
   let show = false; // menu state
   let menu = null; // menu wrapper DOM reference
-
-  let numHexagonsColumns = 50;
-  let numHexagonsRows = 80;
-
-  let sliderValue = 1.0;
-
+  let numHexagonsColumns = DEFAULT_NUM_OF_COLUMNS;
+  let numHexagonsRows = DEFAULT_NUM_OF_ROWS;
+  let sliderValue = DEFAULT_SLIDER_VALUE;
   let selectedImageID;
+  let selectedImageLabel = '';
+  let filteredData;
 
   $: {
-    selectedImageID, true;
     if (selectedImageID != undefined && selectedImageID != '')
       BackendService.getSWGInfo(selectedImageID).then(
-        (r) => (selectedImageLabel = r.label)
+              (r) => (selectedImageLabel = r.label)
       );
   }
 
-  let selectedImageLabel = '';
+  onMount(() => {
+    document.addEventListener('click', handleOutsideClick, false);
+    document.addEventListener('keyup', handleEscape, false);
+  });
 
-  let filteredData;
+  onDestroy(()=> {
+    document.removeEventListener('click', handleOutsideClick, false);
+    document.removeEventListener('keyup', handleEscape, false);
+  })
 
   async function setupData() {
     try {
@@ -48,31 +62,10 @@
     }
   }
 
-  onMount(() => {
-    const handleOutsideClick = (event) => {
-      if (show && !menu.contains(event.target)) {
-        show = false;
-      }
-    };
-
-    const handleEscape = (event) => {
-      if (show && event.key === 'Escape') {
-        show = false;
-      }
-    };
-
-    document.addEventListener('click', handleOutsideClick, false);
-    document.addEventListener('keyup', handleEscape, false);
-
-    return () => {
-      document.removeEventListener('click', handleOutsideClick, false);
-      document.removeEventListener('keyup', handleEscape, false);
-    };
-  });
-
   function filterData(label: string) {
     filteredData = data.filter((d) => d.label == label);
   }
+
 </script>
 
 <div class="">
@@ -124,7 +117,7 @@
       </div>
       <div class="pl-4 pt-4 font-medium text-lg text-left">Image scaling</div>
       <div
-        style="--range-range: #d87472; --range-float: #d87472; --range-handle-focus:#d87472"
+        style="--range-range: #d87472; --range-float: #d87472; --range-handle-focus:#d87472;  --range-handle:#f7bca6"
       >
         <RangeSlider
           class=""

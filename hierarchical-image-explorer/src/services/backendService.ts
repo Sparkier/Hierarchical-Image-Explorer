@@ -17,7 +17,7 @@ export type SWGInfo = {
   image_id: string;
   file_path: string;
   label: string;
-}
+};
 
 export default class BackendService {
   private static serverAdress = 'http://nemesis.informatik.uni-ulm.de/main/';
@@ -67,7 +67,7 @@ export default class BackendService {
     return this.getEndpoint('2d/all') as Promise<PointData[]>;
   }
 
-  public static async getSWGInfo(dataID:string){
-    return this.getEndpoint("data/annotations/" + dataID) as Promise<SWGInfo>
+  public static async getSWGInfo(dataID: string) {
+    return this.getEndpoint('data/annotations/' + dataID) as Promise<SWGInfo>;
   }
 }
