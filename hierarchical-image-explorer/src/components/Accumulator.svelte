@@ -153,6 +153,32 @@
     if (matrix == undefined) throw new Error('Transformation Matrix undefined');
     return pt.matrixTransform(matrix);
   }
+  /**
+   * Takes a group of points and calculates the point closest to the center
+   * @param input group within a hexagon
+   * @param x scaled to svg width
+   * @param y scaled to svg height
+   */
+  function getRepresentantImage(input: PointData[], x: number, y: number) {
+    const cx = x + hexaSide;
+    const cy = y + hexaShortDiag * hexaSide;
+
+    let representation = null;
+    let minDistance = 10000000;
+    let currentDistance;
+
+    input.forEach((p) => {
+      if (
+        (currentDistance = Math.sqrt(
+          Math.pow(p.x - cx, 2) + Math.pow(p.y - cy, 2)
+        )) < minDistance
+      ) {
+        minDistance = currentDistance;
+        representation = p;
+      }
+    });
+    return representation != null ? representation : input[0];
+  }
 </script>
 
 <div
@@ -182,7 +208,13 @@
                 side={hexaSide}
                 x={scaleQuantisedX(x, y)}
                 y={scaleQuantisedY(y)}
-                color={ColorUtil.getCellColor(quantizedData[x][y])}
+                image={BackendService.getImageUrl(
+                  getRepresentantImage(
+                    quantizedData[x][y],
+                    scaleQuantisedX(x, y),
+                    scaleQuantisedY(y)
+                  ).id
+                )}
                 strokeWidth={zoomLevel > lodBreakpoint ? 0.2 : 1}
                 stroke={zoomLevel > lodBreakpoint
                   ? ColorUtil.getCellColor(quantizedData[x][y])
