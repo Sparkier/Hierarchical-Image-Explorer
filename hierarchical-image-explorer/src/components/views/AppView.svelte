@@ -57,7 +57,7 @@
       xExtent = getExtent((p: PointData) => p.x, data);
       yExtent = getExtent((p: PointData) => p.y, data);
     } catch (e) {
-      console.log(e);
+      console.error(e);
       alert(e);
     }
   }
