@@ -1,28 +1,31 @@
 <script lang="ts">
   import type { PointData } from '../services/backendService';
+  import BackendService from '../services/backendService';
   import Hexagon from './minis/Hexagon.svelte';
   import { ColorUtil } from '../services/colorUtil';
   import { onMount } from 'svelte';
   import ZoomSVG from './ZoomSVG.svelte';
-  import { generateScale, LinearScale } from '../services/scaleUtilities';
-  import BackendService from '../services/backendService';
+  import { LinearScale } from '../services/scaleUtilities';
 
   export let data: PointData[];
   export let columns = 50;
   export let rows = 80;
+  export let imageScaling = 1;
+
+  export const selectedImageID = 'mnist-10';
+
+  const hexaShortDiag = Math.sqrt(3) / 2;
+  const lodBreakpoint = 10;
 
   let svgWidth: number;
   let svg: SVGSVGElement;
   let g: SVGSVGElement;
   let svgContainer: HTMLElement;
-
   let quantizedData: PointData[][][] = [];
   let hexaSide = -1;
-  const hexaShortDiag = Math.sqrt(3) / 2;
   let zoomLevel: number;
   let transform: [number, number];
-  let filteredData: PointData[] = [];
-  const lodBreakpoint = 10;
+
   $: imageWidth = hexaSide / 6;
   $: svgHeight = rows * hexaSide * hexaShortDiag; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
 
@@ -36,18 +39,18 @@
     return hexaShortDiag * hexaSide * v;
   };
 
-  onMount(() => {
-    quantizedData = calculateQuantisation(data);
-  });
-
   $: scaleY = new LinearScale([-100, 100], svgHeight, 0);
   $: scaleX = new LinearScale([-100, 100], svgWidth, 0);
 
   // when lodBreakpoint is reached filter points to only points visible on screen
   $: filteredData =
-    zoomLevel > lodBreakpoint && transform != undefined
-      ? filterPointsBoundingRect()
-      : [];
+          zoomLevel > lodBreakpoint && transform != undefined
+                  ? filterPointsBoundingRect()
+                  : [];
+
+  onMount(() => {
+    quantizedData = calculateQuantisation(data);
+  });
 
   /**
    * Calculate a quantisation of our values, to combine multiple points
@@ -127,10 +130,9 @@
     const y_2_inv = scaleY.invert(bottomRight.y);
 
     // filter points
-    const filtered = data.filter(
+    return data.filter(
       (p) => p.x > x_1_inv && p.x < x_2_inv && p.y > y_1_inv && p.y < y_2_inv
     );
-    return filtered;
   }
 
   /**
@@ -189,7 +191,10 @@
 >
   <div>
     Filtered image count {filteredData.length}
-    Zoom is {zoomLevel}
+    Zoom is {zoomLevel} Colums: {columns} Rows: {rows} Data length: {data !==
+    undefined
+      ? data.length
+      : 'no data'} image scaling: {imageScaling}
   </div>
   <ZoomSVG
     viewBox="0 0 {svgWidth} {svgHeight}"
@@ -198,7 +203,7 @@
     bind:svg
     bind:g
   >
-    {#if hexaSide != 0}
+    {#if hexaSide !== 0}
       <g>
         {#each quantizedData as columnsList, x}
           {#each columnsList as cell, y}

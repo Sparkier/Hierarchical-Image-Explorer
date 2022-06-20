@@ -32,8 +32,7 @@
    */
   async function setupData() {
     try {
-      const response = await BackendService.getAllDataPoints();
-      data = response;
+      data = await BackendService.getAllDataPoints();
       xExtent = getExtent((p: PointData) => p.x, data);
       yExtent = getExtent((p: PointData) => p.y, data);
     } catch (e) {
