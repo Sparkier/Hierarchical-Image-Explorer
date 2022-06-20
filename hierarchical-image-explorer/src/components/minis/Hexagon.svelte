@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Borders from './Borders.svelte';
   export let side: number = 100;
   export let color: string = 'green';
   export let image: string = '';
@@ -7,7 +8,21 @@
   export let y: number = 0;
   export let text: string = '';
   export let stroke: string = 'black';
-  export let strokeWidth: number = 1;
+  export let bordercolors: {
+    rbr: string;
+    rtr: string;
+    lbl: string;
+    ltl: string;
+    tltr: string;
+    blbr: string;
+  } = {
+    rbr: 'deeppink',
+    rtr: 'deeppink',
+    lbl: 'deeppink',
+    ltl: 'deeppink',
+    tltr: 'deeppink',
+    blbr: 'deeppink',
+  };
 
   const t = (120 * Math.PI) / 180; // 120 degrees in radians
   const a = (side * Math.sqrt(3)) / 2; // distance from a side to center of hexagon
@@ -28,8 +43,6 @@
   const br = `${BottomRight.x},${BottomRight.y}`;
   const r = `${Right.x},${Right.y}`;
   const tr = `${TopRight.x},${TopRight.y}`;
-
-  $: fill = image == '' ? color : `url(#image-bg_${image})`;
 </script>
 
 <defs>
@@ -48,20 +61,38 @@
   on:mouseenter
   on:mouseleave
 >
-  <polygon
+  {#if image != ''}
+    <image class="hexagon" href={image} width={side * 2} height={side * 2}>
+      <text
+        class="pointer-events-none"
+        transform="translate({side},{side})"
+        font-family="Verdana"
+        font-size="30"
+        text-anchor="middle"
+        fill="red"
+      >
+        {text}
+      </text>
+    </image>
+  {:else}
+    <polygon points="{r} {br} {bl} {l} {tl} {tr}" fill={color} />
+  {/if}
+  <Borders
+    {TopLeft}
+    {TopRight}
+    {BottomLeft}
+    {BottomRight}
+    {Right}
+    {Left}
     {stroke}
-    stroke-width={strokeWidth}
-    points="{r} {br} {bl} {l} {tl} {tr}"
-    {fill}
+    {bordercolors}
   />
-  <text
-    class="pointer-events-none"
-    transform="translate({side},{side})"
-    font-family="Verdana"
-    font-size="30"
-    text-anchor="middle"
-    fill="red"
-  >
-    {text}
-  </text>
 </g>
+
+<style>
+  /* % values are calculated using the same formulas as above */
+  .hexagon {
+    clip-path: polygon(25% 0%, 75% 0%, 100% 43%, 75% 86%, 25% 86%, 0% 43%);
+    image-rendering: pixelated;
+  }
+</style>
