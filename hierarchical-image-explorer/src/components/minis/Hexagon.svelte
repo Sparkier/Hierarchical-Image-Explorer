@@ -8,6 +8,7 @@
   export let y: number = 0;
   export let text: string = '';
   export let stroke: string = 'black';
+  export let strokeWidth: number = 1;
   export let bordercolors: {
     rbr: string;
     rtr: string;
@@ -85,6 +86,7 @@
     {Right}
     {Left}
     {stroke}
+    {strokeWidth}
     {bordercolors}
   />
 </g>
