@@ -46,6 +46,7 @@
   y2={BottomRight.y}
   stroke={bordercolors.rbr}
   stroke-width={strokeWidth}
+  stroke-linecap="round"
 />
 <!--Right to TopRight-->
 <line
@@ -55,6 +56,7 @@
   y2={TopRight.y}
   stroke={bordercolors.rtr}
   stroke-width={strokeWidth}
+  stroke-linecap="round"
 />
 <!--TopLeft to TopRight-->
 <line
@@ -64,6 +66,7 @@
   y2={TopRight.y}
   stroke={bordercolors.tltr}
   stroke-width={strokeWidth}
+  stroke-linecap="round"
 />
 <!--BottomLeft to BottomRight-->
 <line
@@ -73,6 +76,7 @@
   y2={BottomRight.y}
   stroke={bordercolors.blbr}
   stroke-width={strokeWidth}
+  stroke-linecap="round"
 />
 <!--Left to TopLeft-->
 <line
@@ -82,6 +86,7 @@
   y2={TopLeft.y}
   stroke={bordercolors.ltl}
   stroke-width={strokeWidth}
+  stroke-linecap="round"
 />
 <!--Left to BottomLeft-->
 <line
@@ -91,4 +96,5 @@
   y2={BottomLeft.y}
   stroke={bordercolors.lbl}
   stroke-width={strokeWidth}
+  stroke-linecap="round"
 />
