@@ -15,12 +15,12 @@
     tltr: string;
     blbr: string;
   } = {
-    rbr: 'deeppink',
-    rtr: 'deeppink',
-    lbl: 'deeppink',
-    ltl: 'deeppink',
-    tltr: 'deeppink',
-    blbr: 'deeppink',
+    rbr: 'transparent',
+    rtr: 'transparent',
+    lbl: 'transparent',
+    ltl: 'transparent',
+    tltr: 'transparent',
+    blbr: 'transparent',
   };
 
   // standard stroke
@@ -28,14 +28,18 @@
   export let strokeWidth: number = 1;
 
   // assign standard stroke color if not assigned
-  bordercolors.rbr = bordercolors.rbr == 'deeppink' ? stroke : bordercolors.rbr;
-  bordercolors.rtr = bordercolors.rtr == 'deeppink' ? stroke : bordercolors.rtr;
-  bordercolors.lbl = bordercolors.lbl == 'deeppink' ? stroke : bordercolors.lbl;
-  bordercolors.ltl = bordercolors.ltl == 'deeppink' ? stroke : bordercolors.ltl;
+  bordercolors.rbr =
+    bordercolors.rbr == 'transparent' ? stroke : bordercolors.rbr;
+  bordercolors.rtr =
+    bordercolors.rtr == 'transparent' ? stroke : bordercolors.rtr;
+  bordercolors.lbl =
+    bordercolors.lbl == 'transparent' ? stroke : bordercolors.lbl;
+  bordercolors.ltl =
+    bordercolors.ltl == 'transparent' ? stroke : bordercolors.ltl;
   bordercolors.tltr =
-    bordercolors.tltr == 'deeppink' ? stroke : bordercolors.tltr;
+    bordercolors.tltr == 'transparent' ? stroke : bordercolors.tltr;
   bordercolors.blbr =
-    bordercolors.blbr == 'deeppink' ? stroke : bordercolors.blbr;
+    bordercolors.blbr == 'transparent' ? stroke : bordercolors.blbr;
 </script>
 
 <!--Right to BottomRight-->

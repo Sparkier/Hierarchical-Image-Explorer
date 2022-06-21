@@ -1,5 +1,6 @@
 <script lang="ts">
   import Borders from './Borders.svelte';
+
   export let side: number = 100;
   export let color: string = 'green';
   export let image: string = '';
@@ -17,12 +18,12 @@
     tltr: string;
     blbr: string;
   } = {
-    rbr: 'deeppink',
-    rtr: 'deeppink',
-    lbl: 'deeppink',
-    ltl: 'deeppink',
-    tltr: 'deeppink',
-    blbr: 'deeppink',
+    rbr: 'transparent',
+    rtr: 'transparent',
+    lbl: 'transparent',
+    ltl: 'transparent',
+    tltr: 'transparent',
+    blbr: 'transparent',
   };
 
   const t = (120 * Math.PI) / 180; // 120 degrees in radians
