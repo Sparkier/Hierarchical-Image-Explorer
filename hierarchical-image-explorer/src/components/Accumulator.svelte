@@ -144,11 +144,6 @@
     if (matrix == undefined) throw new Error('Transformation Matrix undefined');
     return pt.matrixTransform(matrix);
   }
-
-  function getAndLogHexaSide() {
-    console.log(hexaSide);
-    return hexaSide;
-  }
 </script>
 
 <div>
@@ -202,6 +197,7 @@
     bind:transform
     bind:svg
     bind:g
+    on:zoomEnd={(event) => console.log(event)}
   >
 <<<<<<< HEAD
     {#if hexaSide !== 0}
@@ -253,9 +249,9 @@
               width={imageWidth}
               height={imageWidth}
               x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
-                (hexaSide / 2) * hexaShortDiag}
+                (2 * hexaSide - imageWidth) / 2}
               y={scaleQuantisedY(datagon.hexaY) +
-                (hexaShortDiag * hexaSide) / 2}
+                (2 * hexaShortDiag * hexaSide - imageWidth) / 2}
               href={BackendService.getImageUrl(datagon.representantID)}
               style="image-rendering: pixelated;"
             />
