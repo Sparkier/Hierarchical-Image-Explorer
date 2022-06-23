@@ -19,6 +19,7 @@
             transform = [x, y];
             select(g).attr('transform', `translate(${x}, ${y}) scale(${k})`);
           })
+          .on('end', () => console.log('Zoom ended'))
           .scaleExtent([1, 200])
       );
     }

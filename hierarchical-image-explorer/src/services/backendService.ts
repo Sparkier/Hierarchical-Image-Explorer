@@ -17,6 +17,15 @@ export type SWGInfo = {
   image_id: string;
   file_path: string;
   label: string;
+}
+
+export type DataHexagon = {
+  hexaX: number;
+  hexaY: number;
+  size: number;
+  dominantLabel: string;
+  representantID: string;
+  containedIDs: string[];
 };
 
 export default class BackendService {
@@ -68,7 +77,12 @@ export default class BackendService {
     return this.getEndpoint('2d/all') as Promise<PointData[]>;
   }
 
+<<<<<<< HEAD
   public static async getSWGInfo(dataID: string) {
     return this.getEndpoint('data/annotations/' + dataID) as Promise<SWGInfo>;
+=======
+  public static async getQuantization(columns:number, topleftX:number, topleftY:number, bottomrightX:number, bottomrightY:number):Promise<DataHexagon[]> {
+    return this.getEndpoint(`data/quantized?columns=${columns}&topleftX=${topleftX}&topleftY=${topleftY}&bottomrightX=${bottomrightX}&bottomrightY=${bottomrightY}`) as Promise<DataHexagon[]>
+>>>>>>> b317feb (feat: rewrite for displaying different zoom levels)
   }
 }
