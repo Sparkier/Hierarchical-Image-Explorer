@@ -167,22 +167,26 @@ app.get('/data/heads', (req, res) => {
 //  -------------------------------------------------------------------
 
 app.get('/data/quantized', (req, res) => {
-  const columns = parseInt("" + req.query.columns);
-  if(isNaN(columns)) throw new Error("Illegal URL parameter content: rows")
-  const topleftX = parseInt("" + req.query.topleftX)
-  if(isNaN(topleftX)) throw new Error("Illegal URL parameter content: topleftX")
-  const topleftY = parseInt("" + req.query.topleftY)
-  if(isNaN(topleftY)) throw new Error("Illegal URL parameter content: topleftY")
-  const bottomrightX = parseInt("" + req.query.bottomrightX)
-  if(isNaN(bottomrightX)) throw new Error("Illegal URL parameter content: bottomrightX")
-  const bottomrightY = parseInt("" + req.query.bottomrightY)
-  if(isNaN(bottomrightY)) throw new Error("Illegal URL parameter content: bottomrightY")
-  
+  const columns = parseInt('' + req.query.columns);
+  if (isNaN(columns)) throw new Error('Illegal URL parameter content: rows');
+  const topleftX = parseInt('' + req.query.topleftX);
+  if (isNaN(topleftX))
+    throw new Error('Illegal URL parameter content: topleftX');
+  const topleftY = parseInt('' + req.query.topleftY);
+  if (isNaN(topleftY))
+    throw new Error('Illegal URL parameter content: topleftY');
+  const bottomrightX = parseInt('' + req.query.bottomrightX);
+  if (isNaN(bottomrightX))
+    throw new Error('Illegal URL parameter content: bottomrightX');
+  const bottomrightY = parseInt('' + req.query.bottomrightY);
+  if (isNaN(bottomrightY))
+    throw new Error('Illegal URL parameter content: bottomrightY');
+
   res.send(
     hexagonAggregator?.quantise(
       columns,
       { x: topleftX, y: topleftY },
-      { x: bottomrightX, y: bottomrightY },
+      { x: bottomrightX, y: bottomrightY }
     )
   );
 });

@@ -1,4 +1,3 @@
-import { createDocumentRegistry } from 'typescript';
 import { DataProvider2D } from './2dDataProvider';
 
 export type Point2d = {
@@ -28,16 +27,10 @@ export class HexagonAggregator {
 
   constructor(private dataProvider: DataProvider2D) {}
 
-  public quantise(
-    columns: number,
-    topleft: Point2d,
-    bottomright: Point2d,
-  ) {
-    const startTime = Date.now()
+  public quantise(columns: number, topleft: Point2d, bottomright: Point2d) {
+    const startTime = Date.now();
 
-    const rows = Math.ceil(this.hexaRatio * 2 * columns);
-    console.log('Quanisizing with rows and columns: ', rows, columns);
-
+    
     const filteredData = this.dataProvider
       .getAllPoints()
       .filter(
@@ -48,17 +41,26 @@ export class HexagonAggregator {
           p.y < bottomright.y
       );
 
-      const dataPointMax = Math.ceil(
-        Math.max(
-          ...filteredData.map((d) => Math.max(Math.abs(d.x), Math.abs(d.y)))
-        )+2
-      );
-      console.log('Maximum coordinate is: ', dataPointMax);
+    const dataPointMax = Math.ceil(
+      Math.max(
+        ...filteredData.map((d) => Math.max(Math.abs(d.x), Math.abs(d.y)))
+      ) + 2
+    );
+    console.log('Maximum coordinate is: ', dataPointMax);
+    const xMin = Math.min(...filteredData.map((d) => d.x));
+    const xMax = Math.max(...filteredData.map((d) => d.x));
+    const xExtent = Math.abs(xMin-xMax)
 
-    const hexaSide = (2*dataPointMax) / (3 * columns);
+    const yMin = Math.min(...filteredData.map((d) => d.y));
+    const yMax = Math.max(...filteredData.map((d) => d.y));
+    const yExtent = Math.abs(yMin-yMax)
+
+    console.log( "Maximas: ", xMin, xMax, yMin, yMax);
+    console.log("Extents: ", xExtent, yExtent)
+    const hexaSide = (Math.abs(xMin - xMax)) / (3 * columns);
 
 
-
+    const rows = Math.ceil( (yExtent/xExtent)*(this.hexaRatio * 2 * columns));
     const scaleQuantisedX = (v: number, row: number) => {
       return v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
     };
@@ -67,10 +69,17 @@ export class HexagonAggregator {
       return this.APOTHEM * hexaSide * v;
     };
 
-    const scaleContinuous = (v:number) => {
-      return (v+dataPointMax)/(2*dataPointMax)*(columns*3*hexaSide)
+    const scaleX=(v:number) => {
+      return (
+        ((v - xMin) / xExtent) * (columns * 3 * hexaSide)
+      );
     }
 
+    const scaleY=(v:number) => {
+      return (
+        ((v -yMin) / yExtent) * (rows*this.APOTHEM*hexaSide)
+      );
+    }
 
     const possiblePoints: {
       xCoord: number;
@@ -81,7 +90,6 @@ export class HexagonAggregator {
 
     for (let i = 0; i < columns; i++) {
       possiblePoints.push([]);
-      for (let j = 0; j < rows; j++) {}
     }
 
     for (let x = 0; x < columns; x++) {
@@ -117,13 +125,14 @@ export class HexagonAggregator {
 
     // grid 3 * hexa side wide; 2* apothem * hexaside height; offset -1/2*apothem*hexaside
     filteredData.forEach((filteredPoint) => {
-      const gridX = Math.floor(
-        (filteredPoint.x + dataPointMax - 0.5 * this.APOTHEM * hexaSide) / (3 * hexaSide)
+      var gridX = Math.floor(
+        (filteredPoint.x - xMin - 0.5 * this.APOTHEM * hexaSide) /
+          (3 * hexaSide)
       );
+      gridX = Math.max(0,gridX) // in edge cases since the grids first cell starts in the negative a value of -1 can appear
       const gridY = Math.floor(
-        (filteredPoint.y + dataPointMax) / (2 * this.APOTHEM * hexaSide)
+        (filteredPoint.y - yMin) / (2 * this.APOTHEM * hexaSide)
       );
-
       // overlay grid to narrow down possible closest hexagons to 5
       // resulting possible hexagons:
       // gx, gy*2
@@ -144,24 +153,27 @@ export class HexagonAggregator {
         comparisonPoints.push(possiblePoints[gridX][gridY * 2 + 1]);
       if (gridX <= columns && gridY * 2 - 1 > 0)
         comparisonPoints.push(possiblePoints[gridX][gridY * 2 - 1]);
-      
-      if (comparisonPoints.some(i => i === undefined)){
-        throw new Error("Undefined element in comparisonPoints " + gridX + ", " + gridY )
+
+      if (comparisonPoints.some((i) => i === undefined)) {
+        throw new Error(
+          'Undefined element in comparisonPoints ' + gridX + ', ' + gridY
+        );
       }
+      const scaledX = scaleX(filteredPoint.x)
+      const scaledY = scaleY(filteredPoint.y)
 
-      //console.log(comparisonPoints)
-
-      const distances = comparisonPoints.map((pp) =>{
-        //console.log("Combi: ", filteredPoint, pp)
-        //console.log(Math.hypot((filteredPoint.x - pp.xCoord),(filteredPoint.y - pp.yCoord)))
-        return Math.hypot((scaleContinuous(filteredPoint.x) - pp.xCoord),(scaleContinuous(filteredPoint.y) - pp.yCoord))}
-      );
-      //console.log('distancens: ', distances);
+      const distances = comparisonPoints.map((pp) => {
+        return Math.hypot(
+          scaledX - pp.xCoord,
+          scaledY - pp.yCoord
+        );
+      });
+      //console.log(distances)
       const closesHexaIndex = distances.indexOf(Math.min(...distances));
       const closestHexa = comparisonPoints[closesHexaIndex];
-      quantised[closestHexa.xQuantised][closestHexa.yQuantised].push(filteredPoint);
-
-      //console.log("Grid: ", gridX, gridY)
+      quantised[closestHexa.xQuantised][closestHexa.yQuantised].push(
+        filteredPoint
+      );
     });
 
     const dataList: DataHexagon[] = [];
@@ -170,8 +182,8 @@ export class HexagonAggregator {
         if (quantised[x][y].length != 0) {
           const distances = quantised[x][y].map((p) =>
             Math.hypot(
-              p.x - (possiblePoints[x][y].xCoord+dataPointMax),
-              p.y - (possiblePoints[x][y].yCoord+dataPointMax)
+              p.x - (possiblePoints[x][y].xCoord - xMin),
+              p.y - (possiblePoints[x][y].yCoord - yMin)
             )
           );
           const closestPoint =
@@ -190,9 +202,9 @@ export class HexagonAggregator {
         }
       }
     }
-    const endTime = Date.now()
-    const duration = new Date(endTime-startTime)
-    console.log("Time taken: ", duration.getMilliseconds(), "ms")
+    const endTime = Date.now();
+    const duration = new Date(endTime - startTime);
+    console.log('Time taken: ', duration.getMilliseconds(), 'ms');
 
     return dataList;
   }
@@ -211,59 +223,4 @@ export class HexagonAggregator {
     const sortedList = [...countMap.entries()].sort((a, b) => b[1] - a[1]);
     return sortedList[0][0];
   }
-
-  /**
-//    * Calculate a quantisation of our values, to combine multiple points
-//    * @param input PointData array containing data points
-//    * @returns quantised PointData with x and y coordinates and an array of included data points
-//    */
-  //   function calculateQuantisation(input: PointData[]): PointData[][][] {
-  //     const possiblePoints: {
-  //       xCoord: number;
-  //       xQuantised: number;
-  //       yCoord: number;
-  //       yQuantised: number;
-  //     }[] = [];
-
-  //     // calculate possible hexagon center points:
-  //     hexaSide = svgWidth / (3 * columns);
-  //     for (let x = 0; x < columns; x++) {
-  //       for (let y = 0; y < rows; y++) {
-  //         const topleftX = scaleQuantisedX(x, y);
-  //         const topleftY = scaleQuantisedY(y);
-  //         const centerX = topleftX + hexaSide;
-  //         const centerY = topleftY + hexaSide * hexaShortDiag;
-  //         possiblePoints.push({
-  //           xCoord: centerX,
-  //           xQuantised: x,
-  //           yCoord: centerY,
-  //           yQuantised: y,
-  //         });
-  //       }
-  //     }
-
-  //     // initialize empty 3d Array
-  //     const quantised: PointData[][][] = [];
-  //     for (let x = 0; x < columns; x++) {
-  //       quantised.push([]);
-  //       for (let y = 0; y < rows; y++) {
-  //         quantised[x].push([]);
-  //       }
-  //     }
-
-  //     // check which possible point is closest to datum (modeling hexagons as circles)
-  //     input.forEach((e) => {
-  //       const scaledX = ((e.x + 10) / 20) * svgWi  dth;
-  //       const scaledY = ((e.y + 10) / 20) * rows * hexaSide * hexaShortDiag;
-
-  //       const distances = possiblePoints.map((p) =>
-  //         Math.sqrt((p.xCoord - scaledX) ** 2 + (p.yCoord - scaledY) ** 2)
-  //       );
-  //       const smallestDistanceIndex = distances.indexOf(Math.min(...distances));
-  //       const nearestPoint = possiblePoints[smallestDistanceIndex];
-
-  //       quantised[nearestPoint.xQuantised][nearestPoint.yQuantised].push(e);
-  //     });
-  //     return quantised;
-  //   }
 }
