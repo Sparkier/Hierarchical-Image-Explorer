@@ -1,11 +1,11 @@
 <script lang="ts">
   // coordinates
-  export let Left: { x: number; y: number } = { x: 0, y: 0 };
-  export let BottomLeft: { x: number; y: number } = { x: 0, y: 0 };
-  export let TopLeft: { x: number; y: number } = { x: 0, y: 0 };
-  export let BottomRight: { x: number; y: number } = { x: 0, y: 0 };
-  export let Right: { x: number; y: number } = { x: 0, y: 0 };
-  export let TopRight: { x: number; y: number } = { x: 0, y: 0 };
+  export let left: { x: number; y: number } = { x: 0, y: 0 };
+  export let bottomLeft: { x: number; y: number } = { x: 0, y: 0 };
+  export let topLeft: { x: number; y: number } = { x: 0, y: 0 };
+  export let bottomRight: { x: number; y: number } = { x: 0, y: 0 };
+  export let right: { x: number; y: number } = { x: 0, y: 0 };
+  export let topRight: { x: number; y: number } = { x: 0, y: 0 };
 
   export let bordercolors: {
     rbr: string;
@@ -14,91 +14,70 @@
     ltl: string;
     tltr: string;
     blbr: string;
-  } = {
-    rbr: 'transparent',
-    rtr: 'transparent',
-    lbl: 'transparent',
-    ltl: 'transparent',
-    tltr: 'transparent',
-    blbr: 'transparent',
   };
 
   // standard stroke
   export let stroke: string = 'black'; // if differing colors is not neccessary
   export let strokeWidth: number = 1;
-
-  // assign standard stroke color if not assigned
-  bordercolors.rbr =
-    bordercolors.rbr == 'transparent' ? stroke : bordercolors.rbr;
-  bordercolors.rtr =
-    bordercolors.rtr == 'transparent' ? stroke : bordercolors.rtr;
-  bordercolors.lbl =
-    bordercolors.lbl == 'transparent' ? stroke : bordercolors.lbl;
-  bordercolors.ltl =
-    bordercolors.ltl == 'transparent' ? stroke : bordercolors.ltl;
-  bordercolors.tltr =
-    bordercolors.tltr == 'transparent' ? stroke : bordercolors.tltr;
-  bordercolors.blbr =
-    bordercolors.blbr == 'transparent' ? stroke : bordercolors.blbr;
 </script>
 
 <!--Right to BottomRight-->
 <line
-  x1={Right.x}
-  x2={BottomRight.x}
-  y1={Right.y}
-  y2={BottomRight.y}
-  stroke={bordercolors.rbr}
+  x1={right.x}
+  x2={bottomRight.x}
+  y1={right.y}
+  y2={bottomRight.y}
+  stroke={bordercolors.rbr == 'undefined' ? stroke : bordercolors.rbr}
   stroke-width={strokeWidth}
   stroke-linecap="round"
 />
 <!--Right to TopRight-->
 <line
-  x1={Right.x}
-  x2={TopRight.x}
-  y1={Right.y}
-  y2={TopRight.y}
-  stroke={bordercolors.rtr}
+  x1={right.x}
+  x2={topRight.x}
+  y1={right.y}
+  y2={topRight.y}
+  stroke={bordercolors.rtr == 'undefined' ? stroke : bordercolors.rtr}
   stroke-width={strokeWidth}
   stroke-linecap="round"
 />
 <!--TopLeft to TopRight-->
 <line
-  x1={TopLeft.x}
-  x2={TopRight.x}
-  y1={TopLeft.y}
-  y2={TopRight.y}
-  stroke={bordercolors.tltr}
+  x1={topLeft.x}
+  x2={topRight.x}
+  y1={topLeft.y}
+  y2={topRight.y}
+  stroke={bordercolors.tltr == 'undefined' ? stroke : bordercolors.tltr}
   stroke-width={strokeWidth}
   stroke-linecap="round"
 />
 <!--BottomLeft to BottomRight-->
 <line
-  x1={BottomLeft.x}
-  x2={BottomRight.x}
-  y1={BottomLeft.y}
-  y2={BottomRight.y}
-  stroke={bordercolors.blbr}
+  x1={bottomLeft.x}
+  x2={bottomRight.x}
+  y1={bottomLeft.y}
+  y2={bottomRight.y}
+  stroke={bordercolors.blbr == 'undefined' ? stroke : bordercolors.blbr}
   stroke-width={strokeWidth}
   stroke-linecap="round"
 />
 <!--Left to TopLeft-->
 <line
-  x1={Left.x}
-  x2={TopLeft.x}
-  y1={Left.y}
-  y2={TopLeft.y}
-  stroke={bordercolors.ltl}
+  x1={left.x}
+  x2={topLeft.x}
+  y1={left.y}
+  y2={topLeft.y}
+  stroke={bordercolors.ltl == 'undefined' ? stroke : bordercolors.ltl}
   stroke-width={strokeWidth}
   stroke-linecap="round"
 />
 <!--Left to BottomLeft-->
 <line
-  x1={Left.x}
-  x2={BottomLeft.x}
-  y1={Left.y}
-  y2={BottomLeft.y}
-  stroke={bordercolors.lbl}
+  x1={left.x}
+  x2={bottomLeft.x}
+  y1={left.y}
+  y2={bottomLeft.y}
+  stroke={bordercolors.lbl == 'undefined' ? stroke : bordercolors.lbl}
   stroke-width={strokeWidth}
   stroke-linecap="round"
 />

@@ -18,33 +18,33 @@
     tltr: string;
     blbr: string;
   } = {
-    rbr: 'transparent',
-    rtr: 'transparent',
-    lbl: 'transparent',
-    ltl: 'transparent',
-    tltr: 'transparent',
-    blbr: 'transparent',
+    rbr: 'undefined',
+    rtr: 'undefined',
+    lbl: 'undefined',
+    ltl: 'undefined',
+    tltr: 'undefined',
+    blbr: 'undefined',
   };
 
   const t = (120 * Math.PI) / 180; // 120 degrees in radians
   const a = (side * Math.sqrt(3)) / 2; // distance from a side to center of hexagon
 
-  const Left = { x: 0, y: a };
-  const BottomLeft = {
-    x: Left.x - side * Math.cos(t),
-    y: Left.y + side * Math.sin(t),
+  const left = { x: 0, y: a };
+  const bottomLeft = {
+    x: left.x - side * Math.cos(t),
+    y: left.y + side * Math.sin(t),
   };
-  const TopLeft = { x: BottomLeft.x, y: 0 };
-  const BottomRight = { x: BottomLeft.x + side, y: BottomLeft.y };
-  const Right = { x: side * 2, y: a };
-  const TopRight = { x: BottomLeft.x + side, y: 0 };
+  const topLeft = { x: bottomLeft.x, y: 0 };
+  const bottomRight = { x: bottomLeft.x + side, y: bottomLeft.y };
+  const right = { x: side * 2, y: a };
+  const topRight = { x: bottomLeft.x + side, y: 0 };
 
-  const l = `${Left.x},${Left.y}`;
-  const bl = `${BottomLeft.x},${BottomLeft.y}`;
-  const tl = `${TopLeft.x},${TopLeft.y}`;
-  const br = `${BottomRight.x},${BottomRight.y}`;
-  const r = `${Right.x},${Right.y}`;
-  const tr = `${TopRight.x},${TopRight.y}`;
+  const l = `${left.x},${left.y}`;
+  const bl = `${bottomLeft.x},${bottomLeft.y}`;
+  const tl = `${topLeft.x},${topLeft.y}`;
+  const br = `${bottomRight.x},${bottomRight.y}`;
+  const r = `${right.x},${right.y}`;
+  const tr = `${topRight.x},${topRight.y}`;
 </script>
 
 <defs>
@@ -80,12 +80,12 @@
     <polygon points="{r} {br} {bl} {l} {tl} {tr}" fill={color} />
   {/if}
   <Borders
-    {TopLeft}
-    {TopRight}
-    {BottomLeft}
-    {BottomRight}
-    {Right}
-    {Left}
+    {topLeft}
+    {topRight}
+    {bottomLeft}
+    {bottomRight}
+    {right}
+    {left}
     {stroke}
     {strokeWidth}
     {bordercolors}
