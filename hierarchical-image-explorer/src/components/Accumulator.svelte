@@ -7,6 +7,8 @@
   import BackendService from '../services/backendService';
 
   export var initial_columns = 20;
+  export var selectedImageID = '';
+  export var selectedDatagon: null | DataHexagon = null;
 
   const hexaShortDiag = Math.sqrt(3) / 2;
 
@@ -147,7 +149,7 @@
     {#if hexaSide != 0 && currentQuantization.length != 0}
       <g>
         {#each currentFilteredQuantization as datagon}
-          {#if datagon.containedIDs.length > 0}
+          {#if datagon.containedIDs.length > 1}
             <Hexagon
               side={hexaSide}
               x={scaleQuantisedX(datagon.hexaX, datagon.hexaY)}
@@ -155,6 +157,10 @@
               stroke={ColorUtil.getColor(datagon.dominantLabel)}
               strokeWidth={hexaSide / 5}
               image={BackendService.getImageUrl(datagon.representantID)}
+              on:click={() => {
+                selectedImageID = '';
+                selectedDatagon = datagon;
+              }}
             />
           {:else}
             <image
@@ -166,6 +172,10 @@
                 (2 * hexaShortDiag * hexaSide - imageWidth) / 2}
               href={BackendService.getImageUrl(datagon.representantID)}
               style="image-rendering: pixelated;"
+              on:click={() => {
+                selectedImageID = datagon.representantID;
+                selectedDatagon = null;
+              }}
             />
           {/if}
         {/each}
