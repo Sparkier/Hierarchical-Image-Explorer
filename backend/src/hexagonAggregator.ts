@@ -21,13 +21,21 @@ export type PointData = {
   label: string;
 };
 
+export type QuantizationResults = {
+  datagons:DataHexagon[];
+  xDomain:[number,number]
+  yDomain:[number,number]
+  columns:number;
+  rows:number;
+}
+
 export class HexagonAggregator {
   private APOTHEM = Math.sqrt(3) / 2;
   private hexaRatio = Math.sqrt(3);
 
   constructor(private dataProvider: DataProvider2D) {}
 
-  public quantise(columns: number, topleft: Point2d, bottomright: Point2d) {
+  public quantise(columns: number, topleft: Point2d, bottomright: Point2d):QuantizationResults {
     const startTime = Date.now();
 
     
@@ -206,7 +214,15 @@ export class HexagonAggregator {
     const duration = new Date(endTime - startTime);
     console.log('Time taken: ', duration.getMilliseconds(), 'ms');
 
-    return dataList;
+    const toReturn:QuantizationResults = {
+      datagons:dataList,
+      xDomain: [xMin, xMax],
+      yDomain: [yMin, yMax],
+      columns: columns,
+      rows: rows
+    }
+    console.log(columns, rows)
+    return toReturn
   }
 
   private getMajorityLabel(input: string[]): string {
