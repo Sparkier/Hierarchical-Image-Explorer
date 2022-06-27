@@ -28,6 +28,14 @@ export type DataHexagon = {
   containedIDs: string[];
 };
 
+export type QuantizationResults = {
+  datagons:DataHexagon[];
+  xDomain:[number,number]
+  yDomain:[number,number]
+  columns:number;
+  rows:number;
+}
+
 export default class BackendService {
   //private static serverAdress = 'http://nemesis.informatik.uni-ulm.de/main/';
   private static serverAdress = "http://localhost:25679/"
@@ -77,12 +85,11 @@ export default class BackendService {
     return this.getEndpoint('2d/all') as Promise<PointData[]>;
   }
 
-<<<<<<< HEAD
   public static async getSWGInfo(dataID: string) {
     return this.getEndpoint('data/annotations/' + dataID) as Promise<SWGInfo>;
-=======
+  }
+
   public static async getQuantization(columns:number, topleftX:number, topleftY:number, bottomrightX:number, bottomrightY:number):Promise<DataHexagon[]> {
     return this.getEndpoint(`data/quantized?columns=${columns}&topleftX=${topleftX}&topleftY=${topleftY}&bottomrightX=${bottomrightX}&bottomrightY=${bottomrightY}`) as Promise<DataHexagon[]>
->>>>>>> b317feb (feat: rewrite for displaying different zoom levels)
   }
 }

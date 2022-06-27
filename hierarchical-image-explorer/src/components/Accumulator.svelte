@@ -27,7 +27,7 @@
   import { init } from 'svelte/internal';
 
   export let data: PointData[];
-  export var initial_columns = 50;
+  export var initial_columns = 25;
 
   var columns = initial_columns;
 >>>>>>> b317feb (feat: rewrite for displaying different zoom levels)
@@ -36,33 +36,31 @@
   let svg: SVGSVGElement;
   let g: SVGSVGElement;
   let svgContainer: HTMLElement;
+<<<<<<< HEAD
   let quantizedData: PointData[][][] = [];
   $: hexaSide = svgWidth == undefined ? -1 : svgWidth / (3 * columns);
+=======
+
+  $: hexaSide = svgWidth == undefined ? -1 : svgWidth / (3 * columns + 0.5);
+>>>>>>> 00ec86f (feat: further work on hexaggregation)
   const hexaShortDiag = Math.sqrt(3) / 2;
-  $: rows = Math.ceil(columns * hexaShortDiag * 4);
+  let rows = 0;
   let zoomLevel: number;
   let transform: [number, number];
   let filteredData: PointData[] = [];
-  const lodBreakpoint = 10;
   let currentQuantization: DataHexagon[] = [];
-  let lowerLevelQuantization: DataHexagon[] = [];
-  let higherLevelQuantization: DataHexagon[] = [];
+  let currentFilteredQuantization: DataHexagon[] = [];
+
+  let xDomain: [number, number] = [0, 0];
+  let yDomain: [number, number] = [0, 0];
 
   $: imageWidth = hexaSide;
-  $: svgHeight = rows * hexaSide * hexaShortDiag; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
-  //$: lodLevel = Math.ceil(zoomLevel ** (1 / 3));
+  $: svgHeight = rows * hexaSide * hexaShortDiag + hexaShortDiag * hexaSide; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
+  $: lodLevel = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
+  $: {
+    getQuantizationData(lodLevel);
+  }
   let lodLevelProperty = 2;
-  let currentlod: number;
-  let lodIncreasing: boolean = true;
-  $: {
-    lodIncreasing = lodLevelProperty > currentlod;
-    currentlod = lodLevelProperty;
-  }
-  $: {
-    lodLevelProperty;
-    loadNextLevel();
-    columns = initial_columns * lodLevelProperty;
-  }
 
   $: scaleQuantisedX = (v: number, row: number) => {
     return svgWidth == undefined
@@ -75,54 +73,29 @@
   };
 
   onMount(() => {
-    BackendService.getQuantization(columns, -100, -100, 100, 100).then((r) => {
-      currentQuantization = [];
-      currentQuantization = r;
-      console.log(r);
-    });
-    BackendService.getQuantization(columns * 2, -100, -100, 100, 100).then(
-      (r) => {
-        lowerLevelQuantization = [];
-        lowerLevelQuantization = r;
-        console.log(r);
-      }
-    );
-    BackendService.getQuantization(columns * 2, -100, -100, 100, 100).then(
-      (r) => {
-        higherLevelQuantization = [];
-        higherLevelQuantization = r;
-        console.log(r);
-      }
-    );
+    getQuantizationData(1);
   });
 
-  $: scaleY = new LinearScale([-10, 10], svgHeight, 0);
-  $: scaleX = new LinearScale([-10, 10], svgWidth, 0);
-
-  function loadNextLevel() {
-    const newQuantPromise = BackendService.getQuantization(
-      lodLevelProperty * initial_columns,
+  function getQuantizationData(lod: number) {
+    BackendService.getQuantization(
+      initial_columns * 2 ** lod,
       -100,
       -100,
       100,
       100
-    );
-    if (lodIncreasing) {
-      higherLevelQuantization = currentQuantization;
+    ).then((r) => {
       currentQuantization = [];
-      setTimeout(() => {
-        currentQuantization = lowerLevelQuantization;
-      }, 0);
-      newQuantPromise.then((r) => (lowerLevelQuantization = r));
-    } else {
-      lowerLevelQuantization = currentQuantization;
-      currentQuantization = [];
-      setTimeout(() => {
-        currentQuantization = higherLevelQuantization;
-      }, 0);
-      newQuantPromise.then((r) => (higherLevelQuantization = r));
-    }
+      currentQuantization = r.datagons;
+      currentFilteredQuantization = r.datagons;
+      xDomain = r.xDomain;
+      yDomain = r.yDomain;
+      rows = r.rows;
+      columns = r.columns;
+    });
   }
+
+  $: scaleY = new LinearScale(xDomain, svgHeight, 0);
+  $: scaleX = new LinearScale(yDomain, svgWidth, 0);
 
   /**
    * Takes a point in dom coordinate space and maps it to a svg coordinate point
@@ -144,14 +117,40 @@
     if (matrix == undefined) throw new Error('Transformation Matrix undefined');
     return pt.matrixTransform(matrix);
   }
+
+  function handleZoomEnd(event: CustomEvent<any>) {
+    const svgCbr = svgContainer.getBoundingClientRect();
+    const topleftSVGPoint = svgPoint(svg, svgCbr.x, svgCbr.y, g);
+    const bottomrightSVGPoint = svgPoint(
+      svg,
+      svgCbr.x + svgCbr.width,
+      svgCbr.y + svgCbr.height,
+      g
+    );
+    // overestimate the inverse of scaleQuantized with a simple grid
+    const x1_quantized = Math.floor(topleftSVGPoint.x / (3 * hexaSide)) - 1;
+    const y1_quantized =
+      Math.floor(topleftSVGPoint.y / (2 * hexaShortDiag * hexaSide)) * 2 - 1;
+    const x2_quantized = Math.ceil(bottomrightSVGPoint.x / (3 * hexaSide)) + 1;
+    const y2_quantized =
+      Math.ceil(bottomrightSVGPoint.y / (2 * hexaShortDiag * hexaSide)) * 2 + 1;
+    currentFilteredQuantization = currentQuantization.filter((e) => {
+      return (
+        e.hexaX >= x1_quantized &&
+        e.hexaY >= y1_quantized &&
+        e.hexaX <= x2_quantized &&
+        e.hexaY <= y2_quantized
+      );
+    });
+  }
 </script>
 
 <div>
   Filtered image count {filteredData.length} <br />
   Zoom is {zoomLevel} <br />
   Transofrm is {transform} <br />
-  Lod Number {lodLevelProperty} columns {columns} Rows {rows} Hexa amount: {currentQuantization.length}<br
-  />
+  Lod Number {lodLevelProperty} new lod: {lodLevel} columns {columns} Rows {rows}
+  Hexa amount: {currentFilteredQuantization.length}<br />
   <div
     class="bg-slate-400 rounded-lg w-32 p-2"
     on:click={() => (lodLevelProperty = lodLevelProperty ** 2)}
@@ -167,10 +166,10 @@
   <div
     class="bg-slate-400 rounded-lg w-32 p-2 mt-1"
     on:click={() => {
-      const tmp = currentQuantization;
-      currentQuantization = [];
+      const tmp = currentFilteredQuantization;
+      currentFilteredQuantization = [];
       setTimeout(() => {
-        currentQuantization = tmp;
+        currentFilteredQuantization = tmp;
       }, 1);
     }}
   >
@@ -183,57 +182,22 @@
   style="height: {svgHeight}px; background: green"
   class="overflow-hidden"
 >
-<<<<<<< HEAD
   <div>
     Filtered image count {filteredData.length} <br />
     Zoom is {zoomLevel} <br />
     Lod Number {lodLevel}
   </div>
-=======
->>>>>>> b317feb (feat: rewrite for displaying different zoom levels)
   <ZoomSVG
     viewBox="0 0 {svgWidth} {svgHeight}"
     bind:zoomLevel
     bind:transform
     bind:svg
     bind:g
-    on:zoomEnd={(event) => console.log(event)}
+    on:zoomEnd={(e) => handleZoomEnd(e)}
   >
-<<<<<<< HEAD
-    {#if hexaSide !== 0}
-      <g>
-        {#each quantizedData as columnsList, x}
-          {#each columnsList as cell, y}
-            {#if cell.length > 0}
-              <!-- Agrregated hexagons -->
-              <Hexagon
-                side={hexaSide}
-                x={scaleQuantisedX(x, y)}
-                y={scaleQuantisedY(y)}
-                image={BackendService.getImageUrl(
-                  getRepresentantImage(
-                    quantizedData[x][y],
-                    scaleQuantisedX(x, y),
-                    scaleQuantisedY(y)
-                  ).id
-                )}
-                strokeWidth={zoomLevel > lodBreakpoint ? 0.2 : 1}
-                stroke={zoomLevel > lodBreakpoint
-                  ? ColorUtil.getCellColor(quantizedData[x][y])
-                  : 'black'}
-              />
-            {/if}
-          {/each}
-        {/each}
-      </g>
-      {#if zoomLevel > lodBreakpoint}
-        <!--insert image details-->
-        <g>
-          {#each filteredData as point}
-=======
     {#if hexaSide != 0 && currentQuantization.length != 0}
       <g>
-        {#each currentQuantization as datagon}
+        {#each currentFilteredQuantization as datagon}
           {#if datagon.containedIDs.length > 1}
             <Hexagon
               side={hexaSide}
@@ -244,7 +208,6 @@
               image={BackendService.getImageUrl(datagon.representantID)}
             />
           {:else}
->>>>>>> b317feb (feat: rewrite for displaying different zoom levels)
             <image
               width={imageWidth}
               height={imageWidth}
