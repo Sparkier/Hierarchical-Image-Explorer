@@ -89,7 +89,7 @@ export default class BackendService {
     return this.getEndpoint('data/annotations/' + dataID) as Promise<SWGInfo>;
   }
 
-  public static async getQuantization(columns:number, topleftX:number, topleftY:number, bottomrightX:number, bottomrightY:number):Promise<DataHexagon[]> {
-    return this.getEndpoint(`data/quantized?columns=${columns}&topleftX=${topleftX}&topleftY=${topleftY}&bottomrightX=${bottomrightX}&bottomrightY=${bottomrightY}`) as Promise<DataHexagon[]>
+  public static async getQuantization(columns:number):Promise<QuantizationResults> {
+    return this.getEndpoint(`data/quantized?columns=${columns}`) as Promise<QuantizationResults>
   }
 }

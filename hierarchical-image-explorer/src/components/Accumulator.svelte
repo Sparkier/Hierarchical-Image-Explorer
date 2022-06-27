@@ -1,66 +1,39 @@
 <script lang="ts">
-<<<<<<< HEAD
-  import type { PointData } from '../services/backendService';
-  import BackendService from '../services/backendService';
-=======
   import type { DataHexagon, PointData } from '../services/backendService';
->>>>>>> b317feb (feat: rewrite for displaying different zoom levels)
   import Hexagon from './minis/Hexagon.svelte';
   import { ColorUtil } from '../services/colorUtil';
   import { onMount } from 'svelte';
   import ZoomSVG from './ZoomSVG.svelte';
-<<<<<<< HEAD
-  import { LinearScale } from '../services/scaleUtilities';
+  import BackendService from '../services/backendService';
 
-  export let data: PointData[];
-  export let columns = 50;
-  export let rows = 80;
-  export let imageScaling = 1;
-
-  export const selectedImageID = 'mnist-10';
+  export var initial_columns = 20;
 
   const hexaShortDiag = Math.sqrt(3) / 2;
-  const lodBreakpoint = 10;
-=======
-  import { generateScale, LinearScale } from '../services/scaleUtilities';
-  import BackendService from '../services/backendService';
-  import { init } from 'svelte/internal';
-
-  export let data: PointData[];
-  export var initial_columns = 25;
-
-  var columns = initial_columns;
->>>>>>> b317feb (feat: rewrite for displaying different zoom levels)
 
   let svgWidth: number;
   let svg: SVGSVGElement;
   let g: SVGSVGElement;
   let svgContainer: HTMLElement;
-<<<<<<< HEAD
-  let quantizedData: PointData[][][] = [];
-  $: hexaSide = svgWidth == undefined ? -1 : svgWidth / (3 * columns);
-=======
-
-  $: hexaSide = svgWidth == undefined ? -1 : svgWidth / (3 * columns + 0.5);
->>>>>>> 00ec86f (feat: further work on hexaggregation)
-  const hexaShortDiag = Math.sqrt(3) / 2;
   let rows = 0;
   let zoomLevel: number;
   let transform: [number, number];
   let filteredData: PointData[] = [];
   let currentQuantization: DataHexagon[] = [];
   let currentFilteredQuantization: DataHexagon[] = [];
+  let lodLevelProperty = 2;
 
-  let xDomain: [number, number] = [0, 0];
-  let yDomain: [number, number] = [0, 0];
+  var columns = initial_columns;
 
+  $: hexaSide = svgWidth == undefined ? -1 : svgWidth / (3 * columns + 0.5);
   $: imageWidth = hexaSide;
   $: svgHeight = rows * hexaSide * hexaShortDiag + hexaShortDiag * hexaSide; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
   $: lodLevel = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
+
+  $: console.log('Lod change: ', lodLevel);
+
   $: {
     getQuantizationData(lodLevel);
   }
-  let lodLevelProperty = 2;
 
   $: scaleQuantisedX = (v: number, row: number) => {
     return svgWidth == undefined
@@ -77,26 +50,14 @@
   });
 
   function getQuantizationData(lod: number) {
-    BackendService.getQuantization(
-      initial_columns * 2 ** lod,
-      -100,
-      -100,
-      100,
-      100
-    ).then((r) => {
+    BackendService.getQuantization(initial_columns * 2 ** lod).then((r) => {
       currentQuantization = [];
       currentQuantization = r.datagons;
       currentFilteredQuantization = r.datagons;
-      xDomain = r.xDomain;
-      yDomain = r.yDomain;
       rows = r.rows;
       columns = r.columns;
     });
   }
-
-  $: scaleY = new LinearScale(xDomain, svgHeight, 0);
-  $: scaleX = new LinearScale(yDomain, svgWidth, 0);
-
   /**
    * Takes a point in dom coordinate space and maps it to a svg coordinate point
    * @param element svg element
@@ -143,6 +104,11 @@
       );
     });
   }
+
+  function getAndLogHexaSide() {
+    console.log(hexaSide);
+    return hexaSide;
+  }
 </script>
 
 <div>
@@ -151,18 +117,6 @@
   Transofrm is {transform} <br />
   Lod Number {lodLevelProperty} new lod: {lodLevel} columns {columns} Rows {rows}
   Hexa amount: {currentFilteredQuantization.length}<br />
-  <div
-    class="bg-slate-400 rounded-lg w-32 p-2"
-    on:click={() => (lodLevelProperty = lodLevelProperty ** 2)}
-  >
-    Increase lod
-  </div>
-  <div
-    class="bg-slate-400 rounded-lg w-32 p-2 mt-1"
-    on:click={() => (lodLevelProperty = Math.sqrt(lodLevelProperty))}
-  >
-    Decrease lod
-  </div>
   <div
     class="bg-slate-400 rounded-lg w-32 p-2 mt-1"
     on:click={() => {
@@ -182,11 +136,6 @@
   style="height: {svgHeight}px; background: green"
   class="overflow-hidden"
 >
-  <div>
-    Filtered image count {filteredData.length} <br />
-    Zoom is {zoomLevel} <br />
-    Lod Number {lodLevel}
-  </div>
   <ZoomSVG
     viewBox="0 0 {svgWidth} {svgHeight}"
     bind:zoomLevel
@@ -198,7 +147,7 @@
     {#if hexaSide != 0 && currentQuantization.length != 0}
       <g>
         {#each currentFilteredQuantization as datagon}
-          {#if datagon.containedIDs.length > 1}
+          {#if datagon.containedIDs.length > 0}
             <Hexagon
               side={hexaSide}
               x={scaleQuantisedX(datagon.hexaX, datagon.hexaY)}
