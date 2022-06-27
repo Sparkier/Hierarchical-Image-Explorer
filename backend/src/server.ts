@@ -4,7 +4,6 @@ import cors from 'cors';
 import fs from 'fs';
 import * as csv from 'fast-csv';
 import path from 'path';
-import HierarchicalClusterDataProvider from './hierarchicalClusterDataProvider';
 import { HIEConfiguration } from './configuration';
 import { DataProvider2D } from './2dDataProvider';
 import { HexagonAggregator } from './hexagonAggregator';
@@ -54,8 +53,6 @@ const dataFrame: Map<string, mnistDatum> = new Map();
 let dataProvider2D: DataProvider2D | null = null;
 let hexagonAggregator: HexagonAggregator | null = null;
 const app = express();
-//const hcDataProvider: HierarchicalClusterDataProvider =
-//  new HierarchicalClusterDataProvider(hieConfig.cluster);
 
 startServer();
 function startServer() {
@@ -164,88 +161,14 @@ app.get('/data/heads', (req, res) => {
   res.send(Object.keys(getDatumByID(getAllIds()[0])));
 });
 
-//  -------------------------------------------------------------------
+// --------------------------------------------------------------------------
 
 app.get('/data/quantized', (req, res) => {
   const columns = parseInt('' + req.query.columns);
   if (isNaN(columns)) throw new Error('Illegal URL parameter content: rows');
-  const topleftX = parseInt('' + req.query.topleftX);
-  if (isNaN(topleftX))
-    throw new Error('Illegal URL parameter content: topleftX');
-  const topleftY = parseInt('' + req.query.topleftY);
-  if (isNaN(topleftY))
-    throw new Error('Illegal URL parameter content: topleftY');
-  const bottomrightX = parseInt('' + req.query.bottomrightX);
-  if (isNaN(bottomrightX))
-    throw new Error('Illegal URL parameter content: bottomrightX');
-  const bottomrightY = parseInt('' + req.query.bottomrightY);
-  if (isNaN(bottomrightY))
-    throw new Error('Illegal URL parameter content: bottomrightY');
 
-  res.send(
-    hexagonAggregator?.quantise(
-      columns,
-      { x: topleftX, y: topleftY },
-      { x: bottomrightX, y: bottomrightY }
-    )
-  );
+  res.send(hexagonAggregator?.quantise(columns));
 });
-
-// // ----------------------------------------- hierarchical clustering
-
-// app.get('/hc/nodes/:id', (req, res) => {
-//   res.send(hcDataProvider.getNode(Number.parseInt(req.params.id)));
-// });
-
-// app.get('/hc/allchildids/:id', (req, res) => {
-//   res.send(hcDataProvider.getAllIDs(Number.parseInt(req.params.id)));
-// });
-
-// app.get('/hc/root', (req, res) => {
-//   res.send(hcDataProvider.root);
-// });
-
-// app.get('/hc/parent/:id', (req, res) => {
-//   res.send(hcDataProvider.getParent(Number.parseInt(req.params.id)));
-// });
-
-// // for testing random image
-// app.get('/hc/repimage/:id', (req, res) => {
-//   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-//   res.sendFile(
-//     getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
-//   );
-// });
-
-// // for testing random image
-// app.get('/hc/repimage/close/:id/:rank', (req, res) => {
-//   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-//   res.sendFile(
-//     getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
-//   );
-// });
-
-// // for testing random image
-// app.get('/hc/repimage/distant/:id/:rank', (req, res) => {
-//   const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-//   res.sendFile(
-//     getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
-//   );
-// });
-
-// app.get('/hc/clusterinfo/size/:id', (req, res) => {
-//   res.send(
-//     hcDataProvider.getAllIDs(Number.parseInt(req.params.id)).length.toString()
-//   );
-// });
-
-// app.get('/hc/clusterinfo/level/:id', (req, res) => {
-//   res.send(
-//     hcDataProvider
-//       .getHierarchicalLevel(Number.parseInt(req.params.id))
-//       .toString()
-//   );
-// });
 
 // 2d ------------------------------------------------------------------------
 
