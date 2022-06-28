@@ -11,7 +11,7 @@ export class HexagonAggregator {
    * @param columns amount of columns to agrregate in rows is automatically calculated based on this number and the shape of the data
    * @returns List of Quantizationresults
    */
-  public quantise(columns: number): QuantizationResults {
+  public quantize(columns: number): QuantizationResults {
     const dimredData = this.dataProvider.getAllPoints();
 
     const { xMin, xMax, yExtent, xExtent, yMin, yMax } =
@@ -22,7 +22,8 @@ export class HexagonAggregator {
     const rows = Math.ceil(
       (yExtent / xExtent) * (this.HEXA_RATIO * 2 * columns)
     );
-    const { scaleQuantisedX, scaleQuantisedY, scaleX, scaleY } =
+
+    const { scaleQuantizedX, scaleQuantizedY, scaleX, scaleY } =
       this.generateScales(
         hexaSide,
         xMin,
@@ -35,30 +36,29 @@ export class HexagonAggregator {
 
     const possiblePoints: {
       xCoord: number;
-      xQuantised: number;
+      xQuantized: number;
       yCoord: number;
-      yQuantised: number;
+      yQuantized: number;
     }[][] = [];
 
     this.calculatePossiblePoints(
       columns,
       possiblePoints,
       rows,
-      scaleQuantisedX,
-      scaleQuantisedY,
+      scaleQuantizedX,
+      scaleQuantizedY,
       hexaSide
     );
 
     // initialize empty 3d Array
-    const quantised: PointData[][][] = [];
+    const quantized: PointData[][][] = [];
     for (let x = 0; x < columns; x++) {
-      quantised.push([]);
+      quantized.push([]);
       for (let y = 0; y < rows; y++) {
-        quantised[x].push([]);
+        quantized[x].push([]);
       }
     }
 
-    // grid 3 * hexa side wide; 2* apothem * hexaside height; offset -1/2*apothem*hexaside
     this.getQuantization(
       dimredData,
       xMin,
@@ -69,63 +69,63 @@ export class HexagonAggregator {
       possiblePoints,
       scaleX,
       scaleY,
-      quantised
+      quantized
     );
 
     const dataList: DataHexagon[] = [];
-    this.aggregateQuantization(quantised, possiblePoints, xMin, yMin, dataList);
+    this.aggregateQuantization(quantized, possiblePoints, xMin, yMin, dataList);
 
-    const toReturn: QuantizationResults = {
+    return {
       datagons: dataList,
       xDomain: [xMin, xMax],
       yDomain: [yMin, yMax],
       columns: columns,
       rows: rows,
     };
-    return toReturn;
   }
 
   /**
-   * takes in a list of quantized datapoints
-   * @param quantised list of quantized datapoints
+   * takes in a list of quantized datapoints and aggregates them into the necessary hexagons
+   * @param quantized list of quantized datapoints
    * @param possiblePoints list of hexagon centers
    * @param xMin minmal x in Data
    * @param yMin minimal y in Data
    * @param dataList empty list
    */
   private aggregateQuantization(
-    quantised: PointData[][][],
+    quantized: PointData[][][],
     possiblePoints: {
       xCoord: number;
-      xQuantised: number;
+      xQuantized: number;
       yCoord: number;
-      yQuantised: number;
+      yQuantized: number;
     }[][],
     xMin: number,
     yMin: number,
     dataList: DataHexagon[]
   ) {
-    for (let x = 0; x < quantised.length; x++) {
-      for (let y = 0; y < quantised[x].length; y++) {
-        if (quantised[x][y].length != 0) {
-          const distances = quantised[x][y].map((p) =>
+    for (let x = 0; x < quantized.length; x++) {
+      for (let y = 0; y < quantized[x].length; y++) {
+        if (quantized[x][y].length != 0) {
+          const distances = quantized[x][y].map((p) =>
             Math.hypot(
               p.x - (possiblePoints[x][y].xCoord - xMin),
               p.y - (possiblePoints[x][y].yCoord - yMin)
             )
           );
+
           const closestPoint =
-            quantised[x][y][distances.indexOf(Math.min(...distances))];
+            quantized[x][y][distances.indexOf(Math.min(...distances))];
 
           dataList.push({
             hexaX: x,
             hexaY: y,
-            size: quantised[x][y].length,
+            size: quantized[x][y].length,
             dominantLabel: this.getMajorityLabel(
-              quantised[x][y].map((p) => p.label)
+              quantized[x][y].map((p) => p.label)
             ),
             representantID: closestPoint.id,
-            containedIDs: quantised[x][y].map((p) => p.id),
+            containedIDs: quantized[x][y].map((p) => p.id),
           });
         }
       }
@@ -146,7 +146,7 @@ export class HexagonAggregator {
    * @param possiblePoints list of hexagon centers to quantize in
    * @param scaleX scale between data and hexagon domain
    * @param scaleY scale between data and hexagon domain
-   * @param quantised
+   * @param quantized
    */
   private getQuantization(
     dimredData: { id: string; x: number; y: number; label: string }[],
@@ -157,13 +157,13 @@ export class HexagonAggregator {
     rows: number,
     possiblePoints: {
       xCoord: number;
-      xQuantised: number;
+      xQuantized: number;
       yCoord: number;
-      yQuantised: number;
+      yQuantized: number;
     }[][],
     scaleX: (v: number) => number,
     scaleY: (v: number) => number,
-    quantised: PointData[][][]
+    quantized: PointData[][][]
   ) {
     dimredData.forEach((filteredPoint) => {
       let gridX = Math.floor(
@@ -174,6 +174,7 @@ export class HexagonAggregator {
       const gridY = Math.floor(
         (filteredPoint.y - yMin) / (2 * this.APOTHEM * hexaSide)
       );
+
       // overlay grid to narrow down possible closest hexagons to 5
       // resulting possible hexagons:
       // gx, gy*2
@@ -207,7 +208,7 @@ export class HexagonAggregator {
       });
       const closesHexaIndex = distances.indexOf(Math.min(...distances));
       const closestHexa = comparisonPoints[closesHexaIndex];
-      quantised[closestHexa.xQuantised][closestHexa.yQuantised].push(
+      quantized[closestHexa.xQuantized][closestHexa.yQuantized].push(
         filteredPoint
       );
     });
@@ -218,21 +219,21 @@ export class HexagonAggregator {
    * @param columns amount of hexagons in x-direction
    * @param possiblePoints list to fill
    * @param rows amount of hexagons in y-direction
-   * @param scaleQuantisedX scale between hexagon-x (discrete) and domain
-   * @param scaleQuantisedY scale between hexagon-y (discrete) and domain
+   * @param scaleQuantizedX scale between hexagon-x (discrete) and domain
+   * @param scaleQuantizedY scale between hexagon-y (discrete) and domain
    * @param hexaSide length of the side of one hexagon
    */
   private calculatePossiblePoints(
     columns: number,
     possiblePoints: {
       xCoord: number;
-      xQuantised: number;
+      xQuantized: number;
       yCoord: number;
-      yQuantised: number;
+      yQuantized: number;
     }[][],
     rows: number,
-    scaleQuantisedX: (v: number, row: number) => number,
-    scaleQuantisedY: (v: number) => number,
+    scaleQuantizedX: (v: number, row: number) => number,
+    scaleQuantizedY: (v: number) => number,
     hexaSide: number
   ) {
     for (let i = 0; i < columns; i++) {
@@ -241,15 +242,15 @@ export class HexagonAggregator {
 
     for (let x = 0; x < columns; x++) {
       for (let y = 0; y < rows; y++) {
-        const topleftX = scaleQuantisedX(x, y);
-        const topleftY = scaleQuantisedY(y);
+        const topleftX = scaleQuantizedX(x, y);
+        const topleftY = scaleQuantizedY(y);
         const centerX = topleftX + hexaSide;
         const centerY = topleftY + hexaSide * this.APOTHEM;
         possiblePoints[x][y] = {
           xCoord: centerX,
-          xQuantised: x,
+          xQuantized: x,
           yCoord: centerY,
-          yQuantised: y,
+          yQuantized: y,
         };
       }
     }
@@ -275,11 +276,11 @@ export class HexagonAggregator {
     yExtent: number,
     rows: number
   ) {
-    const scaleQuantisedX = (v: number, row: number) => {
+    const scaleQuantizedX = (v: number, row: number) => {
       return v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
     };
 
-    const scaleQuantisedY = (v: number) => {
+    const scaleQuantizedY = (v: number) => {
       return this.APOTHEM * hexaSide * v;
     };
 
@@ -290,7 +291,7 @@ export class HexagonAggregator {
     const scaleY = (v: number) => {
       return ((v - yMin) / yExtent) * (rows * this.APOTHEM * hexaSide);
     };
-    return { scaleQuantisedX, scaleQuantisedY, scaleX, scaleY };
+    return { scaleQuantizedX, scaleQuantizedY, scaleX, scaleY };
   }
 
   private getExtents(

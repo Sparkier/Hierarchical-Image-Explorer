@@ -156,7 +156,7 @@ app.get('/data/quantized', (req, res) => {
   const columns = parseInt('' + req.query.columns);
   if (isNaN(columns)) throw new Error('Illegal URL parameter content: rows');
 
-  res.send(hexagonAggregator?.quantise(columns));
+  res.send(hexagonAggregator?.quantize(columns));
 });
 
 // 2d ------------------------------------------------------------------------
