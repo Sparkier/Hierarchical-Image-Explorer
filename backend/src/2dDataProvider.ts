@@ -1,24 +1,10 @@
 import fs from 'fs';
 import * as csv from 'fast-csv';
-import { mnistDatum } from './server';
-
-type csvRow2D = {
-  id: string;
-  x: string;
-  y: string;
-};
-
-type datum2dPoint = {
-  id: string;
-  x: number;
-  y: number;
-  label: string;
-};
 
 export class DataProvider2D {
   pointMap: Map<string, { x: number; y: number; label: string }> = new Map();
 
-  constructor(private filePath: string, dataFrame: Map<string, mnistDatum>) {
+  constructor(private filePath: string, dataFrame: Map<string, datapoint>) {
     fs.createReadStream(filePath)
       .pipe(csv.parse({ headers: true }))
       .on('error', (e) => console.log(e))

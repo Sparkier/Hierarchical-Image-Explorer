@@ -8,17 +8,6 @@ import { HIEConfiguration } from './configuration';
 import { DataProvider2D } from './2dDataProvider';
 import { HexagonAggregator } from './hexagonAggregator';
 
-export type mnistDatum = {
-  file_path: string;
-  label: string;
-};
-
-type mnistDatumWithID = {
-  image_id: string;
-  file_path: string;
-  label: string;
-};
-
 // parse commandline arguments
 let port = 25679;
 let configParameter = '';
@@ -49,7 +38,7 @@ const confData = JSON.parse(
 ) as HIEConfiguration;
 const hieConfig = confData;
 
-const dataFrame: Map<string, mnistDatum> = new Map();
+const dataFrame: Map<string, datapoint> = new Map();
 let dataProvider2D: DataProvider2D | null = null;
 let hexagonAggregator: HexagonAggregator | null = null;
 const app = express();
@@ -96,11 +85,11 @@ function getPathFromId(id: string): string {
   return getDatumByID(id).file_path;
 }
 
-function combineDatumWithID(datum: mnistDatum, id: string): mnistDatumWithID {
+function combineDatumWithID(datum: datapoint, id: string): datapointWithID {
   return { image_id: id, file_path: datum.file_path, label: datum.label };
 }
 
-function getDatumByID(id: string): mnistDatumWithID {
+function getDatumByID(id: string): datapointWithID {
   const result = dataFrame.get(id);
   if (result == undefined) throw new Error('ID not found');
   else return combineDatumWithID(result, id);

@@ -1,34 +1,5 @@
 import { DataProvider2D } from './2dDataProvider';
 
-export type Point2d = {
-  x: number;
-  y: number;
-};
-
-export type DataHexagon = {
-  hexaX: number;
-  hexaY: number;
-  size: number;
-  dominantLabel: string;
-  representantID: string;
-  containedIDs: string[];
-};
-
-export type PointData = {
-  id: string;
-  x: number;
-  y: number;
-  label: string;
-};
-
-export type QuantizationResults = {
-  datagons: DataHexagon[];
-  xDomain: [number, number];
-  yDomain: [number, number];
-  columns: number;
-  rows: number;
-};
-
 export class HexagonAggregator {
   private APOTHEM = Math.sqrt(3) / 2;
   private HEXA_RATIO = Math.sqrt(3);
