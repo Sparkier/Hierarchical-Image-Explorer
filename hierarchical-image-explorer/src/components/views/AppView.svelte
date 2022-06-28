@@ -4,6 +4,7 @@
   import { getExtent } from '../../services/scaleUtilities';
   import {onDestroy, onMount} from 'svelte';
   import ImgView from "../minis/ImgView.svelte";
+  import ClusterView from "../minis/ClusterView.svelte";
   import {scale} from 'svelte/transition';
   import RangeSlider from 'svelte-range-slider-pips';
   import {DEFAULT_SLIDER_VALUE} from "../../config";
@@ -34,6 +35,7 @@
   let selectedImageID;
   let selectedImageLabel;
   let filteredData;
+  let clusterView = false;
 
   $: {
     if (selectedImageID != undefined && selectedImageID != '')
@@ -71,7 +73,9 @@
 </script>
 
 <div class="flex items-stretch">
+  <!-- Leftbar -->
   <div class="w-1/5 left-0 border-r-2 border-y-2 border-slate-200 bg-slate-50">
+    {#if clusterView}
     <div class="pl-4 font-bold text-xl text-left">Settings</div>
     <div class="pl-4 pt-4 font-medium text-lg text-left">Class filters</div>
     <div class="relative" bind:this={menu}>
@@ -120,7 +124,12 @@
           float
       />
     </div>
+      {:else}
+      <div class="pl-4 font-bold text-xl text-left">Cluster info</div>
+      <ClusterView datagon={selectedDatagon}/>
+    {/if}
   </div>
+  <!-- Image explorer -->
   <div class="w-4/5 border-y-2 border-slate-200 pr-4" bind:clientWidth={svgWidth} bind:clientHeight={svgHeight}>
     {#await setupData()}
       <p>Loading data</p>
