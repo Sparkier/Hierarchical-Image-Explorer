@@ -2,9 +2,8 @@
   import BackendService from '../../services/backendService';
   import Accumulator from '../Accumulator.svelte';
   import { onDestroy, onMount } from 'svelte';
-  import { scale } from 'svelte/transition';
-  import { getExtent } from '../../services/scaleUtilities';
   import ImgView from "../minis/ImgView.svelte";
+  import ClusterView from "../minis/ClusterView.svelte";
   import {scale} from 'svelte/transition';
   import RangeSlider from 'svelte-range-slider-pips';
   import {
@@ -26,8 +25,6 @@
       show = false;
     }
   };
-
-  let svgElement: SVGSVGElement;
   let svgWidth: number;
   let svgHeight: number;
   let xExtent: number[] = [];
@@ -41,7 +38,6 @@
   let selectedImageID;
   let selectedImageLabel;
   let filteredData;
-
   let accTopLeftCorner: DOMPoint;
   let accBottomRightCorner: DOMPoint;
   let accSvgHeight: number;
@@ -113,28 +109,13 @@
           bind:values={sliderValue}
           range="min"
           float
-        />
-      </div>
-      <div class="pl-4 pt-4 font-bold text-xl text-left">Image Details</div>
-      <div class="pl-4 pt-4 font-medium text-lg text-left flex">
-        Image ID:
-        <div class="pl-2 text-slate-400">
-          {selectedImageID}
-        </div>
-      </div>
-      <div class="pl-4 pt-2 font-medium text-lg text-left flex">
-        Image Label:
-        <div class="pl-2 text-slate-400">
-          {selectedImageLabel}
-        </div>
-      </div>
-      <img
-        alt="selected"
-        class="ml-4 mt-2 mb-2 w-32 h-32"
-        src={BackendService.getImageUrl(selectedImageID)}
       />
     </div>
-    <div class="w-4/5" bind:clientWidth={svgWidth}>
+      <div class="pl-4 font-bold text-xl text-left">Cluster info</div>
+      <ClusterView datagon={selectedDatagon}/>
+  </div>
+  <!-- Image explorer -->
+  <div class="w-4/5 border-y-2 border-slate-200 pr-4" bind:clientWidth={svgWidth} bind:clientHeight={svgHeight}>
       <Accumulator
         rows={numHexagonsRows}
         columns={numHexagonsColumns}
