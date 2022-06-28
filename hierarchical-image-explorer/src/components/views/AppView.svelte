@@ -21,6 +21,15 @@
     }
   };
 
+  const selectedDatagon: { labelDistribution: {label:string, amount:number}[], size: number; representantID: string; hexaY: number; hexaX: number; dominantLabel: string } = { // for demo only will be replaced with actual selection
+    hexaX: 2,
+    hexaY: 3,
+    size: 12,
+    dominantLabel: "0",
+    representantID: "mnist-10",
+    labelDistribution: [{label: "0", amount: 5}, {label: "8", amount: 3}, {label: "6", amount: 2}, {label: "9", amount: 2}]
+  }
+
   let svgElement: SVGSVGElement;
   let svgWidth: number;
   let svgHeight: number;
