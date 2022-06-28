@@ -1,15 +1,5 @@
 import fs from 'fs';
 
-type clustersDatum = {
-  clusterID: number;
-  ID: string;
-};
-
-type clusterTreeNodeDatum = {
-  node_id: number;
-  children: number[];
-};
-
 export default class HierarchicalClusterDataProvider {
   public root: HcNode; // root of the tree
   private nodes: [HcNode?]; // all nodes of the tree

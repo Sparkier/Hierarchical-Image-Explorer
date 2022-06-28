@@ -4,20 +4,9 @@ import cors from 'cors';
 import fs from 'fs';
 import * as csv from 'fast-csv';
 import path from 'path';
-import HierarchicalClusterDataProvider from './hierarchicalClusterDataProvider';
 import { HIEConfiguration } from './configuration';
 import { DataProvider2D } from './2dDataProvider';
-
-export type mnistDatum = {
-  file_path: string;
-  label: string;
-};
-
-type mnistDatumWithID = {
-  image_id: string;
-  file_path: string;
-  label: string;
-};
+import { HexagonAggregator } from './hexagonAggregator';
 
 // parse commandline arguments
 let port = 25679;
@@ -49,11 +38,10 @@ const confData = JSON.parse(
 ) as HIEConfiguration;
 const hieConfig = confData;
 
-const dataFrame: Map<string, mnistDatum> = new Map();
+const dataFrame: Map<string, datapoint> = new Map();
 let dataProvider2D: DataProvider2D | null = null;
+let hexagonAggregator: HexagonAggregator | null = null;
 const app = express();
-const hcDataProvider: HierarchicalClusterDataProvider =
-  new HierarchicalClusterDataProvider(hieConfig.cluster);
 
 startServer();
 function startServer() {
@@ -87,6 +75,7 @@ function setUpData() {
       if (dataFrame.size == 0) throw new Error('Dataset empty');
       console.log('CSV read with ' + rowCount + ' rows');
       dataProvider2D = new DataProvider2D(hieConfig.points2d, dataFrame);
+      hexagonAggregator = new HexagonAggregator(dataProvider2D);
     });
   // setup hierarchical clustering data
 }
@@ -96,11 +85,11 @@ function getPathFromId(id: string): string {
   return getDatumByID(id).file_path;
 }
 
-function combineDatumWithID(datum: mnistDatum, id: string): mnistDatumWithID {
+function combineDatumWithID(datum: datapoint, id: string): datapointWithID {
   return { image_id: id, file_path: datum.file_path, label: datum.label };
 }
 
-function getDatumByID(id: string): mnistDatumWithID {
+function getDatumByID(id: string): datapointWithID {
   const result = dataFrame.get(id);
   if (result == undefined) throw new Error('ID not found');
   else return combineDatumWithID(result, id);
@@ -161,60 +150,13 @@ app.get('/data/heads', (req, res) => {
   res.send(Object.keys(getDatumByID(getAllIds()[0])));
 });
 
-// ----------------------------------------- hierarchical clustering
+// --------------------------------------------------------------------------
 
-app.get('/hc/nodes/:id', (req, res) => {
-  res.send(hcDataProvider.getNode(Number.parseInt(req.params.id)));
-});
+app.get('/data/quantized', (req, res) => {
+  const columns = parseInt('' + req.query.columns);
+  if (isNaN(columns)) throw new Error('Illegal URL parameter content: rows');
 
-app.get('/hc/allchildids/:id', (req, res) => {
-  res.send(hcDataProvider.getAllIDs(Number.parseInt(req.params.id)));
-});
-
-app.get('/hc/root', (req, res) => {
-  res.send(hcDataProvider.root);
-});
-
-app.get('/hc/parent/:id', (req, res) => {
-  res.send(hcDataProvider.getParent(Number.parseInt(req.params.id)));
-});
-
-// for testing random image
-app.get('/hc/repimage/:id', (req, res) => {
-  const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  res.sendFile(
-    getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
-  );
-});
-
-// for testing random image
-app.get('/hc/repimage/close/:id/:rank', (req, res) => {
-  const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  res.sendFile(
-    getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
-  );
-});
-
-// for testing random image
-app.get('/hc/repimage/distant/:id/:rank', (req, res) => {
-  const dataIDS = hcDataProvider.getAllIDs(Number.parseInt(req.params.id));
-  res.sendFile(
-    getImagePathByID(dataIDS[Math.floor(Math.random() * dataIDS.length)])
-  );
-});
-
-app.get('/hc/clusterinfo/size/:id', (req, res) => {
-  res.send(
-    hcDataProvider.getAllIDs(Number.parseInt(req.params.id)).length.toString()
-  );
-});
-
-app.get('/hc/clusterinfo/level/:id', (req, res) => {
-  res.send(
-    hcDataProvider
-      .getHierarchicalLevel(Number.parseInt(req.params.id))
-      .toString()
-  );
+  res.send(hexagonAggregator?.quantize(columns));
 });
 
 // 2d ------------------------------------------------------------------------

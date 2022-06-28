@@ -21,7 +21,7 @@ export type SWGInfo = {
 
 export default class BackendService {
   private static serverAdress = 'http://nemesis.informatik.uni-ulm.de/main/';
-
+  
   private static async getEndpoint(endpoint: string): Promise<unknown> {
     const response = await fetch(this.serverAdress + endpoint);
     return response.json();

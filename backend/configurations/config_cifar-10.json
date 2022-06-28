@@ -1,0 +1,7 @@
+{
+  "swg": "./data/cifar-10/cifar-10.csv",
+  "cluster": "tbd",
+  "similarityMatrix": "tbd",
+  "points2d": "./data/cifar-10/cifar-10__umap.csv",
+  "imgDataRoot": "../"
+}
