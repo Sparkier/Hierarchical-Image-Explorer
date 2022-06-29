@@ -31,8 +31,6 @@
   $: svgHeight = rows * hexaSide * hexaShortDiag + hexaShortDiag * hexaSide; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
   $: lodLevel = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
 
-  $: console.log('Lod change: ', lodLevel);
-
   $: {
     getQuantizationData(lodLevel);
   }
@@ -105,11 +103,6 @@
         e.hexaY <= y2_quantized
       );
     });
-  }
-
-  function getAndLogHexaSide() {
-    console.log(hexaSide);
-    return hexaSide;
   }
 </script>
 
