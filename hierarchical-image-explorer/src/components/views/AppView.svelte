@@ -1,5 +1,5 @@
 <script lang="ts">
-  import BackendService, { PointData } from '../../services/backendService';
+  import BackendService from '../../services/backendService';
   import Accumulator from '../Accumulator.svelte';
   import { getExtent } from '../../services/scaleUtilities';
   import { onDestroy, onMount } from 'svelte';
@@ -10,6 +10,7 @@
     DEFAULT_NUM_OF_COLUMNS,
     DEFAULT_SLIDER_VALUE,
   } from '../../config.ts';
+  import type { PointData } from '../../types';
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {

@@ -1,10 +1,10 @@
 <script lang="ts">
-  import type { DataHexagon, PointData } from '../services/backendService';
   import Hexagon from './minis/Hexagon.svelte';
   import { ColorUtil } from '../services/colorUtil';
   import { onMount } from 'svelte';
   import ZoomSVG from './ZoomSVG.svelte';
   import BackendService from '../services/backendService';
+  import type { DataHexagon, PointData } from '../types';
 
   export var initial_columns = 20;
   export var selectedImageID = '';

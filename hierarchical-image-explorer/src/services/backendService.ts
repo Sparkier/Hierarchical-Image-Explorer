@@ -1,44 +1,13 @@
 /**
  * Collection of methods for backend interaction
  */
-export type HcNode = {
-  children: HcNode[];
-  nodeID: number;
-};
 
-export type PointData = {
-  id: string;
-  x: number;
-  y: number;
-  label: string;
-};
+import { SERVER_ADRESS } from "../config";
+import type { HcNode, PointData, QuantizationResults, SWGInfo } from "../types";
 
-export type SWGInfo = {
-  image_id: string;
-  file_path: string;
-  label: string;
-}
-
-export type DataHexagon = {
-  hexaX: number;
-  hexaY: number;
-  size: number;
-  dominantLabel: string;
-  representantID: string;
-  containedIDs: string[];
-};
-
-export type QuantizationResults = {
-  datagons:DataHexagon[];
-  xDomain:[number,number]
-  yDomain:[number,number]
-  columns:number;
-  rows:number;
-}
 
 export default class BackendService {
-  //private static serverAdress = 'http://nemesis.informatik.uni-ulm.de/main/';
-  private static serverAdress = "http://localhost:25679/"
+  private static serverAdress = SERVER_ADRESS
 
   private static async getEndpoint(endpoint: string): Promise<unknown> {
     const response = await fetch(this.serverAdress + endpoint);

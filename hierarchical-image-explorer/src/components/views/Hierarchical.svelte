@@ -1,5 +1,7 @@
 <script lang="ts">
-  import BackendService, { HcNode } from '../../services/backendService';
+  import BackendService from '../../services/backendService';
+  import type { HcNode } from '../../types';
+
   import ClusterInfoHover from '../ClusterInfoHover.svelte';
   import Hexagon from '../minis/Hexagon.svelte';
 
