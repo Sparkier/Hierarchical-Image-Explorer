@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 type csvRow2D = {
   id: string;
   x: string;
