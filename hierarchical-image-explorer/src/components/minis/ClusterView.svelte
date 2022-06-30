@@ -16,6 +16,6 @@
 		class="ml-4 mt-2 mb-2 w-32 h-32"
 		src={BackendService.getImageUrl(datagon.representantID)}
 />
-<div class="pl-4 mt-2">
+<div class="pl-4 mt-4 w-full" >
 <ClusterBarChart distribution={datagon.labelDistribution} />
 </div>
