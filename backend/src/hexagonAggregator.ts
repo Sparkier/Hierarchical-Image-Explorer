@@ -117,8 +117,12 @@ export class HexagonAggregator {
 
           const closestPoint =
             quantized[x][y][distances.indexOf(Math.min(...distances))];
-          const occurances = this.countOccurances(quantized[x][y].map(e=>e.label))
-          const labelDistribution = [...occurances].map(v => {return {label:v[0], amount:v[1]}})
+          const occurances = this.countOccurances(
+            quantized[x][y].map((e) => e.label)
+          );
+          const labelDistribution = [...occurances].map((v) => {
+            return { label: v[0], amount: v[1] };
+          });
           dataList.push({
             hexaX: x,
             hexaY: y,
