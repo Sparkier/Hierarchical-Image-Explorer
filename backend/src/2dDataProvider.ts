@@ -1,5 +1,6 @@
 import fs from 'fs';
 import * as csv from 'fast-csv';
+import type { datapoint, csvRow2D, datum2dPoint } from './types';
 
 export class DataProvider2D {
   pointMap: Map<string, { x: number; y: number; label: string }> = new Map();

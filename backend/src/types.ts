@@ -1,45 +1,43 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
-type csvRow2D = {
+export type csvRow2D = {
   id: string;
   x: string;
   y: string;
 };
 
-type datum2dPoint = {
+export type datum2dPoint = {
   id: string;
   x: number;
   y: number;
   label: string;
 };
 
-type datapoint = {
+export type datapoint = {
   file_path: string;
   label: string;
 };
 
-type datapointWithID = {
+export type datapointWithID = {
   image_id: string;
   file_path: string;
   label: string;
 };
 
-type clustersDatum = {
+export type clustersDatum = {
   clusterID: number;
   ID: string;
 };
 
-type clusterTreeNodeDatum = {
+export type clusterTreeNodeDatum = {
   node_id: number;
   children: number[];
 };
 
-type Point2d = {
+export type Point2d = {
   x: number;
   y: number;
 };
 
-type DataHexagon = {
+export type DataHexagon = {
   hexaX: number;
   hexaY: number;
   size: number;
@@ -48,13 +46,14 @@ type DataHexagon = {
   containedIDs: string[];
 };
 
-type PointData = {
+export type PointData = {
   id: string;
   x: number;
   y: number;
   label: string;
 };
-type QuantizationResults = {
+
+export type QuantizationResults = {
   datagons: DataHexagon[];
   xDomain: [number, number];
   yDomain: [number, number];

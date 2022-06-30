@@ -1,4 +1,5 @@
 import fs from 'fs';
+import type { clustersDatum, clusterTreeNodeDatum } from './types';
 
 export default class HierarchicalClusterDataProvider {
   public root: HcNode; // root of the tree
