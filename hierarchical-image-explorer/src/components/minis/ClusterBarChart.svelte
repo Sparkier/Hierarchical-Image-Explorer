@@ -1,5 +1,6 @@
 <script lang="ts">
     import { VegaLite } from "svelte-vega";
+    import {ColorUtil} from "../../services/colorUtil";
 
     export let distribution: {label:string, amount:number}[]
 

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import BackendService, { PointData } from '../../services/backendService';
   import Accumulator from '../Accumulator.svelte';
   import { getExtent } from '../../services/scaleUtilities';
   import {onDestroy, onMount} from 'svelte';
