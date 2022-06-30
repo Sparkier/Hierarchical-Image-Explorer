@@ -37,7 +37,7 @@
     function handleSelection(...args: any){
 		if(args[1].label !== undefined){
 				const amount = distribution.filter(e => e.label == args[1].label)[0].amount
-				selected = `Number of pictures in selected caregory: ${amount}`
+				selected = `Number of pictures in selected category: ${amount}`
 		}
         else {
             selected= "";
