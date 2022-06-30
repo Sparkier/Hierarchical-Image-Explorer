@@ -11,8 +11,8 @@
   export var selectedDatagon: null | DataHexagon = null;
   export var topleftSVGPoint: DOMPoint;
   export var bottomrightSVGPoint: DOMPoint;
-  export let svgWidthValue: number;
-  export let svgHeightValue: number;
+  export var svgWidthValue: number;
+  export var svgHeightValue: number;
 
   const hexaShortDiag = Math.sqrt(3) / 2;
 
@@ -52,8 +52,6 @@
   };
 
   $: {
-    transform;
-    zoomLevel;
     if (svg != undefined && transform != undefined && zoomLevel != undefined) {
       updateScreenBoundaryPoints();
     }
