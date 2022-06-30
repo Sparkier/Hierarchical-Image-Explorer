@@ -117,7 +117,8 @@ export class HexagonAggregator {
 
           const closestPoint =
             quantized[x][y][distances.indexOf(Math.min(...distances))];
-
+          const occurances = this.countOccurances(quantized[x][y].map(e=>e.label))
+          const labelDistribution = [...occurances].map(v => {return {label:v[0], amount:v[1]}})
           dataList.push({
             hexaX: x,
             hexaY: y,
@@ -126,7 +127,7 @@ export class HexagonAggregator {
               quantized[x][y].map((p) => p.label)
             ),
             representantID: closestPoint.id,
-            containedIDs: quantized[x][y].map((p) => p.id),
+            labelDistribution: labelDistribution,
           });
         }
       }
@@ -314,6 +315,13 @@ export class HexagonAggregator {
    * @returns most common item
    */
   private getMajorityLabel(input: string[]): string {
+    const countMap = this.countOccurances(input);
+
+    const sortedList = [...countMap.entries()].sort((a, b) => b[1] - a[1]);
+    return sortedList[0][0];
+  }
+
+  private countOccurances(input: string[]) {
     const countMap = new Map<string, number>();
     input.forEach((p) => {
       const prevCount = countMap.get(p);
@@ -323,8 +331,6 @@ export class HexagonAggregator {
         countMap.set(p, prevCount + 1);
       }
     });
-
-    const sortedList = [...countMap.entries()].sort((a, b) => b[1] - a[1]);
-    return sortedList[0][0];
+    return countMap;
   }
 }

@@ -43,7 +43,7 @@ export type DataHexagon = {
   size: number;
   dominantLabel: string;
   representantID: string;
-  containedIDs: string[];
+  labelDistribution: {label:string, amount:number}[]
 };
 
 export type PointData = {
