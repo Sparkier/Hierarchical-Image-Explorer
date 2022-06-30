@@ -8,6 +8,8 @@
   import {scale} from 'svelte/transition';
   import RangeSlider from 'svelte-range-slider-pips';
   import {DEFAULT_SLIDER_VALUE} from "../../config";
+  import type {DataHexagon, PointData} from "../../types";
+  import BackendService from "../../services/backendService";
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {
@@ -21,14 +23,15 @@
     }
   };
 
-  const selectedDatagon: { labelDistribution: {label:string, amount:number}[], size: number; representantID: string; hexaY: number; hexaX: number; dominantLabel: string } = { // for demo only will be replaced with actual selection
-    hexaX: 2,
-    hexaY: 3,
-    size: 12,
-    dominantLabel: "0",
-    representantID: "mnist-10",
-    labelDistribution: [{label: "0", amount: 5}, {label: "8", amount: 3}, {label: "6", amount: 2}, {label: "9", amount: 2}]
-  }
+ const selectedDatagon: { labelDistribution: {label:string, amount:number}[], size: number; representantID: string; hexaY: number; hexaX: number; dominantLabel: string } = { // for demo only will be replaced with actual selection
+   hexaX: 2,
+   hexaY: 3,
+   size: 12,
+   dominantLabel: "0",
+   representantID: "mnist-10",
+   labelDistribution: [{label: "0", amount: 5}, {label: "8", amount: 3}, {label: "6", amount: 2}, {label: "9", amount: 2}, {label: "2", amount: 5}, {label: "1", amount: 3}, {label: "3", amount: 2}, {label: "8", amount: 2}]
+ }
+  //let selectedDatagon: DataHexagon|null = null
 
   let svgElement: SVGSVGElement;
   let svgWidth: number;
@@ -139,7 +142,7 @@
     {/if}
   </div>
   <!-- Image explorer -->
-  <div class="w-4/5 border-y-2 border-slate-200 pr-4" bind:clientWidth={svgWidth} bind:clientHeight={svgHeight}>
+  <div class="w-4/5 border-y-2 border-slate-200" bind:clientWidth={svgWidth} bind:clientHeight={svgHeight}>
     {#await setupData()}
       <p>Loading data</p>
     {:then success}

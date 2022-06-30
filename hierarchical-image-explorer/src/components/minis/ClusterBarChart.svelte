@@ -3,7 +3,8 @@
 
     export let distribution: {label:string, amount:number}[]
 
-    let selected = "default text"
+    let selected = "Select a bar to show the distribution of pictures"
+    $: colorscheme = distribution.map(d => d.label).map(e => ColorUtil.getColor(e))
 
     $: data = {
         table: distribution,
@@ -11,10 +12,12 @@
 
     const spec = {
         $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+		    name: "clusterDist",
         description: "Cluster content distribution",
+		    title:"Cluster content distribution",
 		    background: null,
 		    height: 450,
-        autosize: "pad",
+        autosize: "fit-x",
         data: {
             name: "table",
         },
@@ -24,13 +27,16 @@
         }],
         mark: {
             type: "bar",
-		        cursor: "pointer",
-		        color: "#D87472"
+		        cursor: "pointer"
         },
         encoding: {
             x: { field: "label", type: "nominal" },
             y: { field: "amount", type: "quantitative" },
-		        fillOpacity: {condition: {param: "select", value: 1}, value: 0.3}
+		        fillOpacity: {condition: {param: "select", value: 1}, value: 0.3},
+		        color: {
+                field: "label",
+				        scale: {"range": colorscheme}
+		        }
         }
     }
 
@@ -45,5 +51,5 @@
     }
 </script>
 
-<VegaLite {data} {spec} signalListeners={{ select: handleSelection }}/>
+<VegaLite class="w-full" {data} {spec} signalListeners={{ select: handleSelection }} />
 <div>{selected}</div>
