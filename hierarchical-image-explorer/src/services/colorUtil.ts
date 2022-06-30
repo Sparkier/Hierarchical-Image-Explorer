@@ -1,4 +1,4 @@
-import type { PointData } from './backendService';
+import type { PointData } from "../types";
 
 export class ColorUtil {
   public static colors = [

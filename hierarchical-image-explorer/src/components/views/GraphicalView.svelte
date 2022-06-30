@@ -1,11 +1,12 @@
 <script lang="ts">
   import Hexagon from '../minis/Hexagon.svelte';
-  import BackendService, { PointData } from '../../services/backendService';
   import { ColorUtil } from '../../services/colorUtil';
   import ColorLegend from '../ColorLegend.svelte';
   import SingleImageDisplay from '../SingleImageDisplay.svelte';
   import { generateScale, getExtent } from '../../services/scaleUtilities';
   import Accumulator from '../Accumulator.svelte';
+  import type { PointData } from '../../types';
+  import BackendService from '../../services/backendService';
 
   export let hexaSide = 4;
   export let padding = 20;

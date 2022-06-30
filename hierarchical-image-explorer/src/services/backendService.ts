@@ -1,27 +1,14 @@
 /**
  * Collection of methods for backend interaction
  */
-export type HcNode = {
-  children: HcNode[];
-  nodeID: number;
-};
 
-export type PointData = {
-  id: string;
-  x: number;
-  y: number;
-  label: string;
-};
+import { SERVER_ADRESS } from "../config";
+import type { HcNode, PointData, QuantizationResults, SWGInfo } from "../types";
 
-export type SWGInfo = {
-  image_id: string;
-  file_path: string;
-  label: string;
-};
 
 export default class BackendService {
-  private static serverAdress = 'http://nemesis.informatik.uni-ulm.de/main/';
-  
+  private static serverAdress = SERVER_ADRESS
+
   private static async getEndpoint(endpoint: string): Promise<unknown> {
     const response = await fetch(this.serverAdress + endpoint);
     return response.json();
@@ -69,5 +56,9 @@ export default class BackendService {
 
   public static async getSWGInfo(dataID: string) {
     return this.getEndpoint('data/annotations/' + dataID) as Promise<SWGInfo>;
+  }
+
+  public static async getQuantization(columns:number):Promise<QuantizationResults> {
+    return this.getEndpoint(`data/quantized?columns=${columns}`) as Promise<QuantizationResults>
   }
 }

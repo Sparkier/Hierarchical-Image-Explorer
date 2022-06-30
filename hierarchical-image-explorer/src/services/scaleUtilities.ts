@@ -1,4 +1,4 @@
-import type { PointData } from './backendService';
+import type { PointData } from "../types";
 
 /**
  * @param accessor accessor function for parameters of elements of pointsList

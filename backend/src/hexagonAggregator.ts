@@ -1,4 +1,5 @@
 import { DataProvider2D } from './2dDataProvider';
+import type { QuantizationResults, PointData, DataHexagon } from './types';
 
 export class HexagonAggregator {
   private APOTHEM = Math.sqrt(3) / 2;

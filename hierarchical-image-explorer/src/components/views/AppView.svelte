@@ -1,11 +1,16 @@
 <script lang="ts">
-  import BackendService, { PointData } from '../../services/backendService';
+  import BackendService from '../../services/backendService';
   import Accumulator from '../Accumulator.svelte';
   import { getExtent } from '../../services/scaleUtilities';
-  import {onDestroy, onMount} from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
   import { scale } from 'svelte/transition';
   import RangeSlider from 'svelte-range-slider-pips';
-  import {DEFAULT_NUM_OF_ROWS, DEFAULT_NUM_OF_COLUMNS, DEFAULT_SLIDER_VALUE} from '../../config.ts';
+  import {
+    DEFAULT_NUM_OF_ROWS,
+    DEFAULT_NUM_OF_COLUMNS,
+    DEFAULT_SLIDER_VALUE,
+  } from '../../config.ts';
+  import type { PointData } from '../../types';
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {
@@ -29,14 +34,14 @@
   let numHexagonsColumns = DEFAULT_NUM_OF_COLUMNS;
   let numHexagonsRows = DEFAULT_NUM_OF_ROWS;
   let sliderValue = DEFAULT_SLIDER_VALUE;
-  let selectedImageID;
+  let selectedImageID: string;
   let selectedImageLabel = '';
   let filteredData;
 
   $: {
     if (selectedImageID != undefined && selectedImageID != '')
       BackendService.getSWGInfo(selectedImageID).then(
-              (r) => (selectedImageLabel = r.label)
+        (r) => (selectedImageLabel = r.label)
       );
   }
 
@@ -45,10 +50,10 @@
     document.addEventListener('keyup', handleEscape, false);
   });
 
-  onDestroy(()=> {
+  onDestroy(() => {
     document.removeEventListener('click', handleOutsideClick, false);
     document.removeEventListener('keyup', handleEscape, false);
-  })
+  });
 
   async function setupData() {
     try {
@@ -65,7 +70,6 @@
   function filterData(label: string) {
     filteredData = data.filter((d) => d.label == label);
   }
-
 </script>
 
 <div class="">

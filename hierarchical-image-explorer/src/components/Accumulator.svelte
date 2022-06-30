@@ -1,33 +1,39 @@
 <script lang="ts">
-  import type { PointData } from '../services/backendService';
-  import BackendService from '../services/backendService';
   import Hexagon from './minis/Hexagon.svelte';
   import { ColorUtil } from '../services/colorUtil';
   import { onMount } from 'svelte';
   import ZoomSVG from './ZoomSVG.svelte';
-  import { LinearScale } from '../services/scaleUtilities';
+  import BackendService from '../services/backendService';
+  import type { DataHexagon, PointData } from '../types';
 
-  export let data: PointData[];
-  export let columns = 50;
-  export let rows = 80;
-  export let imageScaling = 1;
-
-  export const selectedImageID = 'mnist-10';
+  export var initial_columns = 20;
+  export var selectedImageID = '';
+  export var selectedDatagon: null | DataHexagon = null;
 
   const hexaShortDiag = Math.sqrt(3) / 2;
-  const lodBreakpoint = 10;
 
   let svgWidth: number;
   let svg: SVGSVGElement;
   let g: SVGSVGElement;
   let svgContainer: HTMLElement;
-  let quantizedData: PointData[][][] = [];
-  let hexaSide = -1;
+  let rows = 0;
   let zoomLevel: number;
   let transform: [number, number];
+  let filteredData: PointData[] = [];
+  let currentQuantization: DataHexagon[] = [];
+  let currentFilteredQuantization: DataHexagon[] = [];
+  let lodLevelProperty = 2;
 
-  $: imageWidth = hexaSide / 6;
-  $: svgHeight = rows * hexaSide * hexaShortDiag; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
+  var columns = initial_columns;
+
+  $: hexaSide = svgWidth == undefined ? -1 : svgWidth / (3 * columns + 0.5);
+  $: imageWidth = hexaSide;
+  $: svgHeight = rows * hexaSide * hexaShortDiag + hexaShortDiag * hexaSide; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
+  $: lodLevel = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
+
+  $: {
+    getQuantizationData(lodLevel);
+  }
 
   $: scaleQuantisedX = (v: number, row: number) => {
     return svgWidth == undefined
@@ -39,102 +45,19 @@
     return hexaShortDiag * hexaSide * v;
   };
 
-  $: scaleY = new LinearScale([-100, 100], svgHeight, 0);
-  $: scaleX = new LinearScale([-100, 100], svgWidth, 0);
-
-  // when lodBreakpoint is reached filter points to only points visible on screen
-  $: filteredData =
-          zoomLevel > lodBreakpoint && transform != undefined
-                  ? filterPointsBoundingRect()
-                  : [];
-
   onMount(() => {
-    quantizedData = calculateQuantisation(data);
+    getQuantizationData(1);
   });
 
-  /**
-   * Calculate a quantisation of our values, to combine multiple points
-   * @param input PointData array containing data points
-   * @returns quantised PointData with x and y coordinates and an array of included data points
-   */
-  function calculateQuantisation(input: PointData[]): PointData[][][] {
-    const possiblePoints: {
-      xCoord: number;
-      xQuantised: number;
-      yCoord: number;
-      yQuantised: number;
-    }[] = [];
-
-    // calculate possible hexagon center points:
-    hexaSide = svgWidth / (3 * columns);
-    for (let x = 0; x < columns; x++) {
-      for (let y = 0; y < rows; y++) {
-        const topleftX = scaleQuantisedX(x, y);
-        const topleftY = scaleQuantisedY(y);
-        const centerX = topleftX + hexaSide;
-        const centerY = topleftY + hexaSide * hexaShortDiag;
-        possiblePoints.push({
-          xCoord: centerX,
-          xQuantised: x,
-          yCoord: centerY,
-          yQuantised: y,
-        });
-      }
-    }
-
-    // initialize empty 3d Array
-    const quantised: PointData[][][] = [];
-    for (let x = 0; x < columns; x++) {
-      quantised.push([]);
-      for (let y = 0; y < rows; y++) {
-        quantised[x].push([]);
-      }
-    }
-
-    // check which possible point is closest to datum (modeling hexagons as circles)
-    input.forEach((e) => {
-      const scaledX = ((e.x + 100) / 200) * svgWidth;
-      const scaledY = ((e.y + 100) / 200) * rows * hexaSide * hexaShortDiag;
-
-      const distances = possiblePoints.map((p) =>
-        Math.sqrt((p.xCoord - scaledX) ** 2 + (p.yCoord - scaledY) ** 2)
-      );
-      const smallestDistanceIndex = distances.indexOf(Math.min(...distances));
-      const nearestPoint = possiblePoints[smallestDistanceIndex];
-
-      quantised[nearestPoint.xQuantised][nearestPoint.yQuantised].push(e);
+  function getQuantizationData(lod: number) {
+    BackendService.getQuantization(initial_columns * 2 ** lod).then((r) => {
+      currentQuantization = [];
+      currentQuantization = r.datagons;
+      currentFilteredQuantization = r.datagons;
+      rows = r.rows;
+      columns = r.columns;
     });
-    return quantised;
   }
-
-  /**
-   * Filters datapoints to only points visible on screen.
-   * @returns data filtered to visible points
-   */
-  function filterPointsBoundingRect(): PointData[] {
-    // get dom coordinates
-    const rect = svgContainer.getBoundingClientRect();
-    const x1_dom = rect.x;
-    const x2_dom = rect.x + rect.width;
-    const y1_dom = rect.y;
-    const y2_dom = rect.y + rect.height;
-
-    // transform dom coordinates to svg coordinates
-    const topLeft = svgPoint(svg, x1_dom, y1_dom, g);
-    const bottomRight = svgPoint(svg, x2_dom, y2_dom, g);
-
-    // transform svg coordinates to dimensionality reduction coordinates
-    const x_1_inv = scaleX.invert(topLeft.x);
-    const x_2_inv = scaleX.invert(bottomRight.x);
-    const y_1_inv = scaleY.invert(topLeft.y);
-    const y_2_inv = scaleY.invert(bottomRight.y);
-
-    // filter points
-    return data.filter(
-      (p) => p.x > x_1_inv && p.x < x_2_inv && p.y > y_1_inv && p.y < y_2_inv
-    );
-  }
-
   /**
    * Takes a point in dom coordinate space and maps it to a svg coordinate point
    * @param element svg element
@@ -155,96 +78,101 @@
     if (matrix == undefined) throw new Error('Transformation Matrix undefined');
     return pt.matrixTransform(matrix);
   }
-  /**
-   * Takes a group of points and calculates the point closest to the center
-   * @param input group within a hexagon
-   * @param x scaled to svg width
-   * @param y scaled to svg height
-   */
-  function getRepresentantImage(input: PointData[], x: number, y: number) {
-    const cx = x + hexaSide;
-    const cy = y + hexaShortDiag * hexaSide;
 
-    let representation = null;
-    let minDistance = 10000000;
-    let currentDistance;
-
-    input.forEach((p) => {
-      if (
-        (currentDistance = Math.sqrt(
-          Math.pow(p.x - cx, 2) + Math.pow(p.y - cy, 2)
-        )) < minDistance
-      ) {
-        minDistance = currentDistance;
-        representation = p;
-      }
+  function handleZoomEnd(event: CustomEvent<any>) {
+    const svgCbr = svgContainer.getBoundingClientRect();
+    const topleftSVGPoint = svgPoint(svg, svgCbr.x, svgCbr.y, g);
+    const bottomrightSVGPoint = svgPoint(
+      svg,
+      svgCbr.x + svgCbr.width,
+      svgCbr.y + svgCbr.height,
+      g
+    );
+    // overestimate the inverse of scaleQuantized with a simple grid
+    const x1_quantized = Math.floor(topleftSVGPoint.x / (3 * hexaSide)) - 1;
+    const y1_quantized =
+      Math.floor(topleftSVGPoint.y / (2 * hexaShortDiag * hexaSide)) * 2 - 1;
+    const x2_quantized = Math.ceil(bottomrightSVGPoint.x / (3 * hexaSide)) + 1;
+    const y2_quantized =
+      Math.ceil(bottomrightSVGPoint.y / (2 * hexaShortDiag * hexaSide)) * 2 + 1;
+    currentFilteredQuantization = currentQuantization.filter((e) => {
+      return (
+        e.hexaX >= x1_quantized &&
+        e.hexaY >= y1_quantized &&
+        e.hexaX <= x2_quantized &&
+        e.hexaY <= y2_quantized
+      );
     });
-    return representation != null ? representation : input[0];
   }
 </script>
 
+<div>
+  Filtered image count {filteredData.length} <br />
+  Zoom is {zoomLevel} <br />
+  Transofrm is {transform} <br />
+  Lod Number {lodLevelProperty} new lod: {lodLevel} columns {columns} Rows {rows}
+  Hexa amount: {currentFilteredQuantization.length}<br />
+  <div
+    class="bg-slate-400 rounded-lg w-32 p-2 mt-1"
+    on:click={() => {
+      const tmp = currentFilteredQuantization;
+      currentFilteredQuantization = [];
+      setTimeout(() => {
+        currentFilteredQuantization = tmp;
+      }, 1);
+    }}
+  >
+    redraw
+  </div>
+</div>
 <div
   bind:clientWidth={svgWidth}
   bind:this={svgContainer}
-  style="height: {svgHeight}px"
+  style="height: {svgHeight}px; background: green"
   class="overflow-hidden"
 >
-  <div>
-    Filtered image count {filteredData.length}
-    Zoom is {zoomLevel} Colums: {columns} Rows: {rows} Data length: {data !==
-    undefined
-      ? data.length
-      : 'no data'} image scaling: {imageScaling}
-  </div>
   <ZoomSVG
     viewBox="0 0 {svgWidth} {svgHeight}"
     bind:zoomLevel
     bind:transform
     bind:svg
     bind:g
+    on:zoomEnd={(e) => handleZoomEnd(e)}
   >
-    {#if hexaSide !== 0}
+    {#if hexaSide != 0 && currentQuantization.length != 0}
       <g>
-        {#each quantizedData as columnsList, x}
-          {#each columnsList as cell, y}
-            {#if cell.length > 0}
-              <!-- Agrregated hexagons -->
-              <Hexagon
-                side={hexaSide}
-                x={scaleQuantisedX(x, y)}
-                y={scaleQuantisedY(y)}
-                image={BackendService.getImageUrl(
-                  getRepresentantImage(
-                    quantizedData[x][y],
-                    scaleQuantisedX(x, y),
-                    scaleQuantisedY(y)
-                  ).id
-                )}
-                strokeWidth={zoomLevel > lodBreakpoint ? 0.2 : 1}
-                stroke={zoomLevel > lodBreakpoint
-                  ? ColorUtil.getCellColor(quantizedData[x][y])
-                  : 'black'}
-              />
-            {/if}
-          {/each}
-        {/each}
-      </g>
-      {#if zoomLevel > lodBreakpoint}
-        <!--insert image details-->
-        <g>
-          {#each filteredData as point}
+        {#each currentFilteredQuantization as datagon}
+          {#if datagon.containedIDs.length > 1}
+            <Hexagon
+              side={hexaSide}
+              x={scaleQuantisedX(datagon.hexaX, datagon.hexaY)}
+              y={scaleQuantisedY(datagon.hexaY)}
+              stroke={ColorUtil.getColor(datagon.dominantLabel)}
+              strokeWidth={hexaSide / 5}
+              image={BackendService.getImageUrl(datagon.representantID)}
+              on:click={() => {
+                selectedImageID = '';
+                selectedDatagon = datagon;
+              }}
+            />
+          {:else}
             <image
               width={imageWidth}
               height={imageWidth}
-              x={scaleX.scale(point.x) - imageWidth / 2}
-              y={scaleY.scale(point.y) - imageWidth / 2}
-              href={BackendService.getImageUrl(point.id)}
-              preserveAspectRatio="true"
+              x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
+                (2 * hexaSide - imageWidth) / 2}
+              y={scaleQuantisedY(datagon.hexaY) +
+                (2 * hexaShortDiag * hexaSide - imageWidth) / 2}
+              href={BackendService.getImageUrl(datagon.representantID)}
               style="image-rendering: pixelated;"
+              on:click={() => {
+                selectedImageID = datagon.representantID;
+                selectedDatagon = null;
+              }}
             />
-          {/each}
-        </g>
-      {/if}
+          {/if}
+        {/each}
+      </g>
     {/if}
   </ZoomSVG>
   <div />
