@@ -8,17 +8,6 @@
   export let imageLabel;
 
 </script>
-	<div class="pl-4 pt-4 font-medium text-lg text-left">
-		Visible Rows/Columns
-	</div>
-	<div class="ml-4 font-medium text-left text-lg">
-		<input class="rounded-sm w-12" bind:value={numHexagonsColumns}/>
-		Number of columns
-	</div>
-	<div class="mt-2 ml-4 font-medium text-left text-lg">
-		<input class="rounded-sm w-12" bind:value={numHexagonsRows}/>
-		Number of rows
-	</div>
 	<div class="pl-4 pt-4 font-bold text-xl text-left">Image Details</div>
 	<div class="pl-4 pt-4 font-medium text-lg text-left flex">
 		Image ID:

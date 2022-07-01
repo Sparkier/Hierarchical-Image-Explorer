@@ -9,6 +9,10 @@
   export var initial_columns = 20;
   export var selectedImageID = '';
   export var selectedDatagon: null | DataHexagon = null;
+  export let topleftSVGPoint: DOMPoint;
+  export let bottomrightSVGPoint: DOMPoint;
+  export let svgWidthValue: number;
+  export let svgHeightValue: number;
 
   const hexaShortDiag = Math.sqrt(3) / 2;
 
@@ -29,6 +33,8 @@
   $: hexaSide = svgWidth == undefined ? -1 : svgWidth / (3 * columns + 0.5);
   $: imageWidth = hexaSide;
   $: svgHeight = rows * hexaSide * hexaShortDiag + hexaShortDiag * hexaSide; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
+  $: svgHeightValue = svgHeight;
+  $: svgWidthValue = svgWidth;
   $: lodLevel = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
 
   $: {
