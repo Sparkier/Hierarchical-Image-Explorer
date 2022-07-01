@@ -32,13 +32,6 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@colorfuldots/svelteit@^1.0.0-alpha.7":
-  version "1.0.0-alpha.7"
-  resolved "https://registry.yarnpkg.com/@colorfuldots/svelteit/-/svelteit-1.0.0-alpha.7.tgz#f4feeed01fe7cd91ae532c89985862a4af8c9d62"
-  integrity sha512-k2Ls64X6TIGaDpQpPlEXuvlkXhQVkC/6sJmgi9hzgn+ty8hMsxf2fINvMTtlywRDtqqMkH/DbFlUbEv9kzQkRw==
-  dependencies:
-    svelte-css-vars "0.0.1"
-
 "@commitlint/config-validator@^16.2.1":
   version "16.2.1"
   resolved "https://registry.yarnpkg.com/@commitlint/config-validator/-/config-validator-16.2.1.tgz#794e769afd4756e4cf1bfd823b6612932e39c56d"
@@ -647,7 +640,7 @@
   resolved "https://registry.yarnpkg.com/@tsconfig/node16/-/node16-1.0.2.tgz#423c77877d0569db20e1fc80885ac4118314010e"
   integrity sha512-eZxlbI8GZscaGS7kkc/trHTT5xgrjH3/1n2JDwusC9iahPKWMRvRjJSAN5mCXviuTGQ/lHnhvv8Q1YTpnfz9gA==
 
-"@tsconfig/svelte@^2.0.0", "@tsconfig/svelte@^2.0.1":
+"@tsconfig/svelte@^2.0.1":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@tsconfig/svelte/-/svelte-2.0.1.tgz#0e8d7caa693e9b2afce5e622c0475bb0fd89c12c"
   integrity sha512-aqkICXbM1oX5FfgZd2qSSAGdyo/NRxjWCamxoyi3T8iVQnzGge19HhDYzZ6NrVOW7bhcWNSq9XexWFtMzbB24A==
@@ -1157,18 +1150,6 @@ aws4@^1.8.0:
   version "1.11.0"
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.11.0.tgz#d61f46d83b2519250e2784daf5b09479a8b41c59"
   integrity sha512-xh1Rl34h6Fi1DC2WWKfxUTVqRsNnr6LsKz2+hfwDxQJWmrx8+c7ylaqBMcHfl1U1r2dsifOvKX3LQuLNZ+XSvA==
-
-axion@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/axion/-/axion-0.1.0.tgz#5413b420f916dab89c8e7329d40eb78a0b8838a4"
-  integrity sha1-VBO0IPkW2ricjnMp1A63iguIOKQ=
-
-axios@^0.24.0:
-  version "0.24.0"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-0.24.0.tgz#804e6fa1e4b9c5288501dd9dff56a7a0940d20d6"
-  integrity sha512-Q6cWsys88HoPgAaFAVUb0WpPk0O8iTeisR9IMqy9G8AbO4NlpVknrnQS03zzF9PGAWgO3cgletO3VjV/P7VztA==
-  dependencies:
-    follow-redirects "^1.14.4"
 
 balanced-match@^1.0.0:
   version "1.0.2"
@@ -2702,11 +2683,6 @@ flatted@^3.1.0:
   version "3.2.5"
   resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.2.5.tgz#76c8584f4fc843db64702a6bd04ab7a8bd666da3"
   integrity sha512-WIWGi2L3DyTUvUrwRKgGi9TwxQMUEqPOPQBVi71R96jZXJdFskXEmf54BoZaS1kknGODoIGASGEzBUYdyMCBJg==
-
-follow-redirects@^1.14.4:
-  version "1.14.8"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.8.tgz#016996fb9a11a100566398b1c6839337d7bfa8fc"
-  integrity sha512-1x0S9UVJHsQprFcEC/qnNzBLcIxsjAV905f/UkQxbclCsoTWlacCNOpQa/anodLl2uaEKFhfWOvM2Qg77+15zA==
 
 forever-agent@~0.6.1:
   version "0.6.1"
@@ -5428,7 +5404,7 @@ rollup-plugin-livereload@^2.0.0:
   dependencies:
     livereload "^0.9.1"
 
-rollup-plugin-svelte@^7.0.0, rollup-plugin-svelte@^7.1.0:
+rollup-plugin-svelte@^7.0.0:
   version "7.1.0"
   resolved "https://registry.yarnpkg.com/rollup-plugin-svelte/-/rollup-plugin-svelte-7.1.0.tgz#d45f2b92b1014be4eb46b55aa033fb9a9c65f04d"
   integrity sha512-vopCUq3G+25sKjwF5VilIbiY6KCuMNHP1PFvx2Vr3REBNMDllKHFZN2B9jwwC+MqNc3UPKkjXnceLPEjTjXGXg==
@@ -6009,11 +5985,6 @@ svelte-check@^2.0.0:
     source-map "^0.7.3"
     svelte-preprocess "^4.0.0"
     typescript "*"
-
-svelte-css-vars@0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/svelte-css-vars/-/svelte-css-vars-0.0.1.tgz#f0775a02952476a47e99ea866e64ba8d2353b9e0"
-  integrity sha512-SXsLuHvpC40H14iCRH8zp/NnY/tKGhQhmHSx31PhUNvo+Hyw7IovTnx4ICsYlg4tS7kFsYtOh5sNSdvGsY6AQA==
 
 svelte-preprocess@^4.0.0:
   version "4.10.3"
