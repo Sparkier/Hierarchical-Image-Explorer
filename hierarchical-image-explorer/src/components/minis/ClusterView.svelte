@@ -3,6 +3,8 @@
     import ClusterBarChart from "./ClusterBarChart.svelte";
     export let datagon: { labelDistribution: {label:string, amount:number}[], size: number; representantID: string; hexaY: number; hexaX: number; dominantLabel: string }
 
+    $: console.log("Datagon: ", datagon)
+
 </script>
 <div class="pl-4 pt-4 font-medium text-lg text-left">
 	Number of images:
