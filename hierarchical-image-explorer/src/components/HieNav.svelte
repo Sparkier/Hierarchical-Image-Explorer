@@ -21,7 +21,7 @@
       >
     </div>
     <div
-      class={`ml-8 text-lg cursor-pointer transition ease-in-out duration-100 ${isCurrentViewClasses(
+      class={`basis-30/32 ml-auto mr-8 text-2xl cursor-pointer transition ease-in-out duration-100 ${isCurrentViewClasses(
         'appview'
       )}`}
       on:click={() => (currentView = 'appview')}
