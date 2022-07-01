@@ -11,6 +11,7 @@
     DEFAULT_SLIDER_VALUE,
   } from '../../config.ts';
   import type { PointData } from '../../types';
+  import Minimap from '../minis/Minimap.svelte';
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {
@@ -37,6 +38,11 @@
   let selectedImageID: string;
   let selectedImageLabel = '';
   let filteredData;
+
+  let accTopLeftCorner: DOMPoint;
+  let accBottomRightCorner: DOMPoint;
+  let accSvgHeight: number;
+  let accSvgWidth: number;
 
   $: {
     if (selectedImageID != undefined && selectedImageID != '')
@@ -75,6 +81,15 @@
 <div class="">
   <div class="px-24 flex pt-8">
     <div class="w-1/5 bg-slate-100 rounded-md mr-4 shadow-sm">
+      <div class="p-4">
+        <Minimap
+          topLeftSvgCorner={accTopLeftCorner}
+          bottomRightSvgCorner={accBottomRightCorner}
+          svgWidth={accSvgWidth}
+          svgHeight={accSvgHeight}
+        />
+      </div>
+
       <div class="pl-4 font-bold text-xl text-left">Settings</div>
       <div class="pl-4 pt-4 font-medium text-lg text-left">Class filters</div>
       <div class="relative" bind:this={menu}>
@@ -162,6 +177,10 @@
           columns={numHexagonsColumns}
           bind:selectedImageID
           imageScaling={sliderValue}
+          bind:topleftSVGPoint={accTopLeftCorner}
+          bind:bottomrightSVGPoint={accBottomRightCorner}
+          bind:svgWidthValue={accSvgWidth}
+          bind:svgHeightValue={accSvgHeight}
         />
         <!-- Under the data-->
       {:catch error}

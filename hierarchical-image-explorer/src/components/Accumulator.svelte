@@ -6,9 +6,13 @@
   import BackendService from '../services/backendService';
   import type { DataHexagon, PointData } from '../types';
 
-  export var initial_columns = 20;
-  export var selectedImageID = '';
-  export var selectedDatagon: null | DataHexagon = null;
+  export let initial_columns = 20;
+  export let selectedImageID = '';
+  export let selectedDatagon: null | DataHexagon = null;
+  export let topleftSVGPoint: DOMPoint;
+  export let bottomrightSVGPoint: DOMPoint;
+  export let svgWidthValue: number;
+  export let svgHeightValue: number;
 
   const hexaShortDiag = Math.sqrt(3) / 2;
 
@@ -29,6 +33,8 @@
   $: hexaSide = svgWidth == undefined ? -1 : svgWidth / (3 * columns + 0.5);
   $: imageWidth = hexaSide;
   $: svgHeight = rows * hexaSide * hexaShortDiag + hexaShortDiag * hexaSide; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
+  $: svgHeightValue = svgHeight;
+  $: svgWidthValue = svgWidth;
   $: lodLevel = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
 
   $: {
@@ -44,6 +50,12 @@
   $: scaleQuantisedY = (v: number) => {
     return hexaShortDiag * hexaSide * v;
   };
+
+  $: {
+    if (svg != undefined && transform != undefined && zoomLevel != undefined) {
+      updateScreenBoundaryPoints();
+    }
+  }
 
   onMount(() => {
     getQuantizationData(1);
@@ -80,14 +92,6 @@
   }
 
   function handleZoomEnd(event: CustomEvent<any>) {
-    const svgCbr = svgContainer.getBoundingClientRect();
-    const topleftSVGPoint = svgPoint(svg, svgCbr.x, svgCbr.y, g);
-    const bottomrightSVGPoint = svgPoint(
-      svg,
-      svgCbr.x + svgCbr.width,
-      svgCbr.y + svgCbr.height,
-      g
-    );
     // overestimate the inverse of scaleQuantized with a simple grid
     const x1_quantized = Math.floor(topleftSVGPoint.x / (3 * hexaSide)) - 1;
     const y1_quantized =
@@ -103,6 +107,17 @@
         e.hexaY <= y2_quantized
       );
     });
+  }
+
+  function updateScreenBoundaryPoints() {
+    const svgCbr = svgContainer.getBoundingClientRect();
+    topleftSVGPoint = svgPoint(svg, svgCbr.x, svgCbr.y, g);
+    bottomrightSVGPoint = svgPoint(
+      svg,
+      svgCbr.x + svgCbr.width,
+      svgCbr.y + svgCbr.height,
+      g
+    );
   }
 </script>
 
@@ -128,7 +143,7 @@
 <div
   bind:clientWidth={svgWidth}
   bind:this={svgContainer}
-  style="height: {svgHeight}px; background: green"
+  style="height: {svgHeight}px;"
   class="overflow-hidden"
 >
   <ZoomSVG
