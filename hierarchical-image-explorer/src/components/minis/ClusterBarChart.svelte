@@ -31,7 +31,7 @@
 		        cursor: "pointer"
         },
         encoding: {
-            x: { field: "label", type: "nominal" },
+            x: { field: "label", type: "nominal"},
             y: { field: "amount", type: "quantitative" },
 		        fillOpacity: {condition: {param: "select", value: 1}, value: 0.3},
 		        color: {
