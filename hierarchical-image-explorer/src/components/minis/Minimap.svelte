@@ -10,16 +10,16 @@
 
   let minimapWidth: number;
 
-  $: height = (svgHeight / svgWidth) * minimapWidth;
+  $: minimapHeight = (svgHeight / svgWidth) * minimapWidth;
   $: svgToMinimapScaleX = (v: number) => (v / svgWidth) * minimapWidth;
-  $: svgToMinimapScaleY = (v: number) => (v / svgHeight) * height;
+  $: svgToMinimapScaleY = (v: number) => (v / svgHeight) * minimapHeight;
 
   $: dotsize = minimapWidth / columns / 4;
 </script>
 
 <div bind:clientWidth={minimapWidth}>
-  <svg {height} width={minimapWidth}>
-    {#await BackendService.getQuantization(columns)}
+  <svg height={minimapHeight} width={minimapWidth}>
+    {#await BackendService.getDataQuantized(columns)}
       <text>Loading Data</text>
     {:then quant}
       {#each quant.datagons as d}
@@ -27,7 +27,7 @@
           cx={((d.hexaX + (d.hexaY % 2 == 0 ? 0 : 0.5)) / quant.columns) *
             (minimapWidth - dotsize) +
             dotsize}
-          cy={(d.hexaY / quant.rows) * (height - dotsize) + dotsize}
+          cy={(d.hexaY / quant.rows) * (minimapHeight - dotsize) + dotsize}
           r={dotsize}
           fill={ColorUtil.getColor(d.dominantLabel)}
         />

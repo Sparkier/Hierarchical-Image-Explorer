@@ -29,24 +29,4 @@ export class ColorUtil {
       return color;
     }
   }
-
-  /**
-   * Get the most occuring color within the PointData to find representative color
-   * @param input PointData array containing data points
-   * @returns most occuring color
-   */
-  public static getCellColor(input: PointData[]) {
-    const countMap = new Map<string, number>();
-    input.forEach((p) => {
-      const prevCount = countMap.get(p.label);
-      if (prevCount == undefined) {
-        countMap.set(p.label, 1);
-      } else {
-        countMap.set(p.label, prevCount + 1);
-      }
-    });
-
-    const sortedList = [...countMap.entries()].sort((a, b) => b[1] - a[1]);
-    return this.getColor(sortedList[0][0]);
-  }
 }
