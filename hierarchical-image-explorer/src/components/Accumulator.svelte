@@ -148,7 +148,7 @@
     {#if hexaSide != 0 && currentQuantization.length != 0}
       <g>
         {#each currentFilteredQuantization as datagon}
-          {#if datagon.containedIDs.length > 1}
+          {#if datagon.size > 1}
             <Hexagon
               side={hexaSide}
               x={scaleQuantisedX(datagon.hexaX, datagon.hexaY)}
