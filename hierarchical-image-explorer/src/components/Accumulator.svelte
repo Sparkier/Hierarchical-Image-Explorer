@@ -6,13 +6,13 @@
   import BackendService from '../services/backendService';
   import type { DataHexagon, PointData } from '../types';
 
-  export var initial_columns = 20;
-  export var selectedImageID = '';
-  export var selectedDatagon: null | DataHexagon = null;
-  export var topleftSVGPoint: DOMPoint;
-  export var bottomrightSVGPoint: DOMPoint;
-  export var svgWidthValue: number;
-  export var svgHeightValue: number;
+  export let initial_columns = 20;
+  export let selectedImageID = '';
+  export let selectedDatagon: null | DataHexagon = null;
+  export let topleftSVGPoint: DOMPoint;
+  export let bottomrightSVGPoint: DOMPoint;
+  export let svgWidthValue: number;
+  export let svgHeightValue: number;
 
   const hexaShortDiag = Math.sqrt(3) / 2;
 
