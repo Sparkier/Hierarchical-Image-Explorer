@@ -22,13 +22,13 @@ export type DataHexagon = {
   size: number;
   dominantLabel: string;
   representantID: string;
-  containedIDs: string[];
+  labelDistribution: { label: string; amount: number }[];
 };
 
 export type QuantizationResults = {
-  datagons:DataHexagon[];
-  xDomain:[number,number]
-  yDomain:[number,number]
-  columns:number;
-  rows:number;
-}
+  datagons: DataHexagon[];
+  xDomain: [number, number];
+  yDomain: [number, number];
+  columns: number;
+  rows: number;
+};
