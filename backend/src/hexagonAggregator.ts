@@ -131,7 +131,7 @@ export class HexagonAggregator {
               quantized[x][y].map((p) => p.label)
             ),
             representantID: closestPoint.id,
-            labelDistribution
+            labelDistribution,
           });
         }
       }
@@ -321,7 +321,9 @@ export class HexagonAggregator {
   private getMajorityLabel(input: string[]): string {
     const countMap = this.countOccurances(input);
 
-    const sortedList = Array.from(countMap.entries()).sort((a, b) => b[1] - a[1]);
+    const sortedList = Array.from(countMap.entries()).sort(
+      (a, b) => b[1] - a[1]
+    );
     return sortedList[0][0];
   }
 
