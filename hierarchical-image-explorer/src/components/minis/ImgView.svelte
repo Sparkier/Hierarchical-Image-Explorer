@@ -8,21 +8,23 @@
   export let imageLabel;
 
 </script>
-	<div class="pl-4 pt-4 font-bold text-xl text-left">Image Details</div>
-	<div class="pl-4 pt-4 font-medium text-lg text-left flex">
+	<div class="font-bold text-xl text-left">Image Details</div>
+	<div class="font-medium text-lg text-left flex">
 		Image ID:
 		<div class="pl-2 text-slate-400">
 			{imageID}
 		</div>
 	</div>
-	<div class="pl-4 pt-2 font-medium text-lg text-left flex">
+	<div class="font-medium text-lg text-left flex">
 		Image Label:
 		<div class="pl-2 text-slate-400">
 			{imageLabel}
 		</div>
 	</div>
+<div class="pt-2 pb-2 flex justify-center">
 	<img
-			alt="selected"
-			class="ml-4 mt-2 mb-2 w-32 h-32"
+			alt="select image first"
+			class="w-32 h-32"
 			src={BackendService.getImageUrl(imageID)}
 	/>
+</div>

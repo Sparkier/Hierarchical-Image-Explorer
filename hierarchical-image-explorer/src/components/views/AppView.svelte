@@ -82,25 +82,25 @@
 					svgWidth={accSvgWidth}
 					svgHeight={accSvgHeight}
 			/>
-			<div class="pl-4 font-bold text-xl text-left">Settings</div>
-			<div class="pl-4 pt-4 font-medium text-lg text-left">
+			<div class="font-bold text-xl text-left">Settings</div>
+			<div class="font-medium text-lg text-left">
 				Visible Rows/Columns
 			</div>
-			<div class="ml-4 font-medium text-left text-lg">
+			<div class="font-medium text-left text-lg">
 				<input class="rounded-sm w-12" bind:value={numHexagonsColumns}/>
 				Number of columns
 			</div>
-			<div class="mt-2 ml-4 font-medium text-left text-lg">
+			<div class="mt-2 font-medium text-left text-lg">
 				<input class="rounded-sm w-12" bind:value={numHexagonsRows}/>
 				Number of rows
 			</div>
 			{#if selectedDatagon == null}
-				<div class="pl-4 pt-4 font-medium text-lg text-left">Class filters</div>
+				<div class="pt-2 font-medium text-lg text-left">Class filters</div>
 				<div class="relative" bind:this={menu}>
 					<div>
 						<button
 								on:click={() => (show = !show)}
-								class="menu rounded-sm ml-4 mt-2 bg-slate-200 focus:outline-none focus:shadow-solid w-1/2 h-10 font-medium text-lg"
+								class="menu rounded-sm mt-2 bg-slate-200 focus:outline-none focus:shadow-solid w-1/2 h-10 font-medium text-lg"
 						>
 							Filter...
 						</button>
@@ -108,7 +108,7 @@
 							<div
 									in:scale={{ duration: 100, start: 0.95 }}
 									out:scale={{ duration: 75, start: 0.95 }}
-									class="origin-top-right absolute w-1/2 py-2 bg-slate-200 ml-4
+									class="origin-top-right absolute w-1/2 py-2 bg-slate-200
         rounded shadow-md z-10"
 							>
 								{#if data !== undefined}
@@ -129,7 +129,7 @@
 				</div>
 				<ImgView imageID={selectedImageID} imageLabel={selectedImageLabel} bind:numHexagonsColumns
 				         bind:numHexagonsRows/>
-				<div class="pl-4 pt-4 font-medium text-lg text-left">Image scaling</div>
+				<div class="font-medium text-lg text-left">Image scaling</div>
 				<div class="max-w-xs"
 				     style="--range-range: #d87472; --range-float: #d87472; --range-handle-focus:#d87472;  --range-handle:#f7bca6"
 				>
@@ -144,7 +144,7 @@
 					/>
 				</div>
 			{:else}
-				<div class="pl-4 font-bold text-xl text-left">Cluster info</div>
+				<div class="font-bold text-xl text-left">Cluster info</div>
 				<ClusterView datagon={selectedDatagon}/>
 			{/if}
 		</div>
