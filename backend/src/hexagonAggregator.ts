@@ -299,7 +299,9 @@ export class HexagonAggregator {
     };
     return { scaleQuantizedX, scaleQuantizedY, scaleX, scaleY };
   }
-
+  /**
+   * Returns the minima, maxima and extent of given 2d-points data
+   */
   private getExtents(
     dimredData: { id: string; x: number; y: number; label: string }[]
   ) {
@@ -327,6 +329,11 @@ export class HexagonAggregator {
     return sortedList[0][0];
   }
 
+  /**
+   * Counts the occurance of a string in a list
+   * @param input list of strings
+   * @returns Dictionary with string : amount
+   */
   private countOccurances(input: string[]) {
     const countMap = new Map<string, number>();
     input.forEach((p) => {
