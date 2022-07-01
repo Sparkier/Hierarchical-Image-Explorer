@@ -6,18 +6,20 @@
   export let svgWidth: number;
   export let topLeftSvgCorner: DOMPoint;
   export let bottomRightSvgCorner: DOMPoint;
-  export let dotsize = 4;
+  export let columns = 20;
 
   let minimapWidth: number;
 
   $: height = (svgHeight / svgWidth) * minimapWidth;
   $: svgToMinimapScaleX = (v: number) => (v / svgWidth) * minimapWidth;
   $: svgToMinimapScaleY = (v: number) => (v / svgHeight) * height;
+
+  $: dotsize = minimapWidth / columns / 4;
 </script>
 
 <div bind:clientWidth={minimapWidth}>
   <svg {height} width={minimapWidth}>
-    {#await BackendService.getQuantization(20)}
+    {#await BackendService.getQuantization(columns)}
       <text>Loading Data</text>
     {:then quant}
       {#each quant.datagons as d}
