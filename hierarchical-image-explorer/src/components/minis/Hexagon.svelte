@@ -2,69 +2,64 @@
   import Borders from './Borders.svelte';
 
   export let side: number = 100;
-  export let color: string = 'green';
   export let image: string = '';
   export let scale: number = 1;
   export let x: number = 0;
   export let y: number = 0;
   export let text: string = '';
-  export let stroke: string = 'black';
+  export let stroke: string = 'none';
   export let strokeWidth: number = 1;
-  export let bordercolors: {
-    rbr: string;
-    rtr: string;
-    lbl: string;
-    ltl: string;
-    tltr: string;
-    blbr: string;
-  } = {
-    rbr: 'undefined',
-    rtr: 'undefined',
-    lbl: 'undefined',
-    ltl: 'undefined',
-    tltr: 'undefined',
-    blbr: 'undefined',
-  };
 
   const t = (120 * Math.PI) / 180; // 120 degrees in radians
-  const a = (side * Math.sqrt(3)) / 2; // distance from a side to center of hexagon
+  $: a = (side * Math.sqrt(3)) / 2; // distance from a side to center of hexagon
 
-  const left = { x: 0, y: a };
-  const bottomLeft = {
+  $: left = { x: 0, y: a };
+  $: bottomLeft = {
     x: left.x - side * Math.cos(t),
     y: left.y + side * Math.sin(t),
   };
-  const topLeft = { x: bottomLeft.x, y: 0 };
-  const bottomRight = { x: bottomLeft.x + side, y: bottomLeft.y };
-  const right = { x: side * 2, y: a };
-  const topRight = { x: bottomLeft.x + side, y: 0 };
+  $: topLeft = { x: bottomLeft.x, y: 0 };
+  $: bottomRight = { x: bottomLeft.x + side, y: bottomLeft.y };
+  $: right = { x: side * 2, y: a };
+  $: topRight = { x: bottomLeft.x + side, y: 0 };
 
-  const l = `${left.x},${left.y}`;
-  const bl = `${bottomLeft.x},${bottomLeft.y}`;
-  const tl = `${topLeft.x},${topLeft.y}`;
-  const br = `${bottomRight.x},${bottomRight.y}`;
-  const r = `${right.x},${right.y}`;
-  const tr = `${topRight.x},${topRight.y}`;
+  $: l = `${left.x},${left.y}`;
+  $: bl = `${bottomLeft.x},${bottomLeft.y}`;
+  $: tl = `${topLeft.x},${topLeft.y}`;
+  $: br = `${bottomRight.x},${bottomRight.y}`;
+  $: r = `${right.x},${right.y}`;
+  $: tr = `${topRight.x},${topRight.y}`;
+
+  // Individual hexagons require individual clip paths
+  $: IDString = Math.round(x * 1000) + '' + Math.round(y * 1000);
 </script>
 
-<defs>
-  <pattern
-    id={`image-bg_${image}`}
-    height={side * 2}
-    width={side * 2}
-    patternUnits="userSpaceOnUse"
-  >
-    <image width={side * 2} height={side * 2} xlink:href={image} />
-  </pattern>
-</defs>
+<!--
+  A polygon is used to create a clipppath for our image. 
+  Then the polygon borders are drawn over the images.
+ -->
 <g
   transform="scale({scale}) translate({x}, {y})"
   on:click
   on:mouseenter
   on:mouseleave
 >
+  <polygon id={IDString + '_polygon'} points="{r} {br} {bl} {l} {tl} {tr}" />
+
+  <defs>
+    <clipPath id={IDString + '_clipping'}>
+      <use xlink:href="#{IDString + '_polygon'}" />
+    </clipPath>
+  </defs>
+
   {#if image != ''}
-    <image class="hexagon" href={image} width={side * 2} height={side * 2}>
+    <image
+      href={image}
+      width={side * 2}
+      height={side * 2}
+      clip-path="url(#{IDString + '_clipping'})"
+      style="image-rendering: pixelated;"
+    >
       <text
         class="pointer-events-none"
         transform="translate({side},{side})"
@@ -76,26 +71,12 @@
         {text}
       </text>
     </image>
-  {:else}
-    <polygon points="{r} {br} {bl} {l} {tl} {tr}" fill={color} />
   {/if}
-  <Borders
-    {topLeft}
-    {topRight}
-    {bottomLeft}
-    {bottomRight}
-    {right}
-    {left}
+  <use
+    clip-path="url(#{IDString + '_clipping'})"
+    xlink:href="#{IDString + '_polygon'}"
+    fill="none"
     {stroke}
-    {strokeWidth}
-    {bordercolors}
+    stroke-width={strokeWidth}
   />
 </g>
-
-<style>
-  /* % values are calculated using the same formulas as above */
-  .hexagon {
-    clip-path: polygon(25% 0%, 75% 0%, 100% 43%, 75% 86%, 25% 86%, 0% 43%);
-    image-rendering: pixelated;
-  }
-</style>
