@@ -1,8 +1,7 @@
 <script lang="ts">
+	import ArrowUp from '../icons/ArrowUp.svelte';
 
-import ArrowUp from '../icons/ArrowUp.svelte';
-
-export let currentView;
+	export let currentView;
 </script>
 
 <!-- Background and Headline-->
@@ -19,11 +18,11 @@ export let currentView;
 		</div>
 		<!--Back to top Button-->
 		<button
-				type="button"
-				data-mdb-ripple="true"
-				data-mdb-ripple-color="light"
-				class="ml-auto mr-8 p-3 flex items-center bg-hie-red w-10 rounded-full hover:bg-hie-orange hover:outline hover:-outline-offset-2 hover:outline-4 hover:outline-hie-red transition duration-50 ease-in-out"
-				on:click={() => window.scrollTo(0, 0)}
+			type="button"
+			data-mdb-ripple="true"
+			data-mdb-ripple-color="light"
+			class="ml-auto mr-8 p-3 flex items-center bg-hie-red w-10 rounded-full hover:bg-hie-orange hover:outline hover:-outline-offset-2 hover:outline-4 hover:outline-hie-red transition duration-50 ease-in-out"
+			on:click={() => window.scrollTo(0, 0)}
 		>
 			<ArrowUp/>
 		</button>
