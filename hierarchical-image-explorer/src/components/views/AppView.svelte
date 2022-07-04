@@ -55,27 +55,27 @@
       );
   }
 
-    onMount(() => {
-        document.addEventListener('click', handleOutsideClick, false);
-        document.addEventListener('keyup', handleEscape, false);
-    });
+  onMount(() => {
+    document.addEventListener('click', handleOutsideClick, false);
+    document.addEventListener('keyup', handleEscape, false);
+  });
 
-    onDestroy(() => {
-        document.removeEventListener('click', handleOutsideClick, false);
-        document.removeEventListener('keyup', handleEscape, false);
-    });
+  onDestroy(() => {
+    document.removeEventListener('click', handleOutsideClick, false);
+    document.removeEventListener('keyup', handleEscape, false);
+  });
 
-    async function setupData() {
-        try {
-            filteredData = await BackendService.getAllDataPoints();
-            data = filteredData;
-            xExtent = getExtent((p: PointData) => p.x, data);
-            yExtent = getExtent((p: PointData) => p.y, data);
-        } catch (e) {
-            console.error(e);
-            alert(e);
-        }
+  async function setupData() {
+    try {
+      filteredData = await BackendService.getAllDataPoints();
+      data = filteredData;
+      xExtent = getExtent((p: PointData) => p.x, data);
+      yExtent = getExtent((p: PointData) => p.y, data);
+    } catch (e) {
+      console.error(e);
+      alert(e);
     }
+  }
 
   function filterData(label: string) {
     filteredData = data.filter((d) => d.label == label);
