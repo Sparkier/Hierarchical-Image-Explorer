@@ -1,7 +1,5 @@
 <script lang="ts">
   import HieNav from './components/HieNav.svelte';
-  import GraphicalView from './components/views/GraphicalView.svelte';
-  import Hierarchical from './components/views/Hierarchical.svelte';
   import HomeScreen from './components/views/HomeScreen.svelte';
   import AppView from './components/views/AppView.svelte';
 
