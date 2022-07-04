@@ -1,7 +1,6 @@
 <script lang="ts">
   import BackendService from '../../services/backendService';
   import Accumulator from '../Accumulator.svelte';
-  //import { getExtent } from '../../services/scaleUtilities';
   import { onDestroy, onMount } from 'svelte';
   import { scale } from 'svelte/transition';
   import RangeSlider from 'svelte-range-slider-pips';
@@ -60,22 +59,6 @@
     document.removeEventListener('click', handleOutsideClick, false);
     document.removeEventListener('keyup', handleEscape, false);
   });
-
-  //async function setupData() {
-  //  try {
-  //    filteredData = await BackendService.get2DAll();
-  //    data = filteredData;
-  //    xExtent = getExtent((p: PointData) => p.x, data);
-  //    yExtent = getExtent((p: PointData) => p.y, data);
-  //  } catch (e) {
-  //    console.error(e);
-  //    alert(e);
-  //  }
-  //}
-
-  // function filterData(label: string) {
-  //   filteredData = data.filter((d) => d.label == label);
-  // }
 </script>
 
 <div class="">
@@ -168,9 +151,6 @@
       />
     </div>
     <div class="w-4/5" bind:clientWidth={svgWidth}>
-      <!-- {#await setupData()}
-        <p>Loading data</p>
-      {:then success} -->
       <Accumulator
         rows={numHexagonsRows}
         columns={numHexagonsColumns}
@@ -182,9 +162,6 @@
         bind:svgHeightValue={accSvgHeight}
       />
       <!-- Under the data-->
-      <!-- {:catch error}
-        <p>{error.message}</p>
-      {/await} -->
     </div>
   </div>
 </div>

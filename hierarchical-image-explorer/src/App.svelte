@@ -13,10 +13,6 @@
   <div class="container">
     {#if currentView === 'home'}
       <HomeScreen bind:currentView />
-    {:else if currentView === '2d'}
-      <GraphicalView />
-    {:else if currentView === 'hierarchical'}
-      <Hierarchical />
     {:else if currentView === 'appview'}
       <AppView />
     {/if}

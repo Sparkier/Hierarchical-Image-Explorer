@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-
   import GitHubLogo from './icons/GitHubLogo.svelte';
   import HieLogo from './icons/HIELogo.svelte';
 
@@ -20,30 +18,6 @@
         href="https://github.com/Sparkier/Hierarchical-Image-Explorer"
         target="_blank"><GitHubLogo /></a
       >
-    </div>
-    <div
-      class={`ml-auto text-lg cursor-pointer transition ease-in-out duration-100 ${isCurrentViewClasses(
-        'first-idea'
-      )}`}
-      on:click={() => (currentView = 'first-idea')}
-    >
-      First Idea
-    </div>
-    <div
-      class={`ml-8 text-lg  cursor-pointer transition ease-in-out duration-100 ${isCurrentViewClasses(
-        'hierarchical'
-      )}`}
-      on:click={() => (currentView = 'hierarchical')}
-    >
-      Tree
-    </div>
-    <div
-      class={`ml-8 text-lg cursor-pointer transition ease-in-out duration-100 ${isCurrentViewClasses(
-        '2d'
-      )}`}
-      on:click={() => (currentView = '2d')}
-    >
-      2D-Visualization
     </div>
     <div
       class={`ml-8 text-lg cursor-pointer transition ease-in-out duration-100 ${isCurrentViewClasses(
