@@ -96,7 +96,6 @@
                       .sort())] as labelName}
                   <div
                     class="block px-4 py-2 hover:bg-hie-red hover:text-white"
-                    on:click={filterData(labelName)}
                   >
                     {labelName}
                   </div>
