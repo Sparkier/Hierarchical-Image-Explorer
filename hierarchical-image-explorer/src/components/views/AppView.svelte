@@ -57,10 +57,10 @@
       );
   }
 
-    onMount(() => {
-        document.addEventListener('click', handleOutsideClick, false);
-        document.addEventListener('keyup', handleEscape, false);
-    });
+  onMount(() => {
+    document.addEventListener('click', handleOutsideClick, false);
+    document.addEventListener('keyup', handleEscape, false);
+  });
 
   onDestroy(() => {
     document.removeEventListener('click', handleOutsideClick, false);
