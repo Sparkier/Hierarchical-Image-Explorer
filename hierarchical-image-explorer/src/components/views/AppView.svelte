@@ -66,97 +66,97 @@
 </script>
 
 <div class="flex items-stretch" bind:this={outerDiv}>
-	<!-- Leftbar -->
-	<div class="w-1/5 left-0 border-r-2 border-y-2 border-slate-200 bg-slate-50">
-		<div class="p-4">
-			<Minimap
-				topLeftSvgCorner={accTopLeftCorner}
-				bottomRightSvgCorner={accBottomRightCorner}
-				svgWidth={accSvgWidth}
-				svgHeight={accSvgHeight}
-			/>
-			<div class="font-bold text-xl text-left">Settings</div>
-			<div class="font-medium text-lg text-left">Visible Rows/Columns</div>
-			<div class="font-medium text-left text-lg">
-				<input class="rounded-sm w-12" bind:value={numHexagonsColumns} />
-				Number of columns
-			</div>
-			<div class="mt-2 font-medium text-left text-lg">
-				<input class="rounded-sm w-12" bind:value={numHexagonsRows} />
-				Number of rows
-			</div>
-			{#if selectedDatagon == null}
-				<div class="pt-2 font-medium text-lg text-left">Class filters</div>
-				<div class="relative" bind:this={menu}>
-					<div>
-						<button
-							on:click={() => (show = !show)}
-							class="menu rounded-sm mt-2 bg-slate-200 focus:outline-none focus:shadow-solid w-1/2 h-10 font-medium text-lg"
-						>
-							Filter...
-						</button>
-						{#if show}
-							<div
-								in:scale={{ duration: 100, start: 0.95 }}
-								out:scale={{ duration: 75, start: 0.95 }}
-								class="origin-top-right absolute w-1/2 py-2 bg-slate-200
+  <!-- Leftbar -->
+  <div class="w-1/5 left-0 border-r-2 border-y-2 border-slate-200 bg-slate-50">
+    <div class="p-4">
+      <Minimap
+        topLeftSvgCorner={accTopLeftCorner}
+        bottomRightSvgCorner={accBottomRightCorner}
+        svgWidth={accSvgWidth}
+        svgHeight={accSvgHeight}
+      />
+      <div class="font-bold text-xl text-left">Settings</div>
+      <div class="font-medium text-lg text-left">Visible Rows/Columns</div>
+      <div class="font-medium text-left text-lg">
+        <input class="rounded-sm w-12" bind:value={numHexagonsColumns} />
+        Number of columns
+      </div>
+      <div class="mt-2 font-medium text-left text-lg">
+        <input class="rounded-sm w-12" bind:value={numHexagonsRows} />
+        Number of rows
+      </div>
+      {#if selectedDatagon == null}
+        <div class="pt-2 font-medium text-lg text-left">Class filters</div>
+        <div class="relative" bind:this={menu}>
+          <div>
+            <button
+              on:click={() => (show = !show)}
+              class="menu rounded-sm mt-2 bg-slate-200 focus:outline-none focus:shadow-solid w-1/2 h-10 font-medium text-lg"
+            >
+              Filter...
+            </button>
+            {#if show}
+              <div
+                in:scale={{ duration: 100, start: 0.95 }}
+                out:scale={{ duration: 75, start: 0.95 }}
+                class="origin-top-right absolute w-1/2 py-2 bg-slate-200
                 rounded shadow-md z-10"
-							>
-								{#if data !== undefined}
-									{#each [...new Set(data
-                    .map((d) => d.label)
-                    .sort())] as labelName}
-										<div
-											class="block px-4 py-2 hover:bg-hie-red hover:text-white"
-										>
-											{labelName}
-										</div>
-									{/each}
-								{/if}
-							</div>
-						{/if}
-					</div>
-				</div>
-				<ImgView
-					imageID={selectedImageID}
-					imageLabel={selectedImageLabel}
-					bind:numHexagonsColumns
-					bind:numHexagonsRows
-				/>
-				<div class="font-medium text-lg text-left">Image scaling</div>
-				<div
-					class="max-w-xs"
-					style="--range-range: #d87472; --range-float: #d87472; --range-handle-focus:#d87472;  --range-handle:#f7bca6"
-				>
-					<RangeSlider
-						class=""
-						min={0.1}
-						max={5}
-						step={0.1}
-						bind:values={sliderValue}
-						range="min"
-						float
-					/>
-				</div>
-			{:else}
-				<div class="font-bold text-xl text-left">Cluster info</div>
-				<ClusterView datagon={selectedDatagon} />
-			{/if}
-		</div>
-	</div>
-	<!-- Image explorer -->
-	<div class="w-4/5 border-y-2 border-slate-200">
-		<Accumulator
-			data={filteredData}
-			rows={numHexagonsRows}
-			columns={numHexagonsColumns}
-			bind:selectedImageID
-			imageScaling={sliderValue}
-			bind:selectedDatagon
-			bind:topleftSVGPoint={accTopLeftCorner}
-			bind:bottomrightSVGPoint={accBottomRightCorner}
-			bind:svgWidthValue={accSvgWidth}
-			bind:svgHeightValue={accSvgHeight}
-		/>
-	</div>
+              >
+                {#if data !== undefined}
+                  {#each [...new Set(data
+                        .map((d) => d.label)
+                        .sort())] as labelName}
+                    <div
+                      class="block px-4 py-2 hover:bg-hie-red hover:text-white"
+                    >
+                      {labelName}
+                    </div>
+                  {/each}
+                {/if}
+              </div>
+            {/if}
+          </div>
+        </div>
+        <ImgView
+          imageID={selectedImageID}
+          imageLabel={selectedImageLabel}
+          bind:numHexagonsColumns
+          bind:numHexagonsRows
+        />
+        <div class="font-medium text-lg text-left">Image scaling</div>
+        <div
+          class="max-w-xs"
+          style="--range-range: #d87472; --range-float: #d87472; --range-handle-focus:#d87472;  --range-handle:#f7bca6"
+        >
+          <RangeSlider
+            class=""
+            min={0.1}
+            max={5}
+            step={0.1}
+            bind:values={sliderValue}
+            range="min"
+            float
+          />
+        </div>
+      {:else}
+        <div class="font-bold text-xl text-left">Cluster info</div>
+        <ClusterView datagon={selectedDatagon} />
+      {/if}
+    </div>
+  </div>
+  <!-- Image explorer -->
+  <div class="w-4/5 border-y-2 border-slate-200">
+    <Accumulator
+      data={filteredData}
+      rows={numHexagonsRows}
+      columns={numHexagonsColumns}
+      bind:selectedImageID
+      imageScaling={sliderValue}
+      bind:selectedDatagon
+      bind:topleftSVGPoint={accTopLeftCorner}
+      bind:bottomrightSVGPoint={accBottomRightCorner}
+      bind:svgWidthValue={accSvgWidth}
+      bind:svgHeightValue={accSvgHeight}
+    />
+  </div>
 </div>

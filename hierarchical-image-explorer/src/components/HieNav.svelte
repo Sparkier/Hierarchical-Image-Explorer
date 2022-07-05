@@ -1,5 +1,4 @@
 <script lang="ts">
-
   import GitHubLogo from './icons/GitHubLogo.svelte';
   import HieLogo from './icons/HIELogo.svelte';
 
@@ -11,7 +10,10 @@
 
 <nav class="bg-neutral-800">
   <div class="w-screen flex flex-row items-center h-14">
-    <div class="ml-4 h-8 w-8 cursor-pointer basis-1/32" on:click={() => (currentView = 'home')}>
+    <div
+      class="ml-4 h-8 w-8 cursor-pointer basis-1/32"
+      on:click={() => (currentView = 'home')}
+    >
       <HieLogo />
     </div>
     <div class="h-8 w-8 ml-4 basis-1/32">
