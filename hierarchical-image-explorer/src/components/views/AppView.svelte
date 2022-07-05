@@ -49,7 +49,7 @@
 
   $: {
     if (selectedImageID != undefined && selectedImageID != '')
-      BackendService.getSWGInfo(selectedImageID).then(
+      BackendService.getDataAnnotations(selectedImageID).then(
         (r) => (selectedImageLabel = r.label)
       );
   }
@@ -108,7 +108,6 @@
                     .sort())] as labelName}
 										<div
 											class="block px-4 py-2 hover:bg-hie-red hover:text-white"
-											on:click={filterData(labelName)}
 										>
 											{labelName}
 										</div>
@@ -147,23 +146,17 @@
 	</div>
 	<!-- Image explorer -->
 	<div class="w-4/5 border-y-2 border-slate-200">
-		{#await setupData()}
-			<p>Loading data</p>
-		{:then success}
-			<Accumulator
-				data={filteredData}
-				rows={numHexagonsRows}
-				columns={numHexagonsColumns}
-				bind:selectedImageID
-				imageScaling={sliderValue}
-				bind:selectedDatagon
-				bind:topleftSVGPoint={accTopLeftCorner}
-				bind:bottomrightSVGPoint={accBottomRightCorner}
-				bind:svgWidthValue={accSvgWidth}
-				bind:svgHeightValue={accSvgHeight}
-			/>
-		{:catch error}
-			<p>{error.message}</p>
-		{/await}
+		<Accumulator
+			data={filteredData}
+			rows={numHexagonsRows}
+			columns={numHexagonsColumns}
+			bind:selectedImageID
+			imageScaling={sliderValue}
+			bind:selectedDatagon
+			bind:topleftSVGPoint={accTopLeftCorner}
+			bind:bottomrightSVGPoint={accBottomRightCorner}
+			bind:svgWidthValue={accSvgWidth}
+			bind:svgHeightValue={accSvgHeight}
+		/>
 	</div>
 </div>
