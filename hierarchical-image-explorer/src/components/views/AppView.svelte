@@ -2,17 +2,14 @@
   import BackendService from '../../services/backendService';
   import Accumulator from '../Accumulator.svelte';
   import { onDestroy, onMount } from 'svelte';
-  import ImgView from "../minis/ImgView.svelte";
-  import ClusterView from "../minis/ClusterView.svelte";
-  import {scale} from 'svelte/transition';
+  import ImgView from '../minis/ImgView.svelte';
+  import ClusterView from '../minis/ClusterView.svelte';
+  import { scale } from 'svelte/transition';
   import RangeSlider from 'svelte-range-slider-pips';
-  import {
-    DEFAULT_NUM_OF_ROWS,
-    DEFAULT_NUM_OF_COLUMNS,
-    DEFAULT_SLIDER_VALUE,
-  } from '../../config.ts';
-  import type { PointData } from '../../types';
+  import { DEFAULT_SLIDER_VALUE } from '../../config.ts';
+  import type { DataHexagon, PointData } from '../../types';
   import Minimap from '../minis/Minimap.svelte';
+  import { DEFAULT_NUM_OF_ROWS, DEFAULT_NUM_OF_COLUMNS } from '../../config.ts';
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {

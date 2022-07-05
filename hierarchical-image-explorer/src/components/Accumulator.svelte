@@ -6,9 +6,9 @@
   import BackendService from '../services/backendService';
   import type { DataHexagon, PointData } from '../types';
 
-  export let initial_columns = 20;
-  export let selectedImageID = '';
-  export let selectedDatagon: null | DataHexagon = null;
+  export var initial_columns = 20;
+  export var selectedImageID = '';
+  export var selectedDatagon: null | DataHexagon = null;
   export let topleftSVGPoint: DOMPoint;
   export let bottomrightSVGPoint: DOMPoint;
   export let svgWidthValue: number;
@@ -35,7 +35,7 @@
   $: svgHeight = rows * hexaSide * hexaShortDiag + hexaShortDiag * hexaSide; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
   $: svgHeightValue = svgHeight;
   $: svgWidthValue = svgWidth;
-  $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
+  $: lodLevel = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
 
   $: {
     getQuantizationData(levelOfDetail);
