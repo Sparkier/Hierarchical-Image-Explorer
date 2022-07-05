@@ -4,10 +4,9 @@ import cors from 'cors';
 import fs from 'fs';
 import * as csv from 'fast-csv';
 import path from 'path';
-import { HIEConfiguration } from './configuration';
 import { DataProvider2D } from './2dDataProvider';
 import { HexagonAggregator } from './hexagonAggregator';
-import type { datapoint, datapointWithID } from './types';
+import type { datapoint, datapointWithID, HIEConfiguration } from './types';
 
 // parse commandline arguments
 let port = 25679;

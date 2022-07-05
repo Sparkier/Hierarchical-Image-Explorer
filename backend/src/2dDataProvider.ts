@@ -5,6 +5,11 @@ import type { datapoint, csvRow2D, datum2dPoint } from './types';
 export class DataProvider2D {
   pointMap: Map<string, { x: number; y: number; label: string }> = new Map();
 
+  /**
+   * Reads in a given 2d-points csv and compares it to a swg-dataframe
+   * @param filePath path to 2d csv
+   * @param dataFrame swg dataframe
+   */
   constructor(private filePath: string, dataFrame: Map<string, datapoint>) {
     fs.createReadStream(filePath)
       .pipe(csv.parse({ headers: true }))
@@ -25,6 +30,10 @@ export class DataProvider2D {
       });
   }
 
+  /**
+   * Returns all points
+   * @returns List of all datum2dPoint
+   */
   public getAllPoints(): datum2dPoint[] {
     return Array.from(this.pointMap).map(([k, v]) => {
       return {
@@ -36,6 +45,9 @@ export class DataProvider2D {
     });
   }
 
+  /**
+   * @returns dataPoint for a given id
+   */
   public getPointByID(id: string) {
     const mapEntry = this.pointMap.get(id);
     if (mapEntry == undefined) throw new Error('ID does not exist');

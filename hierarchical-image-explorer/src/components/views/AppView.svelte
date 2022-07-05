@@ -1,7 +1,6 @@
 <script lang="ts">
   import BackendService from '../../services/backendService';
   import Accumulator from '../Accumulator.svelte';
-  import { getExtent } from '../../services/scaleUtilities';
   import { onDestroy, onMount } from 'svelte';
   import { scale } from 'svelte/transition';
   import RangeSlider from 'svelte-range-slider-pips';
@@ -46,7 +45,7 @@
 
   $: {
     if (selectedImageID != undefined && selectedImageID != '')
-      BackendService.getSWGInfo(selectedImageID).then(
+      BackendService.getDataAnnotations(selectedImageID).then(
         (r) => (selectedImageLabel = r.label)
       );
   }
@@ -60,22 +59,6 @@
     document.removeEventListener('click', handleOutsideClick, false);
     document.removeEventListener('keyup', handleEscape, false);
   });
-
-  async function setupData() {
-    try {
-      filteredData = await BackendService.getAllDataPoints();
-      data = filteredData;
-      xExtent = getExtent((p: PointData) => p.x, data);
-      yExtent = getExtent((p: PointData) => p.y, data);
-    } catch (e) {
-      console.error(e);
-      alert(e);
-    }
-  }
-
-  function filterData(label: string) {
-    filteredData = data.filter((d) => d.label == label);
-  }
 </script>
 
 <div class="">
@@ -113,7 +96,6 @@
                       .sort())] as labelName}
                   <div
                     class="block px-4 py-2 hover:bg-hie-red hover:text-white"
-                    on:click={filterData(labelName)}
                   >
                     {labelName}
                   </div>
@@ -168,24 +150,17 @@
       />
     </div>
     <div class="w-4/5" bind:clientWidth={svgWidth}>
-      {#await setupData()}
-        <p>Loading data</p>
-      {:then success}
-        <Accumulator
-          data={filteredData}
-          rows={numHexagonsRows}
-          columns={numHexagonsColumns}
-          bind:selectedImageID
-          imageScaling={sliderValue}
-          bind:topleftSVGPoint={accTopLeftCorner}
-          bind:bottomrightSVGPoint={accBottomRightCorner}
-          bind:svgWidthValue={accSvgWidth}
-          bind:svgHeightValue={accSvgHeight}
-        />
-        <!-- Under the data-->
-      {:catch error}
-        <p>{error.message}</p>
-      {/await}
+      <Accumulator
+        rows={numHexagonsRows}
+        columns={numHexagonsColumns}
+        bind:selectedImageID
+        imageScaling={sliderValue}
+        bind:topleftSVGPoint={accTopLeftCorner}
+        bind:bottomrightSVGPoint={accBottomRightCorner}
+        bind:svgWidthValue={accSvgWidth}
+        bind:svgHeightValue={accSvgHeight}
+      />
+      <!-- Under the data-->
     </div>
   </div>
 </div>

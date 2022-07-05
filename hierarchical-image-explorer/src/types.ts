@@ -1,8 +1,3 @@
-export type HcNode = {
-  children: HcNode[];
-  nodeID: number;
-};
-
 export type PointData = {
   id: string;
   x: number;

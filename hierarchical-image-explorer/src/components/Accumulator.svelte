@@ -35,10 +35,10 @@
   $: svgHeight = rows * hexaSide * hexaShortDiag + hexaShortDiag * hexaSide; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
   $: svgHeightValue = svgHeight;
   $: svgWidthValue = svgWidth;
-  $: lodLevel = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
+  $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
 
   $: {
-    getQuantizationData(lodLevel);
+    getQuantizationData(levelOfDetail);
   }
 
   $: scaleQuantisedX = (v: number, row: number) => {
@@ -58,11 +58,11 @@
   }
 
   onMount(() => {
-    getQuantizationData(1);
+    getQuantizationData(0);
   });
 
   function getQuantizationData(lod: number) {
-    BackendService.getQuantization(initial_columns * 2 ** lod).then((r) => {
+    BackendService.getDataQuantized(initial_columns * 2 ** lod).then((r) => {
       currentQuantization = [];
       currentQuantization = r.datagons;
       currentFilteredQuantization = r.datagons;
@@ -125,7 +125,7 @@
   Filtered image count {filteredData.length} <br />
   Zoom is {zoomLevel} <br />
   Transofrm is {transform} <br />
-  Lod Number {lodLevelProperty} new lod: {lodLevel} columns {columns} Rows {rows}
+  Lod Number {lodLevelProperty} new lod: {levelOfDetail} columns {columns} Rows {rows}
   Hexa amount: {currentFilteredQuantization.length}<br />
   <div
     class="bg-slate-400 rounded-lg w-32 p-2 mt-1"

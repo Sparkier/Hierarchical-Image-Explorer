@@ -21,7 +21,6 @@
   },
   "workspaces": [
     "hierarchical-image-explorer",
-    "baseline-webclient",
     "backend"
   ]
 }
