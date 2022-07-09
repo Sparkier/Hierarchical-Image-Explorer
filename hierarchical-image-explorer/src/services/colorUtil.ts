@@ -14,6 +14,8 @@ export class ColorUtil {
     '#FFA07A',
   ];
 
+  public static SELECTION_HIGHLIGHT_COLOR = "#fcfc1e"
+
   public static colorMap: Map<string, string> = new Map();
 
   /**
