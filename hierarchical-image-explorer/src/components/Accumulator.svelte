@@ -5,6 +5,7 @@
   import ZoomSVG from './ZoomSVG.svelte';
   import BackendService from '../services/backendService';
   import type { DataHexagon, PointData } from '../types';
+  import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
 
   export let initial_columns = 20;
   export let selectedImageID = '';
@@ -26,7 +27,9 @@
   let filteredData: PointData[] = [];
   let currentQuantization: DataHexagon[] = [];
   let currentFilteredQuantization: DataHexagon[] = [];
+  let currentSelection: DataHexagon[] = [];
   let lodLevelProperty = 2;
+  let selectionModeOn = false;
 
   var columns = initial_columns;
 
@@ -73,20 +76,41 @@
   /**
    * Takes a point in dom coordinate space and maps it to a svg coordinate point
    * @param element svg element
-   * @param x coordinate
-   * @param y coordinate
+   * @param screenX coordinate
+   * @param screenY coordinate
    * @param group SVGSVGElement of which to use the transform property
    */
-  function svgPoint(
+  function screenToSvg(
     element: SVGSVGElement,
-    x: number,
-    y: number,
+    screenX: number,
+    screenY: number,
     group: SVGSVGElement
   ) {
     const pt = element.createSVGPoint();
-    pt.x = x;
-    pt.y = y;
+    pt.x = screenX;
+    pt.y = screenY;
     const matrix = group.getScreenCTM()?.inverse();
+    if (matrix == undefined) throw new Error('Transformation Matrix undefined');
+    return pt.matrixTransform(matrix);
+  }
+
+  /**
+   * Takes in a point in svg space and converts it to dom (page relative)
+   * @param element svg element
+   * @param svgX coordinate
+   * @param svgY coordinate
+   * @param group SVGSVGElement of which to use the transform property
+   */
+  function svgToScreen(
+    element: SVGSVGElement,
+    svgX: number,
+    svgY: number,
+    group: SVGSVGElement
+  ) {
+    const pt = svg.createSVGPoint();
+    pt.x = svgX;
+    pt.y = svgY;
+    const matrix = group.getScreenCTM();
     if (matrix == undefined) throw new Error('Transformation Matrix undefined');
     return pt.matrixTransform(matrix);
   }
@@ -111,33 +135,54 @@
 
   function updateScreenBoundaryPoints() {
     const svgCbr = svgContainer.getBoundingClientRect();
-    topleftSVGPoint = svgPoint(svg, svgCbr.x, svgCbr.y, g);
-    bottomrightSVGPoint = svgPoint(
+    topleftSVGPoint = screenToSvg(svg, svgCbr.x, svgCbr.y, g);
+    bottomrightSVGPoint = screenToSvg(
       svg,
       svgCbr.x + svgCbr.width,
       svgCbr.y + svgCbr.height,
       g
     );
   }
+
+  /**
+   * Goes through all hexagons and checks for intersection with the lasso polygon
+   * When intersection is detected the hexagon will be added to the selected list
+   */
+  function handleLassoSelection() {
+    const newlySelectedHexagons = currentFilteredQuantization.filter((d) => {
+      const svgX = scaleQuantisedX(d.hexaX, d.hexaY);
+      const svgY = scaleQuantisedY(d.hexaY);
+      const svgXCenter = svgX + hexaSide;
+      const svgYCenter = svgY + hexaShortDiag * hexaSide;
+      const domPoint = svgToScreen(svg, svgXCenter, svgYCenter, g);
+      const hitlist = document.elementFromPoint(domPoint.x, domPoint.y);
+      if (hitlist == null) return false;
+      if (hitlist.id == 'lassoPolygon') return true;
+      return false;
+    });
+    currentSelection = [...currentSelection, ...newlySelectedHexagons];
+    selectionModeOn = false;
+  }
 </script>
 
-<div>
-  Filtered image count {filteredData.length} <br />
-  Zoom is {zoomLevel} <br />
-  Transofrm is {transform} <br />
-  Lod Number {lodLevelProperty} new lod: {levelOfDetail} columns {columns} Rows {rows}
-  Hexa amount: {currentFilteredQuantization.length}<br />
+<div class="flex gap-2">
   <div
-    class="bg-slate-400 rounded-lg w-32 p-2 mt-1"
+    class={`${
+      selectionModeOn ? 'bg-lime-400' : 'bg-slate-400'
+    } rounded-lg w-12 p-2 mt-1`}
     on:click={() => {
-      const tmp = currentFilteredQuantization;
-      currentFilteredQuantization = [];
-      setTimeout(() => {
-        currentFilteredQuantization = tmp;
-      }, 1);
+      selectionModeOn = !selectionModeOn;
     }}
   >
-    redraw
+    <LassoSelectIcon />
+  </div>
+  <div
+    class="bg-slate-400 rounded-lg w-40 p-2 mt-1"
+    on:click={() => {
+      currentSelection = [];
+    }}
+  >
+    Reset selection
   </div>
 </div>
 <div
@@ -152,7 +197,9 @@
     bind:transform
     bind:svg
     bind:g
+    {selectionModeOn}
     on:zoomEnd={(e) => handleZoomEnd(e)}
+    on:lassoSelectionEnd={() => handleLassoSelection()}
   >
     {#if hexaSide != 0 && currentQuantization.length != 0}
       <g>
@@ -162,12 +209,14 @@
               side={hexaSide}
               x={scaleQuantisedX(datagon.hexaX, datagon.hexaY)}
               y={scaleQuantisedY(datagon.hexaY)}
-              stroke={ColorUtil.getColor(datagon.dominantLabel)}
+              stroke={currentSelection.includes(datagon)
+                ? ColorUtil.SELECTION_HIGHLIGHT_COLOR
+                : ColorUtil.getColor(datagon.dominantLabel)}
               strokeWidth={hexaSide / 5}
               image={BackendService.getImageUrl(datagon.representantID)}
               on:click={() => {
                 selectedImageID = '';
-                selectedDatagon = datagon;
+                currentSelection = [...currentSelection, datagon];
               }}
             />
           {:else}
