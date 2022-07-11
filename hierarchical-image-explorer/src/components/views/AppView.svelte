@@ -38,8 +38,8 @@
 
   let accTopLeftCorner: DOMPoint;
   let accBottomRightCorner: DOMPoint;
-  let accSvgHeight: number;
   let accSvgWidth: number;
+  let accSvgHeight: number;
 
   let outerDiv: HTMLElement | undefined;
 
@@ -161,8 +161,8 @@
       bind:selectedDatagon
       bind:topleftSVGPoint={accTopLeftCorner}
       bind:bottomrightSVGPoint={accBottomRightCorner}
-      bind:initialDataHeight={accSvgWidth}
-      bind:svgHeightValue={accSvgHeight}
+      bind:initialDataWidth={accSvgWidth}
+      bind:initialDataHeight={accSvgHeight}
     />
   </div>
 </div>
