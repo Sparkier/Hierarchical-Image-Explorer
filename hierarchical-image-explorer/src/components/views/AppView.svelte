@@ -35,6 +35,7 @@
   let selectedDatagon: null | DataHexagon;
   let selectedImageLabel;
   let filteredData;
+
   let accTopLeftCorner: DOMPoint;
   let accBottomRightCorner: DOMPoint;
   let accSvgHeight: number;
@@ -42,10 +43,14 @@
 
   let outerDiv: HTMLElement | undefined;
 
+  const borderWidth = 2;
+
   $: availableAccHeight =
     outerDiv == undefined
       ? 0
-      : window.innerHeight - outerDiv.getBoundingClientRect().y; // this will be used to limit the height of the accumulator to the screen
+      : window.innerHeight -
+        outerDiv.getBoundingClientRect().y -
+        2 * borderWidth; // this will be used to limit the height of the accumulator to the screen
 
   $: {
     if (selectedImageID != undefined && selectedImageID != '')
@@ -67,13 +72,13 @@
 
 <div class="flex items-stretch" bind:this={outerDiv}>
   <!-- Leftbar -->
-  <div class="w-1/5 left-0 border-r-2 border-y-2 border-slate-200 bg-slate-50">
+  <div class="w-1/5 border-r-2 border-y-2 border-slate-200 bg-slate-50">
     <div class="p-4">
       <Minimap
         topLeftSvgCorner={accTopLeftCorner}
         bottomRightSvgCorner={accBottomRightCorner}
         svgWidth={accSvgWidth}
-        svgHeight={accSvgHeight}
+        svgHeight={availableAccHeight}
       />
       <div class="font-bold text-xl text-left">Settings</div>
       <div class="font-medium text-lg text-left">Visible Rows/Columns</div>
@@ -156,7 +161,7 @@
       bind:selectedDatagon
       bind:topleftSVGPoint={accTopLeftCorner}
       bind:bottomrightSVGPoint={accBottomRightCorner}
-      bind:svgWidthValue={accSvgWidth}
+      bind:initialDataHeight={accSvgWidth}
       bind:svgHeightValue={accSvgHeight}
     />
   </div>

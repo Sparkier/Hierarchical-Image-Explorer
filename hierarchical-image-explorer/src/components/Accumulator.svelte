@@ -11,8 +11,7 @@
   export let selectedImageID = '';
   export let topleftSVGPoint: DOMPoint;
   export let bottomrightSVGPoint: DOMPoint;
-  export let svgWidthValue: number;
-  export let svgHeightValue: number;
+
   export let currentSelection: DataHexagon[] = [];
   export let maxHeight: number;
 
@@ -25,13 +24,11 @@
   let rows = 0;
   let zoomLevel: number;
   let transform: [number, number];
-  let filteredData: PointData[] = [];
   let currentQuantization: DataHexagon[] = [];
   let currentFilteredQuantization: DataHexagon[] = [];
 
   let toolbarHeight: number;
 
-  let lodLevelProperty = 2;
   let selectionModeOn = false;
   let hexaSide: number = 0;
 
@@ -42,6 +39,7 @@
   $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
   $: imageWidth = hexaSide;
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
+  $: initialDataHeight = maxWidth;
 
   $: {
     getQuantizationData(levelOfDetail);
