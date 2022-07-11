@@ -35,6 +35,7 @@
   let selectedDatagon: null | DataHexagon;
   let selectedImageLabel;
   let filteredData;
+  let selectedDatagons: DataHexagon[] = [];
 
   let accTopLeftCorner: DOMPoint;
   let accBottomRightCorner: DOMPoint;
@@ -73,13 +74,16 @@
 <div class="flex items-stretch" bind:this={outerDiv}>
   <!-- Leftbar -->
   <div class="w-1/5 border-r-2 border-y-2 border-slate-200 bg-slate-50">
-    <div class="p-4">
-      <Minimap
-        topLeftSvgCorner={accTopLeftCorner}
-        bottomRightSvgCorner={accBottomRightCorner}
-        svgWidth={accSvgWidth}
-        svgHeight={availableAccHeight}
-      />
+    <div class={'p-4 overflow-auto'} style="height: {availableAccHeight}px;">
+      <div class="w-56">
+        <Minimap
+          topLeftSvgCorner={accTopLeftCorner}
+          bottomRightSvgCorner={accBottomRightCorner}
+          svgWidth={accSvgWidth}
+          svgHeight={availableAccHeight}
+        />
+      </div>
+
       <div class="font-bold text-xl text-left">Settings</div>
       <div class="font-medium text-lg text-left">Visible Rows/Columns</div>
       <div class="font-medium text-left text-lg">
@@ -90,7 +94,7 @@
         <input class="rounded-sm w-12" bind:value={numHexagonsRows} />
         Number of rows
       </div>
-      {#if selectedDatagon == null}
+      {#if selectedDatagons.length <= 1}
         <div class="pt-2 font-medium text-lg text-left">Class filters</div>
         <div class="relative" bind:this={menu}>
           <div>
@@ -145,7 +149,7 @@
         </div>
       {:else}
         <div class="font-bold text-xl text-left">Cluster info</div>
-        <ClusterView datagon={selectedDatagon} />
+        <ClusterView datagons={selectedDatagons} />
       {/if}
     </div>
   </div>
@@ -158,7 +162,7 @@
       bind:selectedImageID
       imageScaling={sliderValue}
       maxHeight={availableAccHeight}
-      bind:selectedDatagon
+      bind:currentSelection={selectedDatagons}
       bind:topleftSVGPoint={accTopLeftCorner}
       bind:bottomrightSVGPoint={accBottomRightCorner}
       bind:initialDataWidth={accSvgWidth}

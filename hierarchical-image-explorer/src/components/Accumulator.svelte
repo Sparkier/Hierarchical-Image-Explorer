@@ -6,6 +6,9 @@
   import BackendService from '../services/backendService';
   import type { DataHexagon, PointData } from '../types';
   import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
+  import App from '../App.svelte';
+  import AppView from './views/AppView.svelte';
+  import ArrowUp from './icons/ArrowUp.svelte';
 
   export let initial_columns = 20;
   export let selectedImageID = '';
@@ -237,6 +240,20 @@
               }}
             />
           {:else}
+            {#if currentSelection.includes(datagon)}
+              <rect
+                x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
+                  (2 * hexaSide - imageWidth) / 2 -
+                  hexaSide / 10}
+                y={scaleQuantisedY(datagon.hexaY) +
+                  (2 * hexaShortDiag * hexaSide - imageWidth) / 2 -
+                  hexaSide / 10}
+                width={imageWidth + 2 * (hexaSide / 10)}
+                height={imageWidth + 2 * (hexaSide / 10)}
+                stroke="none"
+                fill={ColorUtil.SELECTION_HIGHLIGHT_COLOR}
+              />
+            {/if}
             <image
               width={imageWidth}
               height={imageWidth}
@@ -245,10 +262,9 @@
               y={scaleQuantisedY(datagon.hexaY) +
                 (2 * hexaShortDiag * hexaSide - imageWidth) / 2}
               href={BackendService.getImageUrl(datagon.representantID)}
-              style="image-rendering: pixelated;"
+              style={'image-rendering: pixelated;'}
               on:click={() => {
-                selectedImageID = datagon.representantID;
-                //! remove me: selectedDatagon = null;
+                currentSelection = [...currentSelection, datagon];
               }}
             />
           {/if}
