@@ -9,15 +9,16 @@
 
   export let initial_columns = 20;
   export let selectedImageID = '';
-  export let selectedDatagon: null | DataHexagon = null;
   export let topleftSVGPoint: DOMPoint;
   export let bottomrightSVGPoint: DOMPoint;
   export let svgWidthValue: number;
   export let svgHeightValue: number;
+  export let currentSelection: DataHexagon[] = [];
+  export let maxHeight: number;
 
   const hexaShortDiag = Math.sqrt(3) / 2;
 
-  let svgWidth: number;
+  let maxWidth: number;
   let svg: SVGSVGElement;
   let g: SVGSVGElement;
   let svgContainer: HTMLElement;
@@ -27,17 +28,19 @@
   let filteredData: PointData[] = [];
   let currentQuantization: DataHexagon[] = [];
   let currentFilteredQuantization: DataHexagon[] = [];
-  let currentSelection: DataHexagon[] = [];
+
+  let toolbarHeight: number;
+
   let lodLevelProperty = 2;
   let selectionModeOn = false;
+  let hexaSide: number = 0;
 
   var columns = initial_columns;
 
-  $: hexaSide = svgWidth == undefined ? -1 : svgWidth / (3 * columns + 0.5);
+  // $: hexaSide = svgWidth == undefined ? -1 : svgWidth / (3 * columns + 0.5);
+
+  $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
   $: imageWidth = hexaSide;
-  $: svgHeight = rows * hexaSide * hexaShortDiag + hexaShortDiag * hexaSide; // Hexagon stacking (rows * Apothem (distance from center to edge (not corner)))
-  $: svgHeightValue = svgHeight;
-  $: svgWidthValue = svgWidth;
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
 
   $: {
@@ -45,7 +48,7 @@
   }
 
   $: scaleQuantisedX = (v: number, row: number) => {
-    return svgWidth == undefined
+    return maxWidth == undefined
       ? 0
       : v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
   };
@@ -71,6 +74,15 @@
       currentFilteredQuantization = r.datagons;
       rows = r.rows;
       columns = r.columns;
+
+      const widthToHeightDataRation = rows / (Math.sqrt(3) * columns);
+      if (widthToHeightDataRation * maxHeight > svgAvailHeight) {
+        // image is hight limited
+        hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);
+      } else {
+        // image is width limited
+        hexaSide = maxWidth / (3 * columns + 0.5);
+      }
     });
   }
   /**
@@ -165,7 +177,7 @@
   }
 </script>
 
-<div class="flex gap-2">
+<div class="flex gap-2" bind:clientHeight={toolbarHeight}>
   <div
     class={`${
       selectionModeOn ? 'bg-lime-400' : 'bg-slate-400'
@@ -186,13 +198,13 @@
   </div>
 </div>
 <div
-  bind:clientWidth={svgWidth}
+  bind:clientWidth={maxWidth}
   bind:this={svgContainer}
-  style="height: {svgHeight}px;"
+  style="height: {svgAvailHeight}px;"
   class="overflow-hidden"
 >
   <ZoomSVG
-    viewBox="0 0 {svgWidth} {svgHeight}"
+    viewBox="0 0 {maxWidth} {svgAvailHeight}"
     bind:zoomLevel
     bind:transform
     bind:svg
@@ -231,7 +243,7 @@
               style="image-rendering: pixelated;"
               on:click={() => {
                 selectedImageID = datagon.representantID;
-                selectedDatagon = null;
+                //! remove me: selectedDatagon = null;
               }}
             />
           {/if}

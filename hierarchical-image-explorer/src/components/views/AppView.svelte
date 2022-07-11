@@ -152,6 +152,7 @@
       columns={numHexagonsColumns}
       bind:selectedImageID
       imageScaling={sliderValue}
+      maxHeight={availableAccHeight}
       bind:selectedDatagon
       bind:topleftSVGPoint={accTopLeftCorner}
       bind:bottomrightSVGPoint={accBottomRightCorner}
