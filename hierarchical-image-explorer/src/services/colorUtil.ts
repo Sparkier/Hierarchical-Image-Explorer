@@ -1,5 +1,3 @@
-import type { PointData } from "../types";
-
 export class ColorUtil {
   public static colors = [
     '#DF2935',
