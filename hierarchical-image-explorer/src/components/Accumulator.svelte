@@ -73,8 +73,7 @@
       rows = r.rows;
       columns = r.columns;
 
-      const widthToHeightDataRation =
-        (3 * columns) / (((rows + 1) * Math.sqrt(3)) / 2);
+      const widthToHeightDataRation = (2 * columns * Math.sqrt(3)) / (1 + rows); // formula derived from width and height with "virtual" hexaside = 1 and then simplify
       console.log(widthToHeightDataRation);
       if (widthToHeightDataRation * maxHeight > svgAvailHeight) {
         // image is hight limited
