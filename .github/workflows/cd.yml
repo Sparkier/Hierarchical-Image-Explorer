@@ -39,8 +39,11 @@ jobs:
       - name: Adding Known Hosts
         run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy with rsync
+      - name: Deploy with rsync backend
         run: rsync -aPvz --delete ./backend/build/ www-data@${{ secrets.SSH_HOST }}:/var/www/hie-server/${GITHUB_REF_NAME}/
+
+      - name: Deploy with rsync frontend
+        run: rsync -aPvz --delete ./hierarchical-image-explorer/public/build/ www-data@${{ secrets.SSH_HOST }}:/var/www/html/forntend-${GITHUB_REF_NAME}/
 
       - name: Create lockfile
         run: echo "$(date)" > lockfile
