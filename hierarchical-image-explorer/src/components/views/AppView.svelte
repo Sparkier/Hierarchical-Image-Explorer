@@ -36,12 +36,10 @@
   let selectedImageLabel;
   let filteredData;
   let selectedDatagons: DataHexagon[] = [];
-
   let accTopLeftCorner: DOMPoint;
   let accBottomRightCorner: DOMPoint;
   let accSvgWidth: number;
   let accSvgHeight: number;
-
   let outerDiv: HTMLElement | undefined;
 
   const borderWidth = 2;

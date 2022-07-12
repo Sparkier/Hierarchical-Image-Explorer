@@ -30,15 +30,10 @@
   let transform: [number, number];
   let currentQuantization: DataHexagon[] = [];
   let currentFilteredQuantization: DataHexagon[] = [];
-
   let toolbarHeight: number;
-
   let selectionModeOn = false;
   let hexaSide: number = 0;
-
-  var columns = initial_columns;
-
-  // $: hexaSide = svgWidth == undefined ? -1 : svgWidth / (3 * columns + 0.5);
+  let columns = initial_columns;
 
   $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
   $: imageWidth = hexaSide;
@@ -76,19 +71,18 @@
       rows = r.rows;
       columns = r.columns;
 
-      const widthToHeightDataRation = (2 * columns * Math.sqrt(3)) / (1 + rows); // formula derived from width and height with "virtual" hexaside = 1 and then simplify
-      console.log(widthToHeightDataRation);
-      if (widthToHeightDataRation * maxHeight > svgAvailHeight) {
-        // image is hight limited
+      const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows); // formula derived from width and height with "virtual" hexaside = 1 and then simplify
+      if (widthToHeightDataRatio * maxHeight > svgAvailHeight) {
+        // image is height limited
         hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);
         if (initialDataHeight == 0) initialDataHeight = maxHeight;
         if (initialDataWidth == 0)
-          initialDataWidth = widthToHeightDataRation * maxHeight;
+          initialDataWidth = widthToHeightDataRatio * maxHeight;
       } else {
         // image is width limited
         hexaSide = maxWidth / (3 * columns + 0.5);
         if (initialDataHeight == 0)
-          initialDataHeight = widthToHeightDataRation * maxHeight;
+          initialDataHeight = widthToHeightDataRatio * maxHeight;
         if (initialDataWidth == 0) initialDataWidth = maxWidth;
       }
     });

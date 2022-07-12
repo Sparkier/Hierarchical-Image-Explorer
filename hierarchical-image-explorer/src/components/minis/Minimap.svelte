@@ -9,14 +9,12 @@
   export let columns = 20;
 
   let minimapWidth: number;
-
   let minimapHeight: number = 0;
+  let rows = 0;
+
   $: svgToMinimapScaleX = (v: number) => (v / svgWidth) * minimapWidth;
   $: svgToMinimapScaleY = (v: number) => (v / svgHeight) * minimapHeight;
-
   $: dotsize = minimapWidth / columns / 4;
-
-  let rows = 0;
 
   async function getFirstLayerData() {
     const serverPromise = BackendService.getDataQuantized(columns);
