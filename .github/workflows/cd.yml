@@ -43,7 +43,7 @@ jobs:
         run: rsync -aPvz --delete ./backend/build/ www-data@${{ secrets.SSH_HOST }}:/var/www/hie-server/${GITHUB_REF_NAME}/
 
       - name: Deploy with rsync frontend
-        run: rsync -aPvz --delete ./hierarchical-image-explorer/public/ www-data@${{ secrets.SSH_HOST }}:/var/www/frontend-${GITHUB_REF_NAME}/
+        run: rsync -aPvz --delete ./hierarchical-image-explorer/public/ www-data@${{ secrets.SSH_HOST }}:/var/www/frontend/${GITHUB_REF_NAME}/
 
       - name: Create lockfile
         run: echo "$(date)" > lockfile
