@@ -35,17 +35,21 @@
   let selectedDatagon: null | DataHexagon;
   let selectedImageLabel;
   let filteredData;
+  let selectedDatagons: DataHexagon[] = [];
   let accTopLeftCorner: DOMPoint;
   let accBottomRightCorner: DOMPoint;
-  let accSvgHeight: number;
   let accSvgWidth: number;
-
+  let accSvgHeight: number;
   let outerDiv: HTMLElement | undefined;
+
+  const borderWidth = 2;
 
   $: availableAccHeight =
     outerDiv == undefined
       ? 0
-      : window.innerHeight - outerDiv.getBoundingClientRect().y; // this will be used to limit the height of the accumulator to the screen
+      : window.innerHeight -
+        outerDiv.getBoundingClientRect().y -
+        2 * borderWidth; // this will be used to limit the height of the accumulator to the screen
 
   $: {
     if (selectedImageID != undefined && selectedImageID != '')
@@ -67,14 +71,17 @@
 
 <div class="flex items-stretch" bind:this={outerDiv}>
   <!-- Leftbar -->
-  <div class="w-1/5 left-0 border-r-2 border-y-2 border-slate-200 bg-slate-50">
-    <div class="p-4">
-      <Minimap
-        topLeftSvgCorner={accTopLeftCorner}
-        bottomRightSvgCorner={accBottomRightCorner}
-        svgWidth={accSvgWidth}
-        svgHeight={accSvgHeight}
-      />
+  <div class="w-1/5 border-r-2 border-y-2 border-slate-200 bg-slate-50">
+    <div class={'p-4 overflow-auto'} style="height: {availableAccHeight}px;">
+      <div class="w-56">
+        <Minimap
+          topLeftSvgCorner={accTopLeftCorner}
+          bottomRightSvgCorner={accBottomRightCorner}
+          svgWidth={accSvgWidth}
+          svgHeight={availableAccHeight}
+        />
+      </div>
+
       <div class="font-bold text-xl text-left">Settings</div>
       <div class="font-medium text-lg text-left">Visible Rows/Columns</div>
       <div class="font-medium text-left text-lg">
@@ -85,7 +92,7 @@
         <input class="rounded-sm w-12" bind:value={numHexagonsRows} />
         Number of rows
       </div>
-      {#if selectedDatagon == null}
+      {#if selectedDatagons.length <= 1}
         <div class="pt-2 font-medium text-lg text-left">Class filters</div>
         <div class="relative" bind:this={menu}>
           <div>
@@ -140,7 +147,7 @@
         </div>
       {:else}
         <div class="font-bold text-xl text-left">Cluster info</div>
-        <ClusterView datagon={selectedDatagon} />
+        <ClusterView datagons={selectedDatagons} />
       {/if}
     </div>
   </div>
@@ -152,11 +159,12 @@
       columns={numHexagonsColumns}
       bind:selectedImageID
       imageScaling={sliderValue}
-      bind:selectedDatagon
+      maxHeight={availableAccHeight}
+      bind:currentSelection={selectedDatagons}
       bind:topleftSVGPoint={accTopLeftCorner}
       bind:bottomrightSVGPoint={accBottomRightCorner}
-      bind:svgWidthValue={accSvgWidth}
-      bind:svgHeightValue={accSvgHeight}
+      bind:initialDataWidth={accSvgWidth}
+      bind:initialDataHeight={accSvgHeight}
     />
   </div>
 </div>

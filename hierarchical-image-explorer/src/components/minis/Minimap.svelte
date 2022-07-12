@@ -9,17 +9,28 @@
   export let columns = 20;
 
   let minimapWidth: number;
+  let minimapHeight: number = 0;
+  let rows = 0;
 
-  $: minimapHeight = (svgHeight / svgWidth) * minimapWidth;
   $: svgToMinimapScaleX = (v: number) => (v / svgWidth) * minimapWidth;
   $: svgToMinimapScaleY = (v: number) => (v / svgHeight) * minimapHeight;
-
   $: dotsize = minimapWidth / columns / 4;
+
+  async function getFirstLayerData() {
+    const serverPromise = BackendService.getDataQuantized(columns);
+    serverPromise.then((r) => {
+      rows = r.rows;
+      const virtualHexaSide = minimapWidth / (3 * columns);
+
+      minimapHeight = (((rows + 1) * Math.sqrt(3)) / 2) * virtualHexaSide;
+    });
+    return serverPromise;
+  }
 </script>
 
 <div bind:clientWidth={minimapWidth}>
   <svg height={minimapHeight} width={minimapWidth}>
-    {#await BackendService.getDataQuantized(columns)}
+    {#await getFirstLayerData()}
       <text>Loading Data</text>
     {:then quant}
       {#each quant.datagons as d}
