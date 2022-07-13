@@ -12,7 +12,8 @@ export class ColorUtil {
     '#FFA07A',
   ];
 
-  public static SELECTION_HIGHLIGHT_COLOR = "#fcfc1e"
+  public static SELECTION_HIGHLIGHT_COLOR_A = "#fcfc1e"
+  public static SELECTION_HIGHLIGHT_COLOR_B = "#ff1493"
 
   public static colorMap: Map<string, string> = new Map();
 
@@ -21,8 +22,12 @@ export class ColorUtil {
    * @param label
    * @returns assigned color
    */
-  public static getColor(label: string) {
-    if (this.colorMap.has(label)) return this.colorMap.get(label);
+  public static getColor(label: string):string {
+    if (this.colorMap.has(label)){
+      const color = this.colorMap.get(label);
+      if (color == undefined) throw new Error("Color not in colordict")
+      return color
+    }
     else {
       const color = this.colors[this.colorMap.size];
       this.colorMap = this.colorMap.set(label, color);

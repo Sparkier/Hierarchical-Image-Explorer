@@ -161,7 +161,7 @@
       bind:selectedImageID
       imageScaling={sliderValue}
       maxHeight={availableAccHeight}
-      bind:currentSelection={selectedDatagons}
+      bind:currentSelectionA={selectedDatagons}
       bind:topleftSVGPoint={accTopLeftCorner}
       bind:bottomrightSVGPoint={accBottomRightCorner}
       bind:initialDataWidth={accSvgWidth}

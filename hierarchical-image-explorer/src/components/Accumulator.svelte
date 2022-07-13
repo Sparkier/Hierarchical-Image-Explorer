@@ -11,7 +11,8 @@
   export let selectedImageID = '';
   export let topleftSVGPoint: DOMPoint;
   export let bottomrightSVGPoint: DOMPoint;
-  export let currentSelection: DataHexagon[] = [];
+  export let currentSelectionA: DataHexagon[] = [];
+  export let currentSelectionB: DataHexagon[] = [];
   export let maxHeight: number;
   export let initialDataHeight: number = 0;
   export let initialDataWidth: number = 0;
@@ -31,6 +32,8 @@
   let selectionModeOn = false;
   let hexaSide: number = 0;
   let columns = initial_columns;
+
+  let isASelectionActive = true;
 
   $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
   $: imageWidth = hexaSide;
@@ -58,12 +61,19 @@
 
   onMount(() => {
     getQuantizationData(0, true);
-    document.addEventListener('keyup', handleEscape, false);
+    document.addEventListener('keyup', handleKeyDown, false);
   });
 
-  function handleEscape(event: KeyboardEvent) {
+  function handleKeyDown(event: KeyboardEvent) {
     if (event.key === 'Escape') {
-      currentSelection = [];
+      currentSelectionA = [];
+      currentSelectionB = [];
+    }
+    if (event.key === 'x') {
+      isASelectionActive = !isASelectionActive;
+    }
+    if (event.key === 'Shift') {
+      selectionModeOn = true;
     }
   }
 
@@ -73,6 +83,8 @@
       currentQuantization = r.datagons;
       rows = r.rows;
       columns = r.columns;
+      currentSelectionA = [];
+      currentSelectionB = [];
 
       const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows); // formula derived from width and height with "virtual" hexaside = 1 and then simplify
       if (widthToHeightDataRatio * maxHeight > svgAvailHeight) {
@@ -180,25 +192,64 @@
       if (hitlist.id == 'lassoPolygon') return true;
       return false;
     });
-    currentSelection = [...currentSelection, ...newlySelectedHexagons];
+    newlySelectedHexagons.forEach((e) => handleDatagonSelection(e));
     selectionModeOn = false;
   }
 
   function handleDatagonSelection(datagon: DataHexagon) {
-    if (currentSelection.includes(datagon)) {
-      currentSelection = currentSelection.filter((e) => e != datagon);
-    } else currentSelection = [...currentSelection, datagon];
+    if (isASelectionActive) {
+      if (currentSelectionA.includes(datagon)) {
+        currentSelectionA = currentSelectionA.filter((e) => e != datagon);
+        return;
+      }
+      if (currentSelectionB.includes(datagon)) {
+        currentSelectionB = currentSelectionB.filter((e) => e != datagon);
+      }
+      currentSelectionA = [...currentSelectionA, datagon];
+    } else {
+      // Selection B is active
+      if (currentSelectionB.includes(datagon)) {
+        currentSelectionB = currentSelectionB.filter((e) => e != datagon);
+        return;
+      }
+      if (currentSelectionB.includes(datagon)) {
+        currentSelectionB = currentSelectionB.filter((e) => e != datagon);
+      }
+      currentSelectionB = [...currentSelectionB, datagon];
+    }
+
+    //else currentSelectionA = [...currentSelectionA, datagon];
+  }
+
+  function getSelectionInfo(
+    datagon: DataHexagon,
+    selA: DataHexagon[],
+    selB: DataHexagon[]
+  ): {
+    color: string;
+    isSelected: boolean;
+  } {
+    if (selA.includes(datagon)) {
+      return { color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_A, isSelected: true };
+    }
+    if (selB.includes(datagon)) {
+      return { color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_B, isSelected: true };
+    }
+    return {
+      color: ColorUtil.getColor(datagon.dominantLabel),
+      isSelected: false,
+    };
   }
 </script>
 
-<div
-  class="flex gap-2"
-  on:keydown={handleEscape}
-  bind:clientHeight={toolbarHeight}
->
+<div class="flex gap-2 px-2" bind:clientHeight={toolbarHeight}>
   <div
-    class={`${
-      selectionModeOn ? 'bg-lime-400' : 'bg-slate-400'
+    class={`cursor-pointer ${
+      selectionModeOn
+        ? isASelectionActive
+          ? 'bg-selection-yellow'
+          : 'bg-selection-pink'
+        : 'bg-slate-400'
     } rounded-lg w-12 p-2 mt-1`}
     on:click={() => {
       selectionModeOn = !selectionModeOn;
@@ -207,12 +258,16 @@
     <LassoSelectIcon />
   </div>
   <div
-    class="bg-slate-400 rounded-lg w-40 p-2 mt-1"
+    class={`rounded-lg w-14 p-2 mt-1 text-center cursor-pointer select-none ${
+      isASelectionActive
+        ? `bg-selection-yellow text-black`
+        : `bg-selection-pink text-white`
+    }`}
     on:click={() => {
-      currentSelection = [];
+      isASelectionActive = !isASelectionActive;
     }}
   >
-    Reset selection
+    A | B
   </div>
 </div>
 <div
@@ -235,25 +290,28 @@
       <g>
         {#each currentFilteredQuantization as datagon}
           <g
-            style={currentSelection.length == 0 ||
-            currentSelection.includes(datagon)
-              ? ''
-              : 'filter: opacity(60%)'}
+            style={currentSelectionA.length + currentSelectionB.length > 0 &&
+            !getSelectionInfo(datagon, currentSelectionA, currentSelectionB)
+              .isSelected
+              ? 'filter: opacity(60%)'
+              : ''}
           >
             {#if datagon.size > 1}
               <Hexagon
                 side={hexaSide}
                 x={scaleQuantisedX(datagon.hexaX, datagon.hexaY)}
                 y={scaleQuantisedY(datagon.hexaY)}
-                stroke={currentSelection.includes(datagon)
-                  ? ColorUtil.SELECTION_HIGHLIGHT_COLOR
-                  : ColorUtil.getColor(datagon.dominantLabel)}
+                stroke={getSelectionInfo(
+                  datagon,
+                  currentSelectionA,
+                  currentSelectionB
+                ).color}
                 strokeWidth={hexaSide / 5}
                 image={BackendService.getImageUrl(datagon.representantID)}
                 on:click={() => handleDatagonSelection(datagon)}
               />
             {:else}
-              {#if currentSelection.includes(datagon)}
+              {#if currentSelectionA.includes(datagon)}
                 <rect
                   x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
                     (2 * hexaSide - imageWidth) / 2 -
@@ -264,7 +322,11 @@
                   width={imageWidth + 2 * (hexaSide / 10)}
                   height={imageWidth + 2 * (hexaSide / 10)}
                   stroke="none"
-                  fill={ColorUtil.SELECTION_HIGHLIGHT_COLOR}
+                  fill={getSelectionInfo(
+                    datagon,
+                    currentSelectionA,
+                    currentSelectionB
+                  ).color}
                 />
               {/if}
               <image
