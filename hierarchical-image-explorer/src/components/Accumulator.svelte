@@ -6,9 +6,6 @@
   import BackendService from '../services/backendService';
   import type { DataHexagon, PointData } from '../types';
   import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
-  import App from '../App.svelte';
-  import AppView from './views/AppView.svelte';
-  import ArrowUp from './icons/ArrowUp.svelte';
 
   export let initial_columns = 20;
   export let selectedImageID = '';
@@ -60,14 +57,13 @@
   }
 
   onMount(() => {
-    getQuantizationData(0);
+    getQuantizationData(0, true);
   });
 
-  function getQuantizationData(lod: number) {
+  function getQuantizationData(lod: number, initliaCall = false) {
     BackendService.getDataQuantized(initial_columns * 2 ** lod).then((r) => {
       currentQuantization = [];
       currentQuantization = r.datagons;
-      currentFilteredQuantization = r.datagons;
       rows = r.rows;
       columns = r.columns;
 
@@ -85,6 +81,9 @@
           initialDataHeight = widthToHeightDataRatio * maxHeight;
         if (initialDataWidth == 0) initialDataWidth = maxWidth;
       }
+      if (initliaCall) {
+        currentFilteredQuantization = currentQuantization;
+      } else applyCulling();
     });
   }
   /**
@@ -129,7 +128,7 @@
     return pt.matrixTransform(matrix);
   }
 
-  function handleZoomEnd(event: CustomEvent<any>) {
+  function applyCulling() {
     // overestimate the inverse of scaleQuantized with a simple grid
     const x1_quantized = Math.floor(topleftSVGPoint.x / (3 * hexaSide)) - 1;
     const y1_quantized =
@@ -212,7 +211,7 @@
     bind:svg
     bind:g
     {selectionModeOn}
-    on:zoomEnd={(e) => handleZoomEnd(e)}
+    on:zoomEnd={() => applyCulling()}
     on:lassoSelectionEnd={() => handleLassoSelection()}
   >
     {#if hexaSide != 0 && currentQuantization.length != 0}
