@@ -58,7 +58,14 @@
 
   onMount(() => {
     getQuantizationData(0, true);
+    document.addEventListener('keyup', handleEscape, false);
   });
+
+  function handleEscape(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      currentSelection = [];
+    }
+  }
 
   function getQuantizationData(lod: number, initliaCall = false) {
     BackendService.getDataQuantized(initial_columns * 2 ** lod).then((r) => {
@@ -176,9 +183,19 @@
     currentSelection = [...currentSelection, ...newlySelectedHexagons];
     selectionModeOn = false;
   }
+
+  function handleDatagonSelection(datagon: DataHexagon) {
+    if (currentSelection.includes(datagon)) {
+      currentSelection = currentSelection.filter((e) => e != datagon);
+    } else currentSelection = [...currentSelection, datagon];
+  }
 </script>
 
-<div class="flex gap-2" bind:clientHeight={toolbarHeight}>
+<div
+  class="flex gap-2"
+  on:keydown={handleEscape}
+  bind:clientHeight={toolbarHeight}
+>
   <div
     class={`${
       selectionModeOn ? 'bg-lime-400' : 'bg-slate-400'
@@ -217,50 +234,52 @@
     {#if hexaSide != 0 && currentQuantization.length != 0}
       <g>
         {#each currentFilteredQuantization as datagon}
-          {#if datagon.size > 1}
-            <Hexagon
-              side={hexaSide}
-              x={scaleQuantisedX(datagon.hexaX, datagon.hexaY)}
-              y={scaleQuantisedY(datagon.hexaY)}
-              stroke={currentSelection.includes(datagon)
-                ? ColorUtil.SELECTION_HIGHLIGHT_COLOR
-                : ColorUtil.getColor(datagon.dominantLabel)}
-              strokeWidth={hexaSide / 5}
-              image={BackendService.getImageUrl(datagon.representantID)}
-              on:click={() => {
-                selectedImageID = '';
-                currentSelection = [...currentSelection, datagon];
-              }}
-            />
-          {:else}
-            {#if currentSelection.includes(datagon)}
-              <rect
+          <g
+            style={currentSelection.length == 0 ||
+            currentSelection.includes(datagon)
+              ? ''
+              : 'filter: opacity(60%)'}
+          >
+            {#if datagon.size > 1}
+              <Hexagon
+                side={hexaSide}
+                x={scaleQuantisedX(datagon.hexaX, datagon.hexaY)}
+                y={scaleQuantisedY(datagon.hexaY)}
+                stroke={currentSelection.includes(datagon)
+                  ? ColorUtil.SELECTION_HIGHLIGHT_COLOR
+                  : ColorUtil.getColor(datagon.dominantLabel)}
+                strokeWidth={hexaSide / 5}
+                image={BackendService.getImageUrl(datagon.representantID)}
+                on:click={() => handleDatagonSelection(datagon)}
+              />
+            {:else}
+              {#if currentSelection.includes(datagon)}
+                <rect
+                  x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
+                    (2 * hexaSide - imageWidth) / 2 -
+                    hexaSide / 10}
+                  y={scaleQuantisedY(datagon.hexaY) +
+                    (2 * hexaShortDiag * hexaSide - imageWidth) / 2 -
+                    hexaSide / 10}
+                  width={imageWidth + 2 * (hexaSide / 10)}
+                  height={imageWidth + 2 * (hexaSide / 10)}
+                  stroke="none"
+                  fill={ColorUtil.SELECTION_HIGHLIGHT_COLOR}
+                />
+              {/if}
+              <image
+                width={imageWidth}
+                height={imageWidth}
                 x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
-                  (2 * hexaSide - imageWidth) / 2 -
-                  hexaSide / 10}
+                  (2 * hexaSide - imageWidth) / 2}
                 y={scaleQuantisedY(datagon.hexaY) +
-                  (2 * hexaShortDiag * hexaSide - imageWidth) / 2 -
-                  hexaSide / 10}
-                width={imageWidth + 2 * (hexaSide / 10)}
-                height={imageWidth + 2 * (hexaSide / 10)}
-                stroke="none"
-                fill={ColorUtil.SELECTION_HIGHLIGHT_COLOR}
+                  (2 * hexaShortDiag * hexaSide - imageWidth) / 2}
+                href={BackendService.getImageUrl(datagon.representantID)}
+                style={'image-rendering: pixelated;'}
+                on:click={() => handleDatagonSelection(datagon)}
               />
             {/if}
-            <image
-              width={imageWidth}
-              height={imageWidth}
-              x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
-                (2 * hexaSide - imageWidth) / 2}
-              y={scaleQuantisedY(datagon.hexaY) +
-                (2 * hexaShortDiag * hexaSide - imageWidth) / 2}
-              href={BackendService.getImageUrl(datagon.representantID)}
-              style={'image-rendering: pixelated;'}
-              on:click={() => {
-                currentSelection = [...currentSelection, datagon];
-              }}
-            />
-          {/if}
+          </g>
         {/each}
       </g>
     {/if}

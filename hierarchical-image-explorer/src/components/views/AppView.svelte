@@ -10,6 +10,7 @@
   import type { DataHexagon, PointData } from '../../types';
   import Minimap from '../minis/Minimap.svelte';
   import { DEFAULT_NUM_OF_ROWS, DEFAULT_NUM_OF_COLUMNS } from '../../config.ts';
+  import { SIZE } from 'vega-lite/build/src/channel';
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {
@@ -27,13 +28,13 @@
   let yExtent: number[] = [];
   let data: PointData[];
   let show = false; // menu state
-  let menu = null; // menu wrapper DOM reference
+  let menu: HTMLDivElement | null = null; // menu wrapper DOM reference
   let numHexagonsColumns = DEFAULT_NUM_OF_COLUMNS;
   let numHexagonsRows = DEFAULT_NUM_OF_ROWS;
   let sliderValue = DEFAULT_SLIDER_VALUE;
-  let selectedImageID;
+  let selectedImageID: string;
   let selectedDatagon: null | DataHexagon;
-  let selectedImageLabel;
+  let selectedImageLabel: string;
   let filteredData;
   let selectedDatagons: DataHexagon[] = [];
   let accTopLeftCorner: DOMPoint;
@@ -92,7 +93,7 @@
         <input class="rounded-sm w-12" bind:value={numHexagonsRows} />
         Number of rows
       </div>
-      {#if selectedDatagons.length <= 1}
+      {#if selectedDatagons.reduce((a, b) => a + b.size, 0) <= 1}
         <div class="pt-2 font-medium text-lg text-left">Class filters</div>
         <div class="relative" bind:this={menu}>
           <div>
