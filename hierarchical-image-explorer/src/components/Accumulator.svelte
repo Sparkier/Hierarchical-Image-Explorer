@@ -6,6 +6,7 @@
   import BackendService from '../services/backendService';
   import type { DataHexagon, PointData } from '../types';
   import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
+  import { select_value } from 'svelte/internal';
 
   export let initial_columns = 20;
   export let selectedImageID = '';
@@ -311,7 +312,7 @@
                 on:click={() => handleDatagonSelection(datagon)}
               />
             {:else}
-              {#if currentSelectionA.includes(datagon)}
+              {#if getSelectionInfo(datagon, currentSelectionA, currentSelectionB).isSelected}
                 <rect
                   x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
                     (2 * hexaSide - imageWidth) / 2 -
