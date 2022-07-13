@@ -198,7 +198,6 @@
   >
     Reset selection
   </div>
-  <div>{currentFilteredQuantization.length}</div>
 </div>
 <div
   bind:clientWidth={maxWidth}
