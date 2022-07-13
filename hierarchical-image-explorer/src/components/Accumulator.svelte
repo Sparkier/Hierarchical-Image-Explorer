@@ -64,7 +64,6 @@
     BackendService.getDataQuantized(initial_columns * 2 ** lod).then((r) => {
       currentQuantization = [];
       currentQuantization = r.datagons;
-      //currentFilteredQuantization = r.datagons;
       rows = r.rows;
       columns = r.columns;
 
