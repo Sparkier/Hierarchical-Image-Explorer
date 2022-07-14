@@ -10,6 +10,7 @@
   import type { DataHexagon, PointData } from '../../types';
   import Minimap from '../minis/Minimap.svelte';
   import { DEFAULT_NUM_OF_ROWS, DEFAULT_NUM_OF_COLUMNS } from '../../config.ts';
+  import App from '../../App.svelte';
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {
@@ -35,7 +36,7 @@
   let selectedDatagon: null | DataHexagon;
   let selectedImageLabel: string;
   let filteredData;
-  let selectedDatagons: DataHexagon[] = [];
+  let selectedDatagons: Set<DataHexagon> = new Set<DataHexagon>();
   let accTopLeftCorner: DOMPoint;
   let accBottomRightCorner: DOMPoint;
   let accSvgWidth: number;
@@ -92,7 +93,7 @@
         <input class="rounded-sm w-12" bind:value={numHexagonsRows} />
         Number of rows
       </div>
-      {#if selectedDatagons.length == 1 && selectedDatagons[0].size == 1}
+      {#if selectedDatagons.size == 1 && Array.from(selectedDatagons)[0].size == 1}
         <div class="pt-2 font-medium text-lg text-left">Class filters</div>
         <div class="relative" bind:this={menu}>
           <div>
@@ -125,8 +126,8 @@
           </div>
         </div>
         <ImgView
-          imageID={selectedDatagons[0].representantID}
-          imageLabel={selectedDatagons[0].dominantLabel}
+          imageID={[...selectedDatagons][0].representantID}
+          imageLabel={[...selectedDatagons][0].dominantLabel}
           bind:numHexagonsColumns
           bind:numHexagonsRows
         />
@@ -145,9 +146,9 @@
             float
           />
         </div>
-      {:else if selectedDatagons.length > 0}
+      {:else if selectedDatagons.size > 0}
         <div class="font-bold text-xl text-left">Cluster info</div>
-        <ClusterView datagons={selectedDatagons} />
+        <ClusterView datagons={[...selectedDatagons]} />
       {/if}
     </div>
   </div>

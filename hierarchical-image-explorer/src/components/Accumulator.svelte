@@ -11,8 +11,8 @@
   export let selectedImageID = '';
   export let topleftSVGPoint: DOMPoint;
   export let bottomrightSVGPoint: DOMPoint;
-  export let currentSelectionA: DataHexagon[] = [];
-  export let currentSelectionB: DataHexagon[] = [];
+  export let currentSelectionA: Set<DataHexagon> = new Set<DataHexagon>();
+  export let currentSelectionB: Set<DataHexagon> = new Set<DataHexagon>();
   export let maxHeight: number;
   export let initialDataHeight: number = 0;
   export let initialDataWidth: number = 0;
@@ -65,8 +65,8 @@
   function handleKeyDown(event: KeyboardEvent) {
     console.log(event.key);
     if (event.key === 'Escape') {
-      currentSelectionA = [];
-      currentSelectionB = [];
+      currentSelectionA = new Set<DataHexagon>();
+      currentSelectionB = new Set<DataHexagon>();
     }
     if (event.key === 'x') {
       isASelectionActive = !isASelectionActive;
@@ -82,8 +82,8 @@
       currentQuantization = r.datagons;
       rows = r.rows;
       columns = r.columns;
-      currentSelectionA = [];
-      currentSelectionB = [];
+      currentSelectionA = new Set<DataHexagon>();
+      currentSelectionB = new Set<DataHexagon>();
 
       const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows); // formula derived from width and height with "virtual" hexaside = 1 and then simplify
       if (widthToHeightDataRatio * maxHeight > svgAvailHeight) {
@@ -197,39 +197,43 @@
 
   function handleDatagonSelection(datagon: DataHexagon) {
     if (isASelectionActive) {
-      if (currentSelectionA.includes(datagon)) {
-        currentSelectionA = currentSelectionA.filter((e) => e != datagon);
+      if (currentSelectionA.has(datagon)) {
+        currentSelectionA.delete(datagon);
+        currentSelectionA = currentSelectionA;
         return;
       }
-      if (currentSelectionB.includes(datagon)) {
-        currentSelectionB = currentSelectionB.filter((e) => e != datagon);
+      if (currentSelectionB.has(datagon)) {
+        currentSelectionB.delete(datagon);
+        currentSelectionB = currentSelectionB;
       }
-      currentSelectionA = [...currentSelectionA, datagon];
+      currentSelectionA = currentSelectionA.add(datagon);
     } else {
       // Selection B is active
-      if (currentSelectionB.includes(datagon)) {
-        currentSelectionB = currentSelectionB.filter((e) => e != datagon);
+      if (currentSelectionB.has(datagon)) {
+        currentSelectionB.delete(datagon);
+        currentSelectionB = currentSelectionB;
         return;
       }
-      if (currentSelectionB.includes(datagon)) {
-        currentSelectionB = currentSelectionB.filter((e) => e != datagon);
+      if (currentSelectionA.has(datagon)) {
+        currentSelectionA.delete(datagon);
+        currentSelectionA = currentSelectionA;
       }
-      currentSelectionB = [...currentSelectionB, datagon];
+      currentSelectionB = currentSelectionB.add(datagon);
     }
   }
 
   function getSelectionInfo(
     datagon: DataHexagon,
-    selA: DataHexagon[],
-    selB: DataHexagon[]
+    selA: Set<DataHexagon>,
+    selB: Set<DataHexagon>
   ): {
     color: string;
     isSelected: boolean;
   } {
-    if (selA.includes(datagon)) {
+    if (selA.has(datagon)) {
       return { color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_A, isSelected: true };
     }
-    if (selB.includes(datagon)) {
+    if (selB.has(datagon)) {
       return { color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_B, isSelected: true };
     }
     return {
@@ -289,7 +293,7 @@
       <g>
         {#each currentFilteredQuantization as datagon}
           <g
-            style={currentSelectionA.length + currentSelectionB.length > 0 &&
+            style={currentSelectionA.size + currentSelectionB.size > 0 &&
             !getSelectionInfo(datagon, currentSelectionA, currentSelectionB)
               .isSelected
               ? 'filter: opacity(60%)'
