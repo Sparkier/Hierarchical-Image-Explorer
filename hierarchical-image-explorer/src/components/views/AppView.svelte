@@ -10,7 +10,6 @@
   import type { DataHexagon, PointData } from '../../types';
   import Minimap from '../minis/Minimap.svelte';
   import { DEFAULT_NUM_OF_ROWS, DEFAULT_NUM_OF_COLUMNS } from '../../config.ts';
-  import App from '../../App.svelte';
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {
@@ -32,9 +31,6 @@
   let numHexagonsColumns = DEFAULT_NUM_OF_COLUMNS;
   let numHexagonsRows = DEFAULT_NUM_OF_ROWS;
   let sliderValue = DEFAULT_SLIDER_VALUE;
-  let selectedImageID: string;
-  let selectedDatagon: null | DataHexagon;
-  let selectedImageLabel: string;
   let filteredData;
   let selectedDatagons: Set<DataHexagon> = new Set<DataHexagon>();
   let accTopLeftCorner: DOMPoint;
@@ -51,14 +47,6 @@
       : window.innerHeight -
         outerDiv.getBoundingClientRect().y -
         2 * borderWidth; // this will be used to limit the height of the accumulator to the screen
-
-  $: {
-    if (selectedImageID != undefined && selectedImageID != '')
-      BackendService.getDataAnnotations(selectedImageID).then(
-        (r) => (selectedImageLabel = r.label)
-      );
-  }
-
   onMount(() => {
     document.addEventListener('click', handleOutsideClick, false);
     document.addEventListener('keyup', handleEscape, false);
@@ -158,7 +146,6 @@
       data={filteredData}
       rows={numHexagonsRows}
       columns={numHexagonsColumns}
-      bind:selectedImageID
       imageScaling={sliderValue}
       maxHeight={availableAccHeight}
       bind:currentSelectionA={selectedDatagons}

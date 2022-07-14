@@ -8,7 +8,6 @@
   import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
 
   export let initial_columns = 20;
-  export let selectedImageID = '';
   export let topleftSVGPoint: DOMPoint;
   export let bottomrightSVGPoint: DOMPoint;
   export let currentSelectionA: Set<DataHexagon> = new Set<DataHexagon>();
