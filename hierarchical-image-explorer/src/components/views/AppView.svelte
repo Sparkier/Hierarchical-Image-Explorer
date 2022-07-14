@@ -10,7 +10,6 @@
   import type { DataHexagon, PointData } from '../../types';
   import Minimap from '../minis/Minimap.svelte';
   import { DEFAULT_NUM_OF_ROWS, DEFAULT_NUM_OF_COLUMNS } from '../../config.ts';
-  import { SIZE } from 'vega-lite/build/src/channel';
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {
@@ -93,7 +92,7 @@
         <input class="rounded-sm w-12" bind:value={numHexagonsRows} />
         Number of rows
       </div>
-      {#if selectedDatagons.reduce((a, b) => a + b.size, 0) <= 1}
+      {#if selectedDatagons.length == 1 && selectedDatagons[0].size == 1}
         <div class="pt-2 font-medium text-lg text-left">Class filters</div>
         <div class="relative" bind:this={menu}>
           <div>
@@ -126,8 +125,8 @@
           </div>
         </div>
         <ImgView
-          imageID={selectedImageID}
-          imageLabel={selectedImageLabel}
+          imageID={selectedDatagons[0].representantID}
+          imageLabel={selectedDatagons[0].dominantLabel}
           bind:numHexagonsColumns
           bind:numHexagonsRows
         />
@@ -146,7 +145,7 @@
             float
           />
         </div>
-      {:else}
+      {:else if selectedDatagons.length > 0}
         <div class="font-bold text-xl text-left">Cluster info</div>
         <ClusterView datagons={selectedDatagons} />
       {/if}

@@ -6,7 +6,6 @@
   import BackendService from '../services/backendService';
   import type { DataHexagon, PointData } from '../types';
   import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
-  import { select_value } from 'svelte/internal';
 
   export let initial_columns = 20;
   export let selectedImageID = '';
@@ -33,7 +32,6 @@
   let selectionModeOn = false;
   let hexaSide: number = 0;
   let columns = initial_columns;
-
   let isASelectionActive = true;
 
   $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
@@ -62,10 +60,10 @@
 
   onMount(() => {
     getQuantizationData(0, true);
-    document.addEventListener('keyup', handleKeyDown, false);
   });
 
   function handleKeyDown(event: KeyboardEvent) {
+    console.log(event.key);
     if (event.key === 'Escape') {
       currentSelectionA = [];
       currentSelectionB = [];
@@ -218,8 +216,6 @@
       }
       currentSelectionB = [...currentSelectionB, datagon];
     }
-
-    //else currentSelectionA = [...currentSelectionA, datagon];
   }
 
   function getSelectionInfo(
@@ -242,6 +238,8 @@
     };
   }
 </script>
+
+<svelte:window on:keyup={handleKeyDown} />
 
 <div class="flex gap-2 px-2" bind:clientHeight={toolbarHeight}>
   <div
