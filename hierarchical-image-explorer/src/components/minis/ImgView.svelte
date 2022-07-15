@@ -23,5 +23,6 @@
     alt="select hexagon first"
     class="max-w-max max-h-max"
     src={BackendService.getImageUrl(imageID)}
+    style="image-rendering: pixelated;"
   />
 </div>

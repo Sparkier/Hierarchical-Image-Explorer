@@ -51,6 +51,7 @@
   alt="selected"
   class="ml-4 mt-2 mb-2 w-32 h-32"
   src={BackendService.getImageUrl(rep)}
+  style="image-rendering: pixelated;"
 />
 <div class="pl-4 mt-4 w-full">
   <ClusterBarChart distribution={getLabelDistribution(datagons)} />
