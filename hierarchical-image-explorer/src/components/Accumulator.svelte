@@ -8,10 +8,10 @@
   import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
 
   export let initial_columns = 20;
-  export let selectedImageID = '';
   export let topleftSVGPoint: DOMPoint;
   export let bottomrightSVGPoint: DOMPoint;
-  export let currentSelection: DataHexagon[] = [];
+  export let currentSelectionA: Set<DataHexagon> = new Set<DataHexagon>();
+  export let currentSelectionB: Set<DataHexagon> = new Set<DataHexagon>();
   export let maxHeight: number;
   export let initialDataHeight: number = 0;
   export let initialDataWidth: number = 0;
@@ -31,6 +31,7 @@
   let selectionModeOn = false;
   let hexaSide: number = 0;
   let columns = initial_columns;
+  let isASelectionActive = true;
 
   $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
   $: imageWidth = hexaSide;
@@ -60,12 +61,28 @@
     getQuantizationData(0, true);
   });
 
+  function handleKeyDown(event: KeyboardEvent) {
+    console.log(event.key);
+    if (event.key === 'Escape') {
+      currentSelectionA = new Set<DataHexagon>();
+      currentSelectionB = new Set<DataHexagon>();
+    }
+    if (event.key === 'x') {
+      isASelectionActive = !isASelectionActive;
+    }
+    if (event.key === 'Shift') {
+      selectionModeOn = true;
+    }
+  }
+
   function getQuantizationData(lod: number, initliaCall = false) {
     BackendService.getDataQuantized(initial_columns * 2 ** lod).then((r) => {
       currentQuantization = [];
       currentQuantization = r.datagons;
       rows = r.rows;
       columns = r.columns;
+      currentSelectionA = new Set<DataHexagon>();
+      currentSelectionB = new Set<DataHexagon>();
 
       const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows); // formula derived from width and height with "virtual" hexaside = 1 and then simplify
       if (widthToHeightDataRatio * maxHeight > svgAvailHeight) {
@@ -173,15 +190,68 @@
       if (hitlist.id == 'lassoPolygon') return true;
       return false;
     });
-    currentSelection = [...currentSelection, ...newlySelectedHexagons];
+    newlySelectedHexagons.forEach((e) => handleDatagonSelection(e));
     selectionModeOn = false;
+  }
+
+  function handleDatagonSelection(datagon: DataHexagon) {
+    if (isASelectionActive) {
+      if (currentSelectionA.has(datagon)) {
+        currentSelectionA.delete(datagon);
+        currentSelectionA = currentSelectionA;
+        return;
+      }
+      if (currentSelectionB.has(datagon)) {
+        currentSelectionB.delete(datagon);
+        currentSelectionB = currentSelectionB;
+      }
+      currentSelectionA = currentSelectionA.add(datagon);
+    } else {
+      // Selection B is active
+      if (currentSelectionB.has(datagon)) {
+        currentSelectionB.delete(datagon);
+        currentSelectionB = currentSelectionB;
+        return;
+      }
+      if (currentSelectionA.has(datagon)) {
+        currentSelectionA.delete(datagon);
+        currentSelectionA = currentSelectionA;
+      }
+      currentSelectionB = currentSelectionB.add(datagon);
+    }
+  }
+
+  function getSelectionInfo(
+    datagon: DataHexagon,
+    selA: Set<DataHexagon>,
+    selB: Set<DataHexagon>
+  ): {
+    color: string;
+    isSelected: boolean;
+  } {
+    if (selA.has(datagon)) {
+      return { color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_A, isSelected: true };
+    }
+    if (selB.has(datagon)) {
+      return { color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_B, isSelected: true };
+    }
+    return {
+      color: ColorUtil.getColor(datagon.dominantLabel),
+      isSelected: false,
+    };
   }
 </script>
 
-<div class="flex gap-2" bind:clientHeight={toolbarHeight}>
+<svelte:window on:keyup={handleKeyDown} />
+
+<div class="flex gap-2 px-2" bind:clientHeight={toolbarHeight}>
   <div
-    class={`${
-      selectionModeOn ? 'bg-lime-400' : 'bg-slate-400'
+    class={`cursor-pointer ${
+      selectionModeOn
+        ? isASelectionActive
+          ? 'bg-selection-yellow'
+          : 'bg-selection-pink'
+        : 'bg-slate-400'
     } rounded-lg w-12 p-2 mt-1`}
     on:click={() => {
       selectionModeOn = !selectionModeOn;
@@ -190,12 +260,16 @@
     <LassoSelectIcon />
   </div>
   <div
-    class="bg-slate-400 rounded-lg w-40 p-2 mt-1"
+    class={`rounded-lg w-14 p-2 mt-1 text-center cursor-pointer select-none ${
+      isASelectionActive
+        ? `bg-selection-yellow text-black`
+        : `bg-selection-pink text-white`
+    }`}
     on:click={() => {
-      currentSelection = [];
+      isASelectionActive = !isASelectionActive;
     }}
   >
-    Reset selection
+    A | B
   </div>
 </div>
 <div
@@ -217,50 +291,59 @@
     {#if hexaSide != 0 && currentQuantization.length != 0}
       <g>
         {#each currentFilteredQuantization as datagon}
-          {#if datagon.size > 1}
-            <Hexagon
-              side={hexaSide}
-              x={scaleQuantisedX(datagon.hexaX, datagon.hexaY)}
-              y={scaleQuantisedY(datagon.hexaY)}
-              stroke={currentSelection.includes(datagon)
-                ? ColorUtil.SELECTION_HIGHLIGHT_COLOR
-                : ColorUtil.getColor(datagon.dominantLabel)}
-              strokeWidth={hexaSide / 5}
-              image={BackendService.getImageUrl(datagon.representantID)}
-              on:click={() => {
-                selectedImageID = '';
-                currentSelection = [...currentSelection, datagon];
-              }}
-            />
-          {:else}
-            {#if currentSelection.includes(datagon)}
-              <rect
+          <g
+            style={currentSelectionA.size + currentSelectionB.size > 0 &&
+            !getSelectionInfo(datagon, currentSelectionA, currentSelectionB)
+              .isSelected
+              ? 'filter: opacity(60%)'
+              : ''}
+          >
+            {#if datagon.size > 1}
+              <Hexagon
+                side={hexaSide}
+                x={scaleQuantisedX(datagon.hexaX, datagon.hexaY)}
+                y={scaleQuantisedY(datagon.hexaY)}
+                stroke={getSelectionInfo(
+                  datagon,
+                  currentSelectionA,
+                  currentSelectionB
+                ).color}
+                strokeWidth={hexaSide / 5}
+                image={BackendService.getImageUrl(datagon.representantID)}
+                on:click={() => handleDatagonSelection(datagon)}
+              />
+            {:else}
+              {#if getSelectionInfo(datagon, currentSelectionA, currentSelectionB).isSelected}
+                <rect
+                  x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
+                    (2 * hexaSide - imageWidth) / 2 -
+                    hexaSide / 10}
+                  y={scaleQuantisedY(datagon.hexaY) +
+                    (2 * hexaShortDiag * hexaSide - imageWidth) / 2 -
+                    hexaSide / 10}
+                  width={imageWidth + 2 * (hexaSide / 10)}
+                  height={imageWidth + 2 * (hexaSide / 10)}
+                  stroke="none"
+                  fill={getSelectionInfo(
+                    datagon,
+                    currentSelectionA,
+                    currentSelectionB
+                  ).color}
+                />
+              {/if}
+              <image
+                width={imageWidth}
+                height={imageWidth}
                 x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
-                  (2 * hexaSide - imageWidth) / 2 -
-                  hexaSide / 10}
+                  (2 * hexaSide - imageWidth) / 2}
                 y={scaleQuantisedY(datagon.hexaY) +
-                  (2 * hexaShortDiag * hexaSide - imageWidth) / 2 -
-                  hexaSide / 10}
-                width={imageWidth + 2 * (hexaSide / 10)}
-                height={imageWidth + 2 * (hexaSide / 10)}
-                stroke="none"
-                fill={ColorUtil.SELECTION_HIGHLIGHT_COLOR}
+                  (2 * hexaShortDiag * hexaSide - imageWidth) / 2}
+                href={BackendService.getImageUrl(datagon.representantID)}
+                style={'image-rendering: pixelated;'}
+                on:click={() => handleDatagonSelection(datagon)}
               />
             {/if}
-            <image
-              width={imageWidth}
-              height={imageWidth}
-              x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
-                (2 * hexaSide - imageWidth) / 2}
-              y={scaleQuantisedY(datagon.hexaY) +
-                (2 * hexaShortDiag * hexaSide - imageWidth) / 2}
-              href={BackendService.getImageUrl(datagon.representantID)}
-              style={'image-rendering: pixelated;'}
-              on:click={() => {
-                currentSelection = [...currentSelection, datagon];
-              }}
-            />
-          {/if}
+          </g>
         {/each}
       </g>
     {/if}

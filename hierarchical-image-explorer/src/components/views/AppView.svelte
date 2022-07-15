@@ -27,15 +27,12 @@
   let yExtent: number[] = [];
   let data: PointData[];
   let show = false; // menu state
-  let menu = null; // menu wrapper DOM reference
+  let menu: HTMLDivElement | null = null; // menu wrapper DOM reference
   let numHexagonsColumns = DEFAULT_NUM_OF_COLUMNS;
   let numHexagonsRows = DEFAULT_NUM_OF_ROWS;
   let sliderValue = DEFAULT_SLIDER_VALUE;
-  let selectedImageID;
-  let selectedDatagon: null | DataHexagon;
-  let selectedImageLabel;
   let filteredData;
-  let selectedDatagons: DataHexagon[] = [];
+  let selectedDatagons: Set<DataHexagon> = new Set<DataHexagon>();
   let accTopLeftCorner: DOMPoint;
   let accBottomRightCorner: DOMPoint;
   let accSvgWidth: number;
@@ -50,14 +47,6 @@
       : window.innerHeight -
         outerDiv.getBoundingClientRect().y -
         2 * borderWidth; // this will be used to limit the height of the accumulator to the screen
-
-  $: {
-    if (selectedImageID != undefined && selectedImageID != '')
-      BackendService.getDataAnnotations(selectedImageID).then(
-        (r) => (selectedImageLabel = r.label)
-      );
-  }
-
   onMount(() => {
     document.addEventListener('click', handleOutsideClick, false);
     document.addEventListener('keyup', handleEscape, false);
@@ -92,7 +81,7 @@
         <input class="rounded-sm w-12" bind:value={numHexagonsRows} />
         Number of rows
       </div>
-      {#if selectedDatagons.length <= 1}
+      {#if selectedDatagons.size == 1 && Array.from(selectedDatagons)[0].size == 1}
         <div class="pt-2 font-medium text-lg text-left">Class filters</div>
         <div class="relative" bind:this={menu}>
           <div>
@@ -125,8 +114,8 @@
           </div>
         </div>
         <ImgView
-          imageID={selectedImageID}
-          imageLabel={selectedImageLabel}
+          imageID={[...selectedDatagons][0].representantID}
+          imageLabel={[...selectedDatagons][0].dominantLabel}
           bind:numHexagonsColumns
           bind:numHexagonsRows
         />
@@ -145,9 +134,9 @@
             float
           />
         </div>
-      {:else}
+      {:else if selectedDatagons.size > 0}
         <div class="font-bold text-xl text-left">Cluster info</div>
-        <ClusterView datagons={selectedDatagons} />
+        <ClusterView datagons={[...selectedDatagons]} />
       {/if}
     </div>
   </div>
@@ -157,10 +146,9 @@
       data={filteredData}
       rows={numHexagonsRows}
       columns={numHexagonsColumns}
-      bind:selectedImageID
       imageScaling={sliderValue}
       maxHeight={availableAccHeight}
-      bind:currentSelection={selectedDatagons}
+      bind:currentSelectionA={selectedDatagons}
       bind:topleftSVGPoint={accTopLeftCorner}
       bind:bottomrightSVGPoint={accBottomRightCorner}
       bind:initialDataWidth={accSvgWidth}
