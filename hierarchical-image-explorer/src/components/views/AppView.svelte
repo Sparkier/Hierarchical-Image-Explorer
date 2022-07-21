@@ -1,6 +1,7 @@
 <script lang="ts">
   import BackendService from '../../services/backendService';
   import Accumulator from '../Accumulator.svelte';
+  import FilterSelector from '../FilterSelector.svelte';
   import { onDestroy, onMount } from 'svelte';
   import ImgView from '../minis/ImgView.svelte';
   import ClusterView from '../minis/ClusterView.svelte';
@@ -60,7 +61,7 @@
 
 <div class="flex items-stretch" bind:this={outerDiv}>
   <!-- Leftbar -->
-  <div class="w-1/5 border-r-2 border-y-2 border-slate-200 bg-slate-50">
+  <div class="w-96 border-r-2 border-y-2 border-slate-200 bg-slate-50">
     <div class={'p-4 overflow-auto'} style="height: {availableAccHeight}px;">
       <div class="w-56">
         <Minimap
@@ -138,6 +139,7 @@
         <div class="font-bold text-xl text-left">Cluster info</div>
         <ClusterView datagons={[...selectedDatagons]} />
       {/if}
+      <FilterSelector />
     </div>
   </div>
   <!-- Image explorer -->
