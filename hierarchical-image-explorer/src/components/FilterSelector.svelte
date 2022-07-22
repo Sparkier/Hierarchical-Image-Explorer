@@ -79,7 +79,7 @@
         />
         </div>
       </div>
-
+      
       <div class="flex items-center mt-2 mb-2">
       <div class="mr-2 text-md font-medium text-black ">AND</div>
       <label for="andor-toggle" class="inline-flex relative cursor-pointer">
@@ -93,11 +93,14 @@
           }
           AndConcat = !AndConcat;
         }}>
-        <div class="w-11 h-6 bg-hie-orange peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-hie-orange rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-hie-red"></div>
+        <div class="w-11 h-6 bg-hie-orange peer-focus:outline-none peer-focus:ring-2
+          peer-focus:ring-hie-orange rounded-full peer peer-checked:after:translate-x-full
+          peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px]
+          after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full
+          after:h-5 after:w-5 after:transition-all peer-checked:bg-hie-red"></div>
       </label>
         <div class="ml-2 text-md font-medium text-black">OR</div>
       </div>
-
     {/each}
     <div class="text-left">
       <button
