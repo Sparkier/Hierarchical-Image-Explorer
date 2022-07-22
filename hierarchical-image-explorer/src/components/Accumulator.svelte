@@ -38,6 +38,7 @@
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
 
   $: {
+    initial_columns;
     getQuantizationData(levelOfDetail);
   }
 

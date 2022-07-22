@@ -8,9 +8,10 @@
   import { scale } from 'svelte/transition';
   import RangeSlider from 'svelte-range-slider-pips';
   import { DEFAULT_SLIDER_VALUE } from '../../config.ts';
-  import type { DataHexagon, PointData } from '../../types';
+  import type { DataHexagon, PointData, SettingsObject } from '../../types';
   import Minimap from '../minis/Minimap.svelte';
   import { DEFAULT_NUM_OF_ROWS, DEFAULT_NUM_OF_COLUMNS } from '../../config.ts';
+  import SideBarSettings from '../minis/SideBarSettings.svelte';
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {
@@ -39,6 +40,7 @@
   let accSvgWidth: number;
   let accSvgHeight: number;
   let outerDiv: HTMLElement | undefined;
+  let settingsObject: SettingsObject = { columns: 20 };
 
   const borderWidth = 2;
 
@@ -71,17 +73,7 @@
           svgHeight={availableAccHeight}
         />
       </div>
-
-      <div class="font-bold text-xl text-left">Settings</div>
-      <div class="font-medium text-lg text-left">Visible Rows/Columns</div>
-      <div class="font-medium text-left text-lg">
-        <input class="rounded-sm w-12" bind:value={numHexagonsColumns} />
-        Number of columns
-      </div>
-      <div class="mt-2 font-medium text-left text-lg">
-        <input class="rounded-sm w-12" bind:value={numHexagonsRows} />
-        Number of rows
-      </div>
+      <SideBarSettings bind:settingsObject />
       {#if selectedDatagons.size == 1 && Array.from(selectedDatagons)[0].size == 1}
         <div class="pt-2 font-medium text-lg text-left">Class filters</div>
         <div class="relative" bind:this={menu}>
@@ -145,10 +137,7 @@
   <!-- Image explorer -->
   <div class="w-4/5 border-y-2 border-slate-200">
     <Accumulator
-      data={filteredData}
-      rows={numHexagonsRows}
-      columns={numHexagonsColumns}
-      imageScaling={sliderValue}
+      initial_columns={settingsObject.columns}
       maxHeight={availableAccHeight}
       bind:currentSelectionA={selectedDatagons}
       bind:topleftSVGPoint={accTopLeftCorner}

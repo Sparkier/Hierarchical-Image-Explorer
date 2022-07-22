@@ -1,6 +1,6 @@
 <script lang="ts">
-  import CancelButton from "./icons/CancelButton.svelte";
-  import type {filterDescriptor} from "../types";
+  import CancelButton from './icons/CancelButton.svelte';
+  import type { filterDescriptor } from '../types';
 
   //!! TODO: grab categories, once arquero is on main
   // this is very much fake
@@ -13,8 +13,7 @@
   ];
 
   let filterList: filterDescriptor[] = []; // list of all filters to be applied
-  let concatenations: string[] = []; // concatenations of the filter operations
-  let AndConcat = false;
+  let concatenations: boolean[] = []; // concatenations of the filter operations
 
   /**
    * Creates and adds a filter to the list of filters to be applied.
@@ -35,8 +34,8 @@
   /**
    * Add a concatenation to the list of concatenations to be applied.
    */
-  function addConcatenation(comparator: string) {
-    concatenations = [...concatenations, comparator];
+  function addConcatenation(isOr: boolean) {
+    concatenations = [...concatenations, isOr];
   }
 </script>
 
@@ -44,61 +43,75 @@
   <div class="font-bold text-xl text-left">Filter</div>
   <div class="grid columns-1 w-full">
     {#each filterList as filter, index}
-      <div class="w-80 h-28 bg-white rounded-md flex mt-2 mb-2 relative flex-col">
+      <div
+        class="w-80 h-28 bg-white rounded-md flex mt-2 mb-2 relative flex-col"
+      >
         <div
           class="mr-2 mt-2 absolute top-0 right-0 order-1"
           on:click={() => {
             filterList = filterList.filter((e) => e !== filter);
-            concatenations = concatenations.splice(index, 0);
+            concatenations.splice(index, 1);
+            concatenations = [...concatenations];
           }}
         >
-          <CancelButton/>
+          <CancelButton />
         </div>
-        <div class="text-lg pl-2 pt-2 pb-2"> Select the filters:</div>
-        <div class="h-0.5 bg-neutral-200 order-2"></div>
-        <div class="pl-2 pt-2 order-last flex-row justify-between items-stretch">
-          <select class="h-10 text-lg rounded-sm" bind:value={filter.toBeFilteredOn}>
-          <option value="">to filter</option>
-          {#each categories as cat}
-            <option value={cat}>{cat}</option>
-          {/each}
-        </select>
-          <select class="h-10 rounded-sm text-lg" bind:value={filter.comparator}>
-          <option value="<="> ≤ </option>
-          <option value=">="> ≥ </option>
-          <option value="="> = </option>
-          <option value="<"> {'<'} </option>
-          <option value=">"> {'>'} </option>
-          <option value="!="> ≠ </option>
-        </select>
+        <div class="text-lg pl-2 pt-2 pb-2">Select the filters:</div>
+        <div class="h-0.5 bg-neutral-200 order-2" />
+        <div
+          class="pl-2 pt-2 order-last flex-row justify-between items-stretch"
+        >
+          <select
+            class="h-10 text-lg rounded-sm"
+            bind:value={filter.toBeFilteredOn}
+          >
+            <option value="">to filter</option>
+            {#each categories as cat}
+              <option value={cat}>{cat}</option>
+            {/each}
+          </select>
+          <select
+            class="h-10 rounded-sm text-lg"
+            bind:value={filter.comparator}
+          >
+            <option value="<="> ≤ </option>
+            <option value=">="> ≥ </option>
+            <option value="="> = </option>
+            <option value="<"> {'<'} </option>
+            <option value=">"> {'>'} </option>
+            <option value="!="> ≠ </option>
+          </select>
           <input
-          bind:value={filter.valueToBeComparedTo}
-          class="pr-2 rounded-sm h-10 bg-neutral-200 focus:outline-none focus:border-hie-orange focus:ring-hie-orange focus:ring-2 w-2/5 placeholder:italic placeholder:text-slate-400 placeholder:pl-2"
-          placeholder="Insert class"
-          type="text"
-        />
+            bind:value={filter.valueToBeComparedTo}
+            class="pr-2 rounded-sm h-10 bg-neutral-200 focus:outline-none focus:border-hie-orange 
+            focus:ring-hie-orange focus:ring-2 w-2/5 placeholder:italic placeholder:text-slate-400 pl-2"
+            placeholder="Insert class"
+            type="text"
+          />
         </div>
       </div>
-      
+
       <div class="flex items-center mt-2 mb-2">
-      <div class="mr-2 text-md font-medium text-black ">AND</div>
-      <label for="andor-toggle" class="inline-flex relative cursor-pointer">
-        <input type="checkbox" value="" id="andor-toggle" class="sr-only peer" checked={AndConcat}
-        on:click={() => {
-          if(!AndConcat){
-            concatenations[index] = 'OR'
-          }
-          else{
-            concatenations[index] = 'AND'
-          }
-          AndConcat = !AndConcat;
-        }}>
-        <div class="w-11 h-6 bg-hie-orange peer-focus:outline-none peer-focus:ring-2
+        <div class="mr-2 text-md font-medium text-black ">AND</div>
+        <label
+          for={'andor-toggle' + index}
+          class="inline-flex relative cursor-pointer"
+        >
+          <input
+            type="checkbox"
+            value=""
+            id={'andor-toggle' + index}
+            class="sr-only peer"
+            bind:checked={concatenations[index]}
+          />
+          <div
+            class="w-11 h-6 bg-hie-orange peer-focus:outline-none peer-focus:ring-2
           peer-focus:ring-hie-orange rounded-full peer peer-checked:after:translate-x-full
           peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px]
           after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full
-          after:h-5 after:w-5 after:transition-all peer-checked:bg-hie-red"></div>
-      </label>
+          after:h-5 after:w-5 after:transition-all peer-checked:bg-hie-red"
+          />
+        </label>
         <div class="ml-2 text-md font-medium text-black">OR</div>
       </div>
     {/each}
@@ -107,7 +120,7 @@
         class="bg-hie-orange hover:bg-hie-red text-white font-bold py-2 px-4 rounded"
         on:click={() => {
           addFilter('', '=', '');
-          addConcatenation('AND');
+          addConcatenation(false);
         }}
       >
         ADD FILTER

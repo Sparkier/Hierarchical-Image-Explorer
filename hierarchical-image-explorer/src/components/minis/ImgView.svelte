@@ -21,7 +21,7 @@
 <div class="pt-2 pb-2 flex justify-center">
   <img
     alt="select hexagon first"
-    class="w-32 h-32"
+    class="max-w-max max-h-max"
     src={BackendService.getImageUrl(imageID)}
   />
 </div>
