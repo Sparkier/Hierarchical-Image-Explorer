@@ -9,7 +9,7 @@ export type SWGInfo = {
   image_id: string;
   file_path: string;
   label: string;
-}
+};
 
 export type DataHexagon = {
   hexaX: number;
@@ -26,4 +26,10 @@ export type QuantizationResults = {
   yDomain: [number, number];
   columns: number;
   rows: number;
+};
+
+export type filterDescriptor = {
+  toBeFilteredOn: string; // type to be filtered on
+  comparator: string; // comparison operator to be used
+  valueToBeComparedTo: string; // value to be compared with
 };
