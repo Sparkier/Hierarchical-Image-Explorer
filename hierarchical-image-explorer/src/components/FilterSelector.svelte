@@ -40,7 +40,7 @@
 </script>
 
 <div>
-  <div class="font-bold text-xl text-left">Filter</div>
+  <div class="font-bold text-xl text-left pt-2">Filter</div>
   <div class="grid columns-1 w-full">
     {#each filterList as filter, index}
       <div
@@ -57,7 +57,7 @@
           <CancelButton />
         </div>
         <div class="text-lg pl-2 pt-2 pb-2">Select the filters:</div>
-        <div class="h-0.5 bg-neutral-200 order-2" />
+        <div class="h-0.5 bg-neutral-200 order-2"></div >
         <div
           class="pl-2 pt-2 order-last flex-row justify-between items-stretch"
         >
@@ -109,15 +109,14 @@
           peer-focus:ring-hie-orange rounded-full peer peer-checked:after:translate-x-full
           peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px]
           after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full
-          after:h-5 after:w-5 after:transition-all peer-checked:bg-hie-red"
-          />
+          after:h-5 after:w-5 after:transition-all peer-checked:bg-hie-red"></div >
         </label>
         <div class="ml-2 text-md font-medium text-black">OR</div>
       </div>
     {/each}
     <div class="text-left">
       <button
-        class="bg-hie-orange hover:bg-hie-red text-white font-bold py-2 px-4 rounded"
+        class="bg-hie-orange hover:bg-hie-red text-white font-bold py-2 px-4 rounded pt-2"
         on:click={() => {
           addFilter('', '=', '');
           addConcatenation(false);
