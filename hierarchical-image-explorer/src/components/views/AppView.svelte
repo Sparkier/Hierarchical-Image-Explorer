@@ -11,7 +11,7 @@
   import type { DataHexagon, PointData, SettingsObject } from '../../types';
   import Minimap from '../minis/Minimap.svelte';
   import { DEFAULT_NUM_OF_ROWS, DEFAULT_NUM_OF_COLUMNS } from '../../config.ts';
-  import SideBarSettings from '../minis/SideBarSettings.svelte';
+  import SidebarSettings from '../minis/SidebarSettings.svelte';
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {
@@ -73,7 +73,7 @@
           svgHeight={availableAccHeight}
         />
       </div>
-      <SideBarSettings bind:settingsObject />
+      <SidebarSettings bind:settingsObject />
       {#if selectedDatagons.size == 1 && Array.from(selectedDatagons)[0].size == 1}
         <div class="pt-2 font-medium text-lg text-left">Class filters</div>
         <div class="relative" bind:this={menu}>
