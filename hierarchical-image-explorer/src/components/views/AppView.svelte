@@ -14,12 +14,9 @@
   import SidebarSettings from '../minis/SidebarSettings.svelte';
   import * as aq from 'arquero';
 
-  import {
-    DEFAULT_NUM_OF_ROWS,
-    DEFAULT_NUM_OF_COLUMNS,
-    DEFAULT_SLIDER_VALUE,
-  } from '../../config.ts';
+  import { DEFAULT_NUM_OF_ROWS, DEFAULT_SLIDER_VALUE } from '../../config.ts';
   import { TableService } from '../../services/tableService';
+  import { DEFAULT_NUM_OF_COLUMNS } from '../../config';
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {

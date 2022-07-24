@@ -41,6 +41,8 @@
 
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
 
+  $: console.log('iunitsdfkjnl', initialColumns);
+
   $: {
     getQuantizationData(levelOfDetail, initialColumns);
   }
@@ -108,7 +110,6 @@
     currentSelectionB = new Set<DataHexagon>();
 
     const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows); // formula derived from width and height with "virtual" hexaside = 1 and then simplify
-    console.log(widthToHeightDataRatio);
     if (widthToHeightDataRatio * maxWidth > svgAvailHeight) {
       // image is height limited
       hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);

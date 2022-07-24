@@ -10,9 +10,14 @@ import type { QuantizationResults, SWGInfo } from "../types";
 export default class BackendService {
   private static serverAdress = SERVER_ADRESS
 
-  private static async getEndpoint(endpoint: string): Promise<unknown> {
+  private static async getEndpointJSON(endpoint: string): Promise<unknown> {
     const response = await fetch(this.serverAdress + endpoint);
     return response.json();
+  }
+
+  private static async getEndpointBinary(endpoint:string): Promise<unknown> {
+    const response = await fetch(this.serverAdress + endpoint)
+    return response.arrayBuffer
   }
 
   public static getImageUrl(dataID: string): string {
@@ -20,11 +25,11 @@ export default class BackendService {
   }
 
   public static async getDataQuantized(columns:number):Promise<QuantizationResults> {
-    return this.getEndpoint(`data/quantized?columns=${columns}`) as Promise<QuantizationResults>
+    return this.getEndpointJSON(`data/quantized?columns=${columns}`) as Promise<QuantizationResults>
   }
 
   public static async getDataArquero():Promise<string> {
-    return this.getEndpoint("data/aquero/all") as Promise<string>
+    return this.getEndpointJSON("data/aquero/all") as Promise<string>
   }
 
 }
