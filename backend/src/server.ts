@@ -5,6 +5,18 @@ import fs from 'fs';
 import path from 'path';
 import type { HIEConfiguration } from './types';
 import * as aq from "arquero";
+import ColumnTable from 'arquero/dist/types/table/column-table';
+
+// serialization 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+interface BigInt {
+  /** Convert to BigInt to string form in JSON.stringify */
+  toJSON: () => string;
+}
+// @ts-ignore
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+};
 
 // parse commandline arguments
 let port = 25679;
@@ -36,12 +48,26 @@ const confData = JSON.parse(
 ) as HIEConfiguration;
 const hieConfig = confData;
 
-// read tables and create a combined arquero table
-const swgCSVString = fs.readFileSync(hieConfig.swg).toString()
-const points2dCSVString = fs.readFileSync(hieConfig.points2d).toString()
 
-const swgQuero = aq.fromCSV(swgCSVString);
-const dimRedQuero = aq.fromCSV(points2dCSVString); 
+let swgQuero:ColumnTable
+let dimRedQuero:ColumnTable
+// read in swg table
+if (hieConfig.swg.endsWith(".csv")){
+  const swgCSVString = fs.readFileSync(hieConfig.swg).toString()
+  swgQuero = aq.fromCSV(swgCSVString);
+} else { // assume it is an arrow table
+  const swgArrow = fs.readFileSync(hieConfig.swg)
+  swgQuero = aq.fromArrow(swgArrow)
+}
+// read in dim red table
+if (hieConfig.points2d.endsWith(".csv")) {
+  const points2dCSVString = fs.readFileSync(hieConfig.points2d).toString()
+  dimRedQuero = aq.fromCSV(points2dCSVString);
+} else {
+  const dimredArrow = fs.readFileSync(hieConfig.points2d)
+  dimRedQuero = aq.fromArrow(dimredArrow)
+}
+
 
 // unify and drop image_id
 let unifiedTable = dimRedQuero.join(swgQuero, ["id", "image_id"], [aq.all(), aq.not("image_id")]);
@@ -87,5 +113,6 @@ app.get('/data/images/:id', (req, res) => {
 });
 
 app.get('/data/aquero/all', (_req, res) =>{
-  res.send(unifiedTable.select(aq.not("file_path")));
+  const table = unifiedTable.select(aq.not("file_path"))
+  res.send(table)
 })

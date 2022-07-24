@@ -1,7 +1,5 @@
 {
-  "swg": "./data/flowers/flowers.csv",
-  "cluster": "./data/flowers/flowers__agg_clustering.json",
-  "similarityMatrix": "./data/flowers/flowers__sim_matrix.json",
-  "points2d": "./data/flowers/flowers__umap.csv",
+  "swg": "./data/flowers/flowers.arrow",
+  "points2d": "./data/flowers/flowers__umap.arrow",
   "imgDataRoot": "../"
 }

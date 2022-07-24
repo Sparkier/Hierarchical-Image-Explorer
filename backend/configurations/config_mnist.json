@@ -1,7 +1,5 @@
 {
-  "swg": "./data/mnist_test/mnist_test.csv",
-  "cluster": "./data/mnist_test/mnist_test__agg_clustering.json",
-  "similarityMatrix": "tbd",
-  "points2d": "./data/mnist_test/mnist_test__umap.csv",
+  "swg": "./data/mnist_test/mnist_test.arrow",
+  "points2d": "./data/mnist_test/mnist_test_umap.arrow",
   "imgDataRoot": "../"
 }

@@ -1,0 +1,5 @@
+{
+  "swg": "./data/alexImageNet/alexImageNetNoAct.arrow",
+  "points2d": "./data/alexImageNet/alexImageNet_t-sne.arrow",
+  "imgDataRoot": "../"
+}
