@@ -24,7 +24,6 @@
     description: 'Cluster content distribution',
     title: 'Cluster content distribution',
     background: null,
-    width: 300,
     autosize: {
       type: 'fit-x',
       contains: 'padding',

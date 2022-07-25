@@ -7,10 +7,9 @@
   import ClusterView from '../minis/ClusterView.svelte';
   import { scale } from 'svelte/transition';
   import RangeSlider from 'svelte-range-slider-pips';
-  import { DEFAULT_SLIDER_VALUE } from '../../config.ts';
+  import { DEFAULT_SLIDER_VALUE, DEFAULT_SETTINGS } from '../../config';
   import type { DataHexagon, PointData, SettingsObject } from '../../types';
   import Minimap from '../minis/Minimap.svelte';
-  import { DEFAULT_NUM_OF_ROWS, DEFAULT_NUM_OF_COLUMNS } from '../../config.ts';
   import SidebarSettings from '../minis/SidebarSettings.svelte';
 
   const handleOutsideClick = (event) => {
@@ -30,17 +29,14 @@
   let data: PointData[];
   let show = false; // menu state
   let menu: HTMLDivElement | null = null; // menu wrapper DOM reference
-  let numHexagonsColumns = DEFAULT_NUM_OF_COLUMNS;
-  let numHexagonsRows = DEFAULT_NUM_OF_ROWS;
   let sliderValue = DEFAULT_SLIDER_VALUE;
-  let filteredData;
   let selectedDatagons: Set<DataHexagon> = new Set<DataHexagon>();
   let accTopLeftCorner: DOMPoint;
   let accBottomRightCorner: DOMPoint;
   let accSvgWidth: number;
   let accSvgHeight: number;
   let outerDiv: HTMLElement | undefined;
-  let settingsObject: SettingsObject = { columns: 20 };
+  let settingsObject: SettingsObject = DEFAULT_SETTINGS;
 
   const borderWidth = 2;
 
@@ -109,8 +105,6 @@
         <ImgView
           imageID={[...selectedDatagons][0].representantID}
           imageLabel={[...selectedDatagons][0].dominantLabel}
-          bind:numHexagonsColumns
-          bind:numHexagonsRows
         />
         <div class="font-medium text-lg text-left">Image scaling</div>
         <div
@@ -137,7 +131,7 @@
   <!-- Image explorer -->
   <div class="w-4/5 border-y-2 border-slate-200">
     <Accumulator
-      initial_columns={settingsObject.columns}
+      initialColumns={settingsObject.columns}
       maxHeight={availableAccHeight}
       bind:currentSelectionA={selectedDatagons}
       bind:topleftSVGPoint={accTopLeftCorner}

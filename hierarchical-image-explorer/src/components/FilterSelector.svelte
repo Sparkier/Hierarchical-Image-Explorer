@@ -13,7 +13,7 @@
   ];
 
   let filterList: filterDescriptor[] = []; // list of all filters to be applied
-  let concatenations: boolean[] = []; // concatenations of the filter operations
+  let concatenations: boolean[] = []; // list of concatenations of the filter operations (AND/OR) after selecting in the UI
 
   /**
    * Creates and adds a filter to the list of filters to be applied.
@@ -33,9 +33,10 @@
 
   /**
    * Add a concatenation to the list of concatenations to be applied.
+   * @param isOrSelected boolean indicating if the user selected the OR (else the AND) operation after adding filters
    */
-  function addConcatenation(isOr: boolean) {
-    concatenations = [...concatenations, isOr];
+  function addConcatenation(isOrSelected: boolean) {
+    concatenations = [...concatenations, isOrSelected];
   }
 </script>
 
@@ -90,7 +91,6 @@
           />
         </div>
       </div>
-
       <div class="flex items-center mt-2 mb-2">
         <div class="mr-2 text-md font-medium text-black ">AND</div>
         <label
