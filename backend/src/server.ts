@@ -90,14 +90,18 @@ function startServer() {
 }
 
 function getAbsolutPath(filePath: string) {
-  // relative path?
   return path.join(
-    confData.imgDataRoot.startsWith('.') ? __dirname : '',
+    confData.imgDataRoot.startsWith('.') ? __dirname : '', // relative path?
     confData.imgDataRoot,
     filePath
   );
 }
 
+/**
+ * Returns a row of the unifiedTable by its id
+ * @param id id of the row
+ * @returns a row of unifiedTable corresponding to the given ID
+ */
 function getColumnByID(id: string){
   return unifiedTable.filter(aq.escape((d:{id:string}) => d.id == id))
 }
