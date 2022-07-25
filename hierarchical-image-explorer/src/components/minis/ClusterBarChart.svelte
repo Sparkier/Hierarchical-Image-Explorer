@@ -24,8 +24,10 @@
     description: 'Cluster content distribution',
     title: 'Cluster content distribution',
     background: null,
-    height: 450,
-    autosize: 'fit-x',
+    autosize: {
+      type: 'fit-x',
+      contains: 'padding',
+    },
     data: {
       name: 'table',
     },
@@ -40,8 +42,8 @@
       cursor: 'pointer',
     },
     encoding: {
-      x: { field: 'label', type: 'nominal' },
-      y: { field: 'amount', type: 'quantitative', axis: { tickMinStep: 1 } },
+      x: { field: 'amount', type: 'quantitative', axis: { tickMinStep: 1 } },
+      y: { field: 'label', type: 'nominal' },
       fillOpacity: { condition: { param: 'select', value: 1 }, value: 0.3 },
       color: {
         field: 'label',

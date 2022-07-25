@@ -5,9 +5,10 @@
   import ZoomSVG from './ZoomSVG.svelte';
   import BackendService from '../services/backendService';
   import type { DataHexagon, PointData } from '../types';
+  import { DEFAULT_NUM_COLUMNS } from '../config';
   import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
 
-  export let initial_columns = 20;
+  export let initialColumns = DEFAULT_NUM_COLUMNS;
   export let topleftSVGPoint: DOMPoint;
   export let bottomrightSVGPoint: DOMPoint;
   export let currentSelectionA: Set<DataHexagon> = new Set<DataHexagon>();
@@ -30,7 +31,7 @@
   let toolbarHeight: number;
   let selectionModeOn = false;
   let hexaSide: number = 0;
-  let columns = initial_columns;
+  let columns = initialColumns;
   let isASelectionActive = true;
 
   $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
@@ -38,7 +39,7 @@
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
 
   $: {
-    getQuantizationData(levelOfDetail);
+    getQuantizationData(levelOfDetail, initialColumns);
   }
 
   $: scaleQuantisedX = (v: number, row: number) => {
@@ -58,11 +59,10 @@
   }
 
   onMount(() => {
-    getQuantizationData(0, true);
+    getQuantizationData(0, initialColumns, true);
   });
 
   function handleKeyDown(event: KeyboardEvent) {
-    console.log(event.key);
     if (event.key === 'Escape') {
       currentSelectionA = new Set<DataHexagon>();
       currentSelectionB = new Set<DataHexagon>();
@@ -75,8 +75,8 @@
     }
   }
 
-  function getQuantizationData(lod: number, initliaCall = false) {
-    BackendService.getDataQuantized(initial_columns * 2 ** lod).then((r) => {
+  function getQuantizationData(lod: number, initialColumns:number, initliaCall = false) {
+    BackendService.getDataQuantized(initialColumns * 2 ** lod).then((r) => {
       currentQuantization = [];
       currentQuantization = r.datagons;
       rows = r.rows;

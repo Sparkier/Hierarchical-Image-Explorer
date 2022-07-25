@@ -33,3 +33,5 @@ export type filterDescriptor = {
   comparator: string; // comparison operator to be used
   valueToBeComparedTo: string; // value to be compared with
 };
+
+export type SettingsObject = { columns: number};
