@@ -39,8 +39,7 @@
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
 
   $: {
-    initialColumns;
-    getQuantizationData(levelOfDetail);
+    getQuantizationData(levelOfDetail, initialColumns);
   }
 
   $: scaleQuantisedX = (v: number, row: number) => {
@@ -60,7 +59,7 @@
   }
 
   onMount(() => {
-    getQuantizationData(0, true);
+    getQuantizationData(0, initialColumns, true);
   });
 
   function handleKeyDown(event: KeyboardEvent) {
@@ -76,7 +75,7 @@
     }
   }
 
-  function getQuantizationData(lod: number, initliaCall = false) {
+  function getQuantizationData(lod: number, initialColumns:number, initliaCall = false) {
     BackendService.getDataQuantized(initialColumns * 2 ** lod).then((r) => {
       currentQuantization = [];
       currentQuantization = r.datagons;
