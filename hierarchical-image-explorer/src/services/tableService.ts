@@ -4,6 +4,8 @@ import type { DataHexagon, PointData, QuantizationResults } from "../types";
 
 export class TableService{
   static table:ColumnTable|null = null;
+  private static APOTHEM = Math.sqrt(3) / 2;
+  private static HEXA_RATIO = Math.sqrt(3);
   
   public static isTableSet(){
     return this.table == null
@@ -15,12 +17,11 @@ export class TableService{
   }
 
   public static getDataQuantized(columns:number):QuantizationResults {
-    if(this.table == null) throw new Error("Table is null")
+    if(this.table == null) throw new Error("The Table has not been loaded yet")
     return this.quantize(columns)
   }
 
-  private static APOTHEM = Math.sqrt(3) / 2;
-  private static HEXA_RATIO = Math.sqrt(3);
+
 
   /**
    * Aggregates the dimensionality reduction points into hexagons
@@ -28,7 +29,6 @@ export class TableService{
    * @returns List of Quantizationresults
    */
   public static quantize(columns: number): QuantizationResults {
-
     const { xMin, xMax, yExtent, xExtent, yMin, yMax } =
       this.getExtents();
 
@@ -49,32 +49,15 @@ export class TableService{
         rows
       );
 
-    const possiblePoints: {
-      xCoord: number;
-      xQuantized: number;
-      yCoord: number;
-      yQuantized: number;
-    }[][] = [];
-
-    this.calculatePossiblePoints(
+   const possiblePoints = this.calculatePossiblePoints(
       columns,
-      possiblePoints,
       rows,
       scaleQuantizedX,
       scaleQuantizedY,
       hexaSide
     );
 
-    // initialize empty 3d Array
-    const quantized: PointData[][][] = [];
-    for (let x = 0; x < columns; x++) {
-      quantized.push([]);
-      for (let y = 0; y < rows; y++) {
-        quantized[x].push([]);
-      }
-    }
-
-    this.getQuantization(
+    const quantized = this.getQuantization(
       xMin,
       hexaSide,
       yMin,
@@ -83,11 +66,9 @@ export class TableService{
       possiblePoints,
       scaleX,
       scaleY,
-      quantized
     );
 
-    const dataList: DataHexagon[] = [];
-    this.aggregateQuantization(quantized, possiblePoints, xMin, yMin, dataList);
+    const dataList = this.aggregateQuantization(quantized, possiblePoints, xMin, yMin);
 
     return {
       datagons: dataList,
@@ -116,8 +97,8 @@ export class TableService{
     }[][],
     xMin: number,
     yMin: number,
-    dataList: DataHexagon[]
   ) {
+    const dataList: DataHexagon[] = [];
     for (let x = 0; x < quantized.length; x++) {
       for (let y = 0; y < quantized[x].length; y++) {
         if (quantized[x][y].length != 0) {
@@ -149,6 +130,7 @@ export class TableService{
         }
       }
     }
+    return dataList
   }
 
   /**
@@ -165,7 +147,7 @@ export class TableService{
    * @param possiblePoints list of hexagon centers to quantize in
    * @param scaleX scale between data and hexagon domain
    * @param scaleY scale between data and hexagon domain
-   * @param quantized
+   * @param quantized 
    */
   private static getQuantization(
     xMin: number,
@@ -181,8 +163,16 @@ export class TableService{
     }[][],
     scaleX: (v: number) => number,
     scaleY: (v: number) => number,
-    quantized: PointData[][][]
   ) {
+    // initialize empty 3d Array
+    const quantized: PointData[][][] = [];
+    for (let x = 0; x < columns; x++) {
+      quantized.push([]);
+      for (let y = 0; y < rows; y++) {
+        quantized[x].push([]);
+      }
+    }
+
     for (const filteredPointObject of this.getTable()) {
       const filteredPoint = filteredPointObject as {x:number, y:number, id:string, label:string}
       let gridX = Math.floor(
@@ -230,7 +220,8 @@ export class TableService{
       quantized[closestHexa.xQuantized][closestHexa.yQuantized].push(
         filteredPoint
       );
-    };
+    }
+    return quantized
   }
 
   /**
@@ -244,17 +235,17 @@ export class TableService{
    */
   private static calculatePossiblePoints(
     columns: number,
-    possiblePoints: {
-      xCoord: number;
-      xQuantized: number;
-      yCoord: number;
-      yQuantized: number;
-    }[][],
     rows: number,
     scaleQuantizedX: (v: number, row: number) => number,
     scaleQuantizedY: (v: number) => number,
     hexaSide: number
   ) {
+    const possiblePoints: {
+      xCoord: number;
+      xQuantized: number;
+      yCoord: number;
+      yQuantized: number;
+    }[][] = [];
     for (let i = 0; i < columns; i++) {
       possiblePoints.push([]);
     }
@@ -273,6 +264,7 @@ export class TableService{
         };
       }
     }
+    return possiblePoints
   }
 
   /**
@@ -284,7 +276,7 @@ export class TableService{
    * @param yMin minimum y in data
    * @param yExtent maxY-minY
    * @param rows amount of hexagons in y direction
-   * @returns
+   * @returns object containing quantized scales and linear scales for both x and y
    */
   private static generateScales(
     hexaSide: number,
@@ -294,7 +286,7 @@ export class TableService{
     yMin: number,
     yExtent: number,
     rows: number
-  ) {
+  ): { scaleQuantizedX: (v: number, row: number) => number; scaleQuantizedY: (v: number) => number; scaleX: (v: number) => number; scaleY: (v: number) => number; } {
     const scaleQuantizedX = (v: number, row: number) => {
       return v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
     };
@@ -313,10 +305,9 @@ export class TableService{
     return { scaleQuantizedX, scaleQuantizedY, scaleX, scaleY };
   }
   /**
-   * Returns the minima, maxima and extent of given 2d-points data
+   * Returns the minima, maxima and extent of the data from the table
    */
-  private static getExtents() {
-
+  private static getExtents(): { xMin: number; xMax: number; xExtent: number; yExtent: number; yMin: number; yMax: number; } {
     const {xMin, xMax, yMin, yMax} = this.getTable().rollup({
       xMin: aq.op.min('x'),
       xMax: aq.op.max('x'),
@@ -345,7 +336,7 @@ export class TableService{
    * @param input list of strings
    * @returns Dictionary with string : amount
    */
-  private static countOccurances(input: string[]) {
+  private static countOccurances(input: string[]): Map<string, number> {
     const countMap = new Map<string, number>();
     input.forEach((p) => {
       const prevCount = countMap.get(p);

@@ -38,10 +38,7 @@
   let afterInitializationQueue: Function[] = [];
 
   $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
-
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
-
-  $: console.log('iunitsdfkjnl', initialColumns);
 
   $: {
     getQuantizationData(levelOfDetail, initialColumns);
@@ -102,7 +99,6 @@
       initial_columns * 2 ** lod
     );
 
-    currentQuantization = [];
     currentQuantization = quantizationResult.datagons;
     rows = quantizationResult.rows;
     columns = quantizationResult.columns;

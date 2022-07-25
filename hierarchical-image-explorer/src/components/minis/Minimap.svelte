@@ -20,7 +20,10 @@
   $: svgToMinimapScaleY = (v: number) => (v / svgHeight) * minimapHeight;
   $: dotsize = minimapWidth / columns / 4;
 
-  function getFirstLayerData() {
+  /**
+   * retrieves the quantized data used in the minimap
+   */
+  function getQuantizedBlobs() {
     const quantizationResult = TableService.getDataQuantized(columns);
     rows = quantizationResult.rows;
     const virtualHexaSide = minimapWidth / (3 * columns);
@@ -29,7 +32,7 @@
   }
 
   onMount(() => {
-    datagons = getFirstLayerData();
+    datagons = getQuantizedBlobs();
   });
 </script>
 
