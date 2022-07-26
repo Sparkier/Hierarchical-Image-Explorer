@@ -5,9 +5,8 @@
     "moduleResolution": "node",
     "types": ["node"],
     "target": "es6",
-    "module": "commonjs",
+    "module": "esnext",
     "rootDir": "./src",
-    "outDir": "./build-ts",
   },
   "include": [
     "src/**/*.ts",
