@@ -145,13 +145,12 @@ def generate_annotations_from_folders(destination, dataset, store_csv):
             file_paths.append(str(file))
             labels.append(class_name.name)
             generated_id += 1
-    write_data(destination, dataset, store_csv,
-               swg_name, ids, file_paths, labels)
-
-
-def write_data(destination, dataset, store_csv, swg_name, ids, file_paths, labels):
-    """Writes columns into an arrow file"""
     swg_dict = {"image_id": ids, "file_path": file_paths, "label": labels}
+    write_data_table(destination, dataset, store_csv, swg_name, swg_dict)
+
+
+def write_data_table(destination, dataset, store_csv, swg_name, swg_dict):
+    """Writes data into an arrow IPC file"""
     arrow_table = pa.Table.from_pydict(swg_dict)
     output_path = Path(destination) / dataset["name"] / (swg_name + ".arrow")
     writer = pa.RecordBatchFileWriter(output_path, arrow_table.schema)
