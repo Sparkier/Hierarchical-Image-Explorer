@@ -4,16 +4,15 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import type { HIEConfiguration } from './types';
-import * as aq from "arquero";
+import * as aq from 'arquero';
 import ColumnTable from 'arquero/dist/types/table/column-table';
 
-// serialization 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-interface BigInt {
-  /** Convert to BigInt to string form in JSON.stringify */
-  toJSON: () => string;
+// json parsing extension
+declare global {
+  interface BigInt {
+    toJSON: () => string;
+  }
 }
-// @ts-ignore
 BigInt.prototype.toJSON = function () {
   return this.toString();
 };
@@ -48,30 +47,33 @@ const confData = JSON.parse(
 ) as HIEConfiguration;
 const hieConfig = confData;
 
-
-let swgQuero:ColumnTable
-let dimRedQuero:ColumnTable
+let swgQuero: ColumnTable;
+let dimRedQuero: ColumnTable;
 // read in swg table
-if (hieConfig.swg.endsWith(".csv")){
-  const swgCSVString = fs.readFileSync(hieConfig.swg).toString()
+if (hieConfig.swg.endsWith('.csv')) {
+  const swgCSVString = fs.readFileSync(hieConfig.swg).toString();
   swgQuero = aq.fromCSV(swgCSVString);
-} else { // assume it is an arrow table
-  const swgArrow = fs.readFileSync(hieConfig.swg)
-  swgQuero = aq.fromArrow(swgArrow)
+} else {
+  // assume it is an arrow table
+  const swgArrow = fs.readFileSync(hieConfig.swg);
+  swgQuero = aq.fromArrow(swgArrow);
 }
 // read in dim red table
-if (hieConfig.points2d.endsWith(".csv")) {
-  const points2dCSVString = fs.readFileSync(hieConfig.points2d).toString()
+if (hieConfig.points2d.endsWith('.csv')) {
+  const points2dCSVString = fs.readFileSync(hieConfig.points2d).toString();
   dimRedQuero = aq.fromCSV(points2dCSVString);
 } else {
-  const dimredArrow = fs.readFileSync(hieConfig.points2d)
-  dimRedQuero = aq.fromArrow(dimredArrow)
+  const dimredArrow = fs.readFileSync(hieConfig.points2d);
+  dimRedQuero = aq.fromArrow(dimredArrow);
 }
 
-
 // unify and drop image_id
-let unifiedTable = dimRedQuero.join(swgQuero, ["id", "image_id"], [aq.all(), aq.not("image_id")]);
-console.log(`Table loaded with ${unifiedTable.numRows()} rows`)
+const unifiedTable = dimRedQuero.join(
+  swgQuero,
+  ['id', 'image_id'],
+  [aq.all(), aq.not('image_id')]
+);
+console.log(`Table loaded with ${unifiedTable.numRows()} rows`);
 
 const app = express();
 
@@ -102,8 +104,8 @@ function getAbsolutPath(filePath: string) {
  * @param id id of the row
  * @returns a row of unifiedTable corresponding to the given ID
  */
-function getColumnByID(id: string){
-  return unifiedTable.filter(aq.escape((d:{id:string}) => d.id == id))
+function getColumnByID(id: string) {
+  return unifiedTable.filter(aq.escape((d: { id: string }) => d.id == id));
 }
 
 // endpoints
@@ -112,11 +114,11 @@ app.get('/', (_req, res) => {
 });
 
 app.get('/data/images/:id', (req, res) => {
-  const filePath = getColumnByID(req.params.id).get('file_path',0)
-  res.sendFile(getAbsolutPath(filePath))
+  const filePath = getColumnByID(req.params.id).get('file_path', 0);
+  res.sendFile(getAbsolutPath(filePath));
 });
 
-app.get('/data/aquero/all', (_req, res) =>{
-  const table = unifiedTable.select(aq.not("file_path"))
-  res.send(table)
-})
+app.get('/data/aquero/all', (_req, res) => {
+  const table = unifiedTable.select(aq.not('file_path'));
+  res.send(table);
+});
