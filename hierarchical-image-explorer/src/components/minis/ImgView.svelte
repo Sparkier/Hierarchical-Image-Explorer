@@ -21,7 +21,8 @@
 <div class="pt-2 pb-2 flex justify-center">
   <img
     alt="select hexagon first"
-    class="max-w-max max-h-max"
+    class="max-w-64 max-h-64"
     src={BackendService.getImageUrl(imageID)}
+    style="image-rendering: pixelated;"
   />
 </div>

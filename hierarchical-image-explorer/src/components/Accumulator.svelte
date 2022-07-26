@@ -7,6 +7,7 @@
   import type { DataHexagon, PointData } from '../types';
   import { DEFAULT_NUM_COLUMNS } from '../config';
   import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
+  import { TableService } from '../services/tableService';
 
   export let initialColumns = DEFAULT_NUM_COLUMNS;
   export let topleftSVGPoint: DOMPoint;
@@ -33,13 +34,24 @@
   let hexaSide: number = 0;
   let columns = initialColumns;
   let isASelectionActive = true;
+  let isMounted = false;
+  let afterInitializationQueue: Function[] = [];
 
   $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
-  $: imageWidth = hexaSide;
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
 
   $: {
     getQuantizationData(levelOfDetail, initialColumns);
+  }
+
+  $: {
+    if (
+      afterInitializationQueue.length != 0 &&
+      svg != undefined &&
+      svgAvailHeight != 0
+    ) {
+      afterInitializationQueue.forEach((e) => e());
+    }
   }
 
   $: scaleQuantisedX = (v: number, row: number) => {
@@ -59,7 +71,11 @@
   }
 
   onMount(() => {
-    getQuantizationData(0, initialColumns, true);
+    const getInitialHexagons = () => {
+      getQuantizationData(0, initialColumns, true);
+      isMounted = true;
+    };
+    afterInitializationQueue.push(getInitialHexagons);
   });
 
   function handleKeyDown(event: KeyboardEvent) {
@@ -75,33 +91,38 @@
     }
   }
 
-  function getQuantizationData(lod: number, initialColumns:number, initliaCall = false) {
-    BackendService.getDataQuantized(initialColumns * 2 ** lod).then((r) => {
-      currentQuantization = [];
-      currentQuantization = r.datagons;
-      rows = r.rows;
-      columns = r.columns;
-      currentSelectionA = new Set<DataHexagon>();
-      currentSelectionB = new Set<DataHexagon>();
+  function getQuantizationData(
+    lod: number,
+    initial_columns: number,
+    initialCall = false
+  ) {
+    const quantizationResult = TableService.getDataQuantized(
+      initial_columns * 2 ** lod
+    );
 
-      const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows); // formula derived from width and height with "virtual" hexaside = 1 and then simplify
-      if (widthToHeightDataRatio * maxHeight > svgAvailHeight) {
-        // image is height limited
-        hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);
-        if (initialDataHeight == 0) initialDataHeight = maxHeight;
-        if (initialDataWidth == 0)
-          initialDataWidth = widthToHeightDataRatio * maxHeight;
-      } else {
-        // image is width limited
-        hexaSide = maxWidth / (3 * columns + 0.5);
-        if (initialDataHeight == 0)
-          initialDataHeight = widthToHeightDataRatio * maxHeight;
-        if (initialDataWidth == 0) initialDataWidth = maxWidth;
-      }
-      if (initliaCall) {
-        currentFilteredQuantization = currentQuantization;
-      } else applyCulling();
-    });
+    currentQuantization = quantizationResult.datagons;
+    rows = quantizationResult.rows;
+    columns = quantizationResult.columns;
+    currentSelectionA = new Set<DataHexagon>();
+    currentSelectionB = new Set<DataHexagon>();
+
+    const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows); // formula derived from width and height with "virtual" hexaside = 1 and then simplify
+    if (widthToHeightDataRatio * maxWidth > svgAvailHeight) {
+      // image is height limited
+      hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);
+      if (initialDataHeight == 0) initialDataHeight = maxHeight;
+      if (initialDataWidth == 0)
+        initialDataWidth = widthToHeightDataRatio * maxHeight;
+    } else {
+      // image is width limited
+      hexaSide = maxWidth / (3 * columns + 0.5);
+      if (initialDataHeight == 0)
+        initialDataHeight = widthToHeightDataRatio * maxHeight;
+      if (initialDataWidth == 0) initialDataWidth = maxWidth;
+    }
+    if (initialCall) {
+      currentFilteredQuantization = currentQuantization;
+    } else applyCulling();
   }
   /**
    * Takes a point in dom coordinate space and maps it to a svg coordinate point
@@ -147,6 +168,7 @@
 
   function applyCulling() {
     // overestimate the inverse of scaleQuantized with a simple grid
+    if (topleftSVGPoint == undefined) return;
     const x1_quantized = Math.floor(topleftSVGPoint.x / (3 * hexaSide)) - 1;
     const y1_quantized =
       Math.floor(topleftSVGPoint.y / (2 * hexaShortDiag * hexaSide)) * 2 - 1;
@@ -240,6 +262,10 @@
       isSelected: false,
     };
   }
+
+  function updateQuantization(levelOfDetail: number) {
+    if (isMounted) getQuantizationData(levelOfDetail, initialColumns);
+  }
 </script>
 
 <svelte:window on:keyup={handleKeyDown} />
@@ -316,13 +342,13 @@
               {#if getSelectionInfo(datagon, currentSelectionA, currentSelectionB).isSelected}
                 <rect
                   x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
-                    (2 * hexaSide - imageWidth) / 2 -
+                    hexaSide / 2 -
                     hexaSide / 10}
                   y={scaleQuantisedY(datagon.hexaY) +
-                    (2 * hexaShortDiag * hexaSide - imageWidth) / 2 -
+                    (2 * hexaShortDiag * hexaSide - hexaSide) / 2 -
                     hexaSide / 10}
-                  width={imageWidth + 2 * (hexaSide / 10)}
-                  height={imageWidth + 2 * (hexaSide / 10)}
+                  width={hexaSide + 2 * (hexaSide / 10)}
+                  height={hexaSide + 2 * (hexaSide / 10)}
                   stroke="none"
                   fill={getSelectionInfo(
                     datagon,
@@ -332,12 +358,12 @@
                 />
               {/if}
               <image
-                width={imageWidth}
-                height={imageWidth}
+                width={hexaSide}
+                height={hexaSide}
                 x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
-                  (2 * hexaSide - imageWidth) / 2}
+                  (2 * hexaSide - hexaSide) / 2}
                 y={scaleQuantisedY(datagon.hexaY) +
-                  (2 * hexaShortDiag * hexaSide - imageWidth) / 2}
+                  (2 * hexaShortDiag * hexaSide - hexaSide) / 2}
                 href={BackendService.getImageUrl(datagon.representantID)}
                 style={'image-rendering: pixelated;'}
                 on:click={() => handleDatagonSelection(datagon)}

@@ -25,11 +25,11 @@ export class ColorUtil {
   public static getColor(label: string):string {
     if (this.colorMap.has(label)){
       const color = this.colorMap.get(label);
-      if (color == undefined) throw new Error("Color not in colordict")
+      if (color == undefined) throw new Error(`Color not in colordict: ${String(color)} for label: ${label}`)
       return color
     }
     else {
-      const color = this.colors[this.colorMap.size];
+      const color = this.colors[this.colorMap.size%this.colors.length];
       this.colorMap = this.colorMap.set(label, color);
       return color;
     }
