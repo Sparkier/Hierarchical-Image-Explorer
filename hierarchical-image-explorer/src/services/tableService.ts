@@ -85,7 +85,7 @@ export class TableService{
    * @param possiblePoints list of hexagon centers
    * @param xMin minmal x in Data
    * @param yMin minimal y in Data
-   * @param dataList empty list
+   * @returns list of datagons
    */
   private static aggregateQuantization(
     quantized: PointData[][][],
@@ -97,7 +97,7 @@ export class TableService{
     }[][],
     xMin: number,
     yMin: number,
-  ) {
+  ): DataHexagon[] {
     const dataList: DataHexagon[] = [];
     for (let x = 0; x < quantized.length; x++) {
       for (let y = 0; y < quantized[x].length; y++) {
@@ -147,7 +147,7 @@ export class TableService{
    * @param possiblePoints list of hexagon centers to quantize in
    * @param scaleX scale between data and hexagon domain
    * @param scaleY scale between data and hexagon domain
-   * @param quantized 
+   * @returns 3d array of quantized coordinates
    */
   private static getQuantization(
     xMin: number,
@@ -163,7 +163,7 @@ export class TableService{
     }[][],
     scaleX: (v: number) => number,
     scaleY: (v: number) => number,
-  ) {
+  ): PointData[][][] {
     // initialize empty 3d Array
     const quantized: PointData[][][] = [];
     for (let x = 0; x < columns; x++) {
@@ -227,11 +227,11 @@ export class TableService{
   /**
    * Calculates possible hexagon centers for quantization
    * @param columns amount of hexagons in x-direction
-   * @param possiblePoints list to fill
    * @param rows amount of hexagons in y-direction
    * @param scaleQuantizedX scale between hexagon-x (discrete) and domain
    * @param scaleQuantizedY scale between hexagon-y (discrete) and domain
    * @param hexaSide length of the side of one hexagon
+   * @returns list of possible hexagon centers
    */
   private static calculatePossiblePoints(
     columns: number,
@@ -239,7 +239,7 @@ export class TableService{
     scaleQuantizedX: (v: number, row: number) => number,
     scaleQuantizedY: (v: number) => number,
     hexaSide: number
-  ) {
+  ): { xCoord: number; xQuantized: number; yCoord: number; yQuantized: number; }[][] {
     const possiblePoints: {
       xCoord: number;
       xQuantized: number;
@@ -306,6 +306,7 @@ export class TableService{
   }
   /**
    * Returns the minima, maxima and extent of the data from the table
+   * @returns object with xMin, xMax, xExtent, yExten yMin, yMax
    */
   private static getExtents(): { xMin: number; xMax: number; xExtent: number; yExtent: number; yMin: number; yMax: number; } {
     const {xMin, xMax, yMin, yMax} = this.getTable().rollup({

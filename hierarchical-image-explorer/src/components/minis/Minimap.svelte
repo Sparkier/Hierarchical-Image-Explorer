@@ -22,8 +22,9 @@
 
   /**
    * retrieves the quantized data used in the minimap
+   * @returns quanzized list of datagons
    */
-  function getQuantizedBlobs() {
+  function getQuantizedBlobs(): DataHexagon[] {
     const quantizationResult = TableService.getDataQuantized(columns);
     rows = quantizationResult.rows;
     const virtualHexaSide = minimapWidth / (3 * columns);
