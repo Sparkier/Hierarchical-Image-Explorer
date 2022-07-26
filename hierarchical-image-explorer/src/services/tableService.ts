@@ -206,7 +206,7 @@ export class TableService{
 
       if (comparisonPoints.some((i) => i === undefined)) {
         throw new Error(
-          'Undefined element in comparisonPoints ' + gridX + ', ' + gridY
+          `Undefined element in comparisonPoints ${gridX} , ${gridY}`
         );
       }
       const scaledX = scaleX(filteredPoint.x);

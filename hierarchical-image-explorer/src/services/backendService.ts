@@ -4,7 +4,7 @@
  */
 
 import { SERVER_ADRESS } from "../config";
-import type { QuantizationResults, SWGInfo } from "../types";
+import type { QuantizationResults} from "../types";
 
 
 export default class BackendService {
@@ -13,11 +13,6 @@ export default class BackendService {
   private static async getEndpointJSON(endpoint: string): Promise<unknown> {
     const response = await fetch(this.serverAdress + endpoint);
     return response.json();
-  }
-
-  private static async getEndpointBinary(endpoint:string): Promise<unknown> {
-    const response = await fetch(this.serverAdress + endpoint)
-    return response.arrayBuffer
   }
 
   public static getImageUrl(dataID: string): string {

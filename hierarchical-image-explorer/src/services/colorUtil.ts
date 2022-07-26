@@ -25,7 +25,7 @@ export class ColorUtil {
   public static getColor(label: string):string {
     if (this.colorMap.has(label)){
       const color = this.colorMap.get(label);
-      if (color == undefined) throw new Error("Color not in colordict: " + color + "  for label: " + label)
+      if (color == undefined) throw new Error(`Color not in colordict: ${String(color)} for label: ${label}`)
       return color
     }
     else {

@@ -7,16 +7,12 @@
   import ClusterView from '../minis/ClusterView.svelte';
   import { scale } from 'svelte/transition';
   import RangeSlider from 'svelte-range-slider-pips';
-
   import { DEFAULT_SLIDER_VALUE, DEFAULT_SETTINGS } from '../../config';
   import type { DataHexagon, PointData, SettingsObject } from '../../types';
   import Minimap from '../minis/Minimap.svelte';
   import SidebarSettings from '../minis/SidebarSettings.svelte';
   import * as aq from 'arquero';
-
-  import { DEFAULT_NUM_OF_ROWS, DEFAULT_SLIDER_VALUE } from '../../config.ts';
   import { TableService } from '../../services/tableService';
-  import { DEFAULT_NUM_OF_COLUMNS } from '../../config';
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {
