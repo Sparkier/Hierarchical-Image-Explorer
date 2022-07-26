@@ -49,8 +49,9 @@
       afterInitializationQueue.length != 0 &&
       svg != undefined &&
       svgAvailHeight != 0
-    )
+    ) {
       afterInitializationQueue.forEach((e) => e());
+    }
   }
 
   $: scaleQuantisedX = (v: number, row: number) => {
@@ -167,6 +168,7 @@
 
   function applyCulling() {
     // overestimate the inverse of scaleQuantized with a simple grid
+    if (topleftSVGPoint == undefined) return;
     const x1_quantized = Math.floor(topleftSVGPoint.x / (3 * hexaSide)) - 1;
     const y1_quantized =
       Math.floor(topleftSVGPoint.y / (2 * hexaShortDiag * hexaSide)) * 2 - 1;
