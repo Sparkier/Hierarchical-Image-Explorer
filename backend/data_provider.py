@@ -1,6 +1,5 @@
 """Module that downloads datasets and generates corresponding swg-files"""
 import argparse
-import csv
 import sys
 import tarfile
 import pickle
@@ -8,6 +7,8 @@ from pathlib import Path
 import urllib.request
 import zipfile
 from PIL import Image
+import pyarrow as pa
+from pyarrow import _csv
 
 
 datasets = [
@@ -84,15 +85,17 @@ def extract_convert_cifar(destination, img_root, dataset):
     meta_file = unpickle(datapath / "batches.meta")
     label_names = meta_file[b"label_names"]
     for label in label_names:
-        Path(datapath / label.decode("utf-8")).mkdir(parents=True, exist_ok=True)
+        Path(datapath / label.decode("utf-8")
+             ).mkdir(parents=True, exist_ok=True)
     # unpickle cifar
     archives = (datapath).glob("*")
     for file in archives:
         if(file.suffix != "" or not file.is_file()):
             continue
         unpickeled = unpickle(file)
-        for i,img in enumerate(unpickeled[b'data']):
-            img_reshape = Image.fromarray(img.reshape(3,32,32).transpose(1,2,0))
+        for i, img in enumerate(unpickeled[b'data']):
+            img_reshape = Image.fromarray(
+                img.reshape(3, 32, 32).transpose(1, 2, 0))
             img_reshape.save(
                 datapath /
                 label_names[unpickeled[b'labels'][i]].decode("utf-8") /
@@ -118,37 +121,51 @@ def download_and_extract(dataset, destination):
     delete_file(TMP_ARCHIVE_NAME + "." + dataset["filetype"])
 
 
-def generate_annotations_from_folders(destination, dataset):
+def generate_annotations_from_folders(destination, dataset, store_csv):
     """Generates a swg file based on the folder structure of a dataset"""
-    swg_name = dataset["name"] + ".csv"
-    with open(Path(destination) / dataset["name"] / swg_name,
-              "w", newline='', encoding="utf8") as csv_file:
-        writer = csv.writer(csv_file)
-        writer.writerow(["image_id", "file_path", "label"])
+    swg_name = dataset["name"]
+    ids = []
+    file_paths = []
+    labels = []
 
-        class_names = Path(
-            Path(destination) / dataset["name"] / dataset["img_root"]).glob("*")
-        generated_id = 0
-        for class_name in class_names:
-            if Path(class_name).is_file():
-                continue
-            files = class_name.glob("*")
-            for file in files:
-                id_to_write = ""
-                if dataset["id_source"] == "generate":
-                    id_to_write = str(generated_id)
-                if dataset["id_source"] == "filename":
-                    id_to_write = file.name
-                writer.writerow(
-                    [dataset["name"] + "-" + id_to_write, file, class_name.name])
-                generated_id += 1
+    class_names = Path(
+        Path(destination) / dataset["name"] / dataset["img_root"]).glob("*")
+    generated_id = 0
+    for class_name in class_names:
+        if Path(class_name).is_file():
+            continue
+        files = class_name.glob("*")
+        for file in files:
+            id_to_write = ""
+            if dataset["id_source"] == "generate":
+                id_to_write = str(generated_id)
+            if dataset["id_source"] == "filename":
+                id_to_write = file.stem
+            ids.append(dataset["name"] + "-" + id_to_write)
+            file_paths.append(str(file))
+            labels.append(class_name.name)
+            generated_id += 1
+    swg_dict = {"image_id": ids, "file_path": file_paths, "label": labels}
+    write_data_table(destination, dataset, store_csv, swg_name, swg_dict)
 
 
-def generate_annotations(destination, dataset):
+def write_data_table(destination, dataset, store_csv, swg_name, swg_dict):
+    """Writes data into an arrow IPC file"""
+    arrow_table = pa.Table.from_pydict(swg_dict)
+    output_path = Path(destination) / dataset["name"] / (swg_name + ".arrow")
+    writer = pa.RecordBatchFileWriter(output_path, arrow_table.schema)
+    writer.write(arrow_table)
+    writer.close()
+    if store_csv:
+        _csv.write_csv(arrow_table, str(
+            output_path).replace(".arrow", ".csv"))
+
+
+def generate_annotations(destination, dataset, store_csv):
     """Determines the correct function to generate annotations"""
     print("Generating annotations")
     if dataset["label_source"] == "folder":
-        generate_annotations_from_folders(destination, dataset)
+        generate_annotations_from_folders(destination, dataset, store_csv)
 
 
 if __name__ == "__main__":
@@ -162,10 +179,15 @@ if __name__ == "__main__":
         help='Path to download the images to and generate the swg file in',
         default="data/",
         type=str)
+    parser.add_argument(
+        '-csv',
+        '--store_csv',
+        help='Stores the metadata as csv in addition to arrow',
+        action='store_true',)
     args = parser.parse_args()
     if not DATASET_OPTIONS.__contains__(args.dataset):
         sys.exit("Dataset must be one of: " + DATASET_OPTIONS)
     dataset_selected = list(
         filter(lambda e: e["name"] == args.dataset, datasets))[0]
     download_and_extract(dataset_selected, args.path)
-    generate_annotations(args.path, dataset_selected)
+    generate_annotations(args.path, dataset_selected, args.store_csv)
