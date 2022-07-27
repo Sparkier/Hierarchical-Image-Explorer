@@ -1,11 +1,12 @@
 {
+  "type":"module",
   "compilerOptions": {
     "strict": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "types": ["node"],
     "target": "es6",
-    "module": "commonjs",
+    "module": "esnext",
     "rootDir": "./src",
   },
   "include": [
@@ -20,6 +21,9 @@
     "src/index.d.ts"
   ],
   "ts-node": {
-    "files":true
+    "files":true,
+    "compilerOptions": {
+      "module": "CommonJS",
+    },
   }
 }
