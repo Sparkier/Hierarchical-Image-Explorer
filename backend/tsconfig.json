@@ -23,13 +23,7 @@
   "ts-node": {
     "files":true,
     "compilerOptions": {
-      "strict": true,
-      "esModuleInterop": true,
-      "moduleResolution": "node",
-      "types": ["node"],
-      "target": "es6",
       "module": "CommonJS",
-      "rootDir": "./src",
     },
   }
 }
