@@ -17,6 +17,8 @@
   export let maxHeight: number;
   export let initialDataHeight: number = 0;
   export let initialDataWidth: number = 0;
+  export const updateQuantizationDataExportFunction: () => void = () =>
+    getQuantizationData(levelOfDetail, initialColumns);
 
   const hexaShortDiag = Math.sqrt(3) / 2;
 
@@ -96,7 +98,7 @@
     initial_columns: number,
     initialCall = false
   ) {
-    const quantizationResult = TableService.getDataQuantized(
+    const quantizationResult = TableService.getDataQuantizedFiltered(
       initial_columns * 2 ** lod
     );
 

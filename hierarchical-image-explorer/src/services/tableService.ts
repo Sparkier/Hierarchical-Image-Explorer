@@ -1,14 +1,70 @@
 import type ColumnTable from "arquero/dist/types/table/column-table";
 import * as aq from "arquero";
-import type { DataHexagon, PointData, QuantizationResults } from "../types";
+import type { DataHexagon, filterDescriptor, PointData, QuantizationResults } from "../types";
 
 export class TableService{
   static table:ColumnTable|null = null;
   private static APOTHEM = Math.sqrt(3) / 2;
   private static HEXA_RATIO = Math.sqrt(3);
+  private static filteredTable: ColumnTable| null = null;
   
-  public static isTableSet(){
-    return this.table == null
+  public static setTable(table:ColumnTable){
+    this.table = table;
+    this.filteredTable = table;
+  }
+
+  /**
+   * Gives you the columns in the origianl table minus ["x", "y", "id"]
+   * @returns 
+   */
+  public static getAdditionalColumns(){
+    const columnNames = this.getTable().select(aq.not(["x", "y", "id"])).columnNames()
+    console.log(columnNames)
+    return columnNames
+  }
+
+  public static applyFilters(filters: filterDescriptor[], concatinations: boolean[]){
+    this.filteredTable = this.getTable()
+    for (let i = 0; i < filters.length; i++){
+      if(i == 0) this.filteredTable = this.applySingleFilter(filters[0],this.getTableFiltered())
+      else{
+        if(concatinations[i-1]){ // OR case
+          this.filteredTable = this.getTableFiltered().union(this.applySingleFilter(filters[i],this.getTable()))
+        } else { // AND case
+          this.filteredTable = this.applySingleFilter(filters[i],this.getTableFiltered())
+          
+        }
+      }
+    }
+  }
+
+  private static applySingleFilter(filter: filterDescriptor, table:ColumnTable):ColumnTable{
+    let compareFunction: (a:number|string,b:number|string) => boolean;
+    switch (filter.comparator) {
+      case "<=":
+        compareFunction = (a,b) => a <= b
+        break;
+      case ">=":
+        compareFunction = (a,b) => a >= b
+        break;
+      case "=": 
+        compareFunction = (a,b) => a==b
+        break;
+      case "<":
+        compareFunction = (a,b) => a<b
+        break;
+      case ">": 
+        compareFunction = (a,b) => a>b
+        break;
+      case "!=":
+        compareFunction = (a,b) => a != b
+        break;
+      default:
+        throw new Error("Unkown comparator symbol while applying filter")
+    }
+
+
+    return table.filter(aq.escape((d:Record<string, string|number>) => compareFunction(d[filter.toBeFilteredOn],filter.valueToBeComparedTo)))
   }
 
   public static getTable(): ColumnTable {
@@ -16,9 +72,17 @@ export class TableService{
     return this.table
   }
 
+  public static getTableFiltered(): ColumnTable {
+    if (this.filteredTable == null) throw new Error("Filtered Table is null")
+    return this.filteredTable
+  }
+
   public static getDataQuantized(columns:number):QuantizationResults {
-    if(this.table == null) throw new Error("The Table has not been loaded yet")
-    return this.quantize(columns)
+    return this.quantize(columns, this.getTable())
+  }
+
+  public static getDataQuantizedFiltered(columns:number){
+    return this.quantize(columns,this.getTableFiltered())
   }
 
 
@@ -28,9 +92,9 @@ export class TableService{
    * @param columns amount of columns to agrregate in rows is automatically calculated based on this number and the shape of the data
    * @returns List of Quantizationresults
    */
-  public static quantize(columns: number): QuantizationResults {
+  public static quantize(columns: number, dataTable:ColumnTable): QuantizationResults {
     const { xMin, xMax, yExtent, xExtent, yMin, yMax } =
-      this.getExtents();
+      this.getExtents(this.getTable());
 
     const hexaSide = Math.abs(xMin - xMax) / (3 * columns);
 
@@ -46,7 +110,7 @@ export class TableService{
         columns,
         yMin,
         yExtent,
-        rows
+        rows,
       );
 
    const possiblePoints = this.calculatePossiblePoints(
@@ -66,6 +130,7 @@ export class TableService{
       possiblePoints,
       scaleX,
       scaleY,
+      dataTable
     );
 
     const dataList = this.aggregateQuantization(quantized, possiblePoints, xMin, yMin);
@@ -96,7 +161,7 @@ export class TableService{
       yQuantized: number;
     }[][],
     xMin: number,
-    yMin: number,
+    yMin: number
   ): DataHexagon[] {
     const dataList: DataHexagon[] = [];
     for (let x = 0; x < quantized.length; x++) {
@@ -163,6 +228,7 @@ export class TableService{
     }[][],
     scaleX: (v: number) => number,
     scaleY: (v: number) => number,
+    dataTable:ColumnTable
   ): PointData[][][] {
     // initialize empty 3d Array
     const quantized: PointData[][][] = [];
@@ -173,7 +239,7 @@ export class TableService{
       }
     }
 
-    for (const filteredPointObject of this.getTable()) {
+    for (const filteredPointObject of dataTable) {
       const filteredPoint = filteredPointObject as {x:number, y:number, id:string, label:string}
       let gridX = Math.floor(
         (filteredPoint.x - xMin - 0.5 * this.APOTHEM * hexaSide) /
@@ -308,8 +374,8 @@ export class TableService{
    * Returns the minima, maxima and extent of the data from the table
    * @returns object with xMin, xMax, xExtent, yExten yMin, yMax
    */
-  private static getExtents(): { xMin: number; xMax: number; xExtent: number; yExtent: number; yMin: number; yMax: number; } {
-    const {xMin, xMax, yMin, yMax} = this.getTable().rollup({
+  private static getExtents(dataTable:ColumnTable): { xMin: number; xMax: number; xExtent: number; yExtent: number; yMin: number; yMax: number; } {
+    const {xMin, xMax, yMin, yMax} = dataTable.rollup({
       xMin: aq.op.min('x'),
       xMax: aq.op.max('x'),
       yMin: aq.op.min('y'),

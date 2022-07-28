@@ -41,6 +41,8 @@
   let settingsObject: SettingsObject = DEFAULT_SETTINGS;
   let tableIsSet = false;
 
+  let updateQuantizationDataExportFunction: () => void;
+
   const borderWidth = 2;
 
   $: availableAccHeight =
@@ -53,7 +55,7 @@
     document.addEventListener('click', handleOutsideClick, false);
     document.addEventListener('keyup', handleEscape, false);
     BackendService.getDataArquero().then((r) => {
-      TableService.table = aq.fromJSON(r);
+      TableService.setTable(aq.fromJSON(r));
       tableIsSet = true;
     });
   });
@@ -133,7 +135,9 @@
           <div class="font-bold text-xl text-left">Cluster info</div>
           <ClusterView datagons={[...selectedDatagons]} />
         {/if}
-        <FilterSelector />
+        <FilterSelector
+          on:filterApplied={() => updateQuantizationDataExportFunction()}
+        />
       </div>
     </div>
     <!-- Image explorer -->
@@ -141,6 +145,7 @@
       <Accumulator
         initialColumns={settingsObject.columns}
         maxHeight={availableAccHeight}
+        bind:updateQuantizationDataExportFunction
         bind:currentSelectionA={selectedDatagons}
         bind:topleftSVGPoint={accTopLeftCorner}
         bind:bottomrightSVGPoint={accBottomRightCorner}
