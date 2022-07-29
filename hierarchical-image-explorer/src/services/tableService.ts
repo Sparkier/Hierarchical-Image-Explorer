@@ -32,7 +32,6 @@ export class TableService{
           this.filteredTable = this.getTableFiltered().union(this.applySingleFilter(filters[i],this.getTable()))
         } else { // AND case
           this.filteredTable = this.applySingleFilter(filters[i],this.getTableFiltered())
-          
         }
       }
     }
@@ -62,8 +61,6 @@ export class TableService{
       default:
         throw new Error("Unkown comparator symbol while applying filter")
     }
-
-
     return table.filter(aq.escape((d:Record<string, string|number>) => compareFunction(d[filter.toBeFilteredOn],filter.valueToBeComparedTo)))
   }
 
