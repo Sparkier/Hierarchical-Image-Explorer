@@ -43,7 +43,7 @@
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
 
   $: {
-    getQuantizationData(levelOfDetail, initialColumns);
+    if (isMounted) getQuantizationData(levelOfDetail, initialColumns);
   }
 
   $: {
@@ -53,6 +53,7 @@
       svgAvailHeight != 0
     ) {
       afterInitializationQueue.forEach((e) => e());
+      afterInitializationQueue = [];
     }
   }
 
@@ -109,12 +110,14 @@
     currentSelectionB = new Set<DataHexagon>();
 
     const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows); // formula derived from width and height with "virtual" hexaside = 1 and then simplify
+
     if (widthToHeightDataRatio * maxWidth > svgAvailHeight) {
       // image is height limited
       hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);
       if (initialDataHeight == 0) initialDataHeight = maxHeight;
-      if (initialDataWidth == 0)
+      if (initialDataWidth == 0) {
         initialDataWidth = widthToHeightDataRatio * maxHeight;
+      }
     } else {
       // image is width limited
       hexaSide = maxWidth / (3 * columns + 0.5);
@@ -263,10 +266,6 @@
       color: ColorUtil.getColor(datagon.dominantLabel),
       isSelected: false,
     };
-  }
-
-  function updateQuantization(levelOfDetail: number) {
-    if (isMounted) getQuantizationData(levelOfDetail, initialColumns);
   }
 </script>
 

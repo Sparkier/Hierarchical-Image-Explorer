@@ -76,7 +76,7 @@
             topLeftSvgCorner={accTopLeftCorner}
             bottomRightSvgCorner={accBottomRightCorner}
             svgWidth={accSvgWidth}
-            svgHeight={availableAccHeight}
+            svgHeight={accSvgHeight}
           />
         </div>
         <SidebarSettings bind:settingsObject />
