@@ -7,8 +7,10 @@
 </script>
 
 <main class="font-body">
-  <HieNav bind:currentView />
-  <div class="container">
+  <div class="z-10">
+    <HieNav bind:currentView />
+  </div>
+  <div class="relative container z-0">
     {#if currentView === 'home'}
       <HomeScreen bind:currentView />
     {:else if currentView === 'appview'}

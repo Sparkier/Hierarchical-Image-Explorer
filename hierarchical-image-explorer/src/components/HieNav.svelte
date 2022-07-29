@@ -1,36 +1,42 @@
 <script lang="ts">
   import GitHubLogo from './icons/GitHubLogo.svelte';
   import HieLogo from './icons/HIELogo.svelte';
-
+  import SettingsIcon from "./icons/SettingsIcon.svelte";
+  import Settings from "./minis/Settings.svelte";
+  
   export let currentView: string;
+
+  let isSettingsExpanded: boolean = false;
 
   $: isCurrentViewClasses = (v: string) =>
     currentView == v
       ? 'text-hie-red hover:text-white'
       : 'text-white text-lg hover:text-hie-red';
+  
 </script>
 
 <nav class="bg-neutral-800">
-  <div class="flex flex-row items-center gap-4 h-14">
+  <div class="flex flex-row items-center h-14">
     <div
       class="ml-4 h-8 w-8 cursor-pointer"
       on:click={() => (currentView = 'home')}
     >
       <HieLogo />
     </div>
-    <div class="h-8 w-8">
+    <div class="h-8 w-8 ml-auto mr-2">
       <a
         href="https://github.com/Sparkier/Hierarchical-Image-Explorer"
         target="_blank"><GitHubLogo /></a
       >
     </div>
-    <div
-      class={`ml-auto mr-8 text-2xl cursor-pointer transition ease-in-out duration-100 ${isCurrentViewClasses(
-        'appview'
-      )}`}
-      on:click={() => (currentView = 'appview')}
+    <button
+        type="button"
+        class="mr-4 cursor-pointer fill-hie-orange transition duration-300 hover:rotate-180 hover:fill-hie-red"
+        on:click={() => (isSettingsExpanded = !isSettingsExpanded)}
     >
-      Appview
-    </div>
+      <SettingsIcon />
+    </button>
   </div>
+  <Settings {isSettingsExpanded}/>
 </nav>
+
