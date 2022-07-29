@@ -2,19 +2,23 @@
   import HieNav from './components/HieNav.svelte';
   import HomeScreen from './components/views/HomeScreen.svelte';
   import AppView from './components/views/AppView.svelte';
+  import type { SettingsObject } from './types';
 
   let currentView = 'appview';
+  let settingsObject: SettingsObject;
 </script>
 
 <main class="font-body">
-  <div class="z-10">
-    <HieNav bind:currentView />
+  <div class="z-10 fixed w-full">
+    <HieNav bind:currentView bind:settingsObject />
   </div>
+  <div class="h-14" />
+  <!-- spacer for navbar -->
   <div class="relative container z-0">
     {#if currentView === 'home'}
       <HomeScreen bind:currentView />
     {:else if currentView === 'appview'}
-      <AppView />
+      <AppView {settingsObject} />
     {/if}
   </div>
 </main>

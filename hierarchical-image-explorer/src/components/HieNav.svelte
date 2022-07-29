@@ -1,10 +1,13 @@
 <script lang="ts">
+  import type { SettingsObject } from '../types';
+
   import GitHubLogo from './icons/GitHubLogo.svelte';
   import HieLogo from './icons/HIELogo.svelte';
-  import SettingsIcon from "./icons/SettingsIcon.svelte";
-  import Settings from "./minis/Settings.svelte";
-  
+  import SettingsIcon from './icons/SettingsIcon.svelte';
+  import Settings from './minis/Settings.svelte';
+
   export let currentView: string;
+  export let settingsObject: SettingsObject;
 
   let isSettingsExpanded: boolean = false;
 
@@ -12,7 +15,6 @@
     currentView == v
       ? 'text-hie-red hover:text-white'
       : 'text-white text-lg hover:text-hie-red';
-  
 </script>
 
 <nav class="bg-neutral-800">
@@ -30,13 +32,12 @@
       >
     </div>
     <button
-        type="button"
-        class="mr-4 cursor-pointer fill-hie-orange transition duration-300 hover:rotate-180 hover:fill-hie-red"
-        on:click={() => (isSettingsExpanded = !isSettingsExpanded)}
+      type="button"
+      class="mr-4 cursor-pointer fill-hie-orange transition duration-300 hover:rotate-180 hover:fill-hie-red"
+      on:click={() => (isSettingsExpanded = !isSettingsExpanded)}
     >
       <SettingsIcon />
     </button>
   </div>
-  <Settings {isSettingsExpanded}/>
+  <Settings {isSettingsExpanded} bind:settingsObject />
 </nav>
-

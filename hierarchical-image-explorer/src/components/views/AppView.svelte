@@ -10,9 +10,10 @@
   import { DEFAULT_SLIDER_VALUE, DEFAULT_SETTINGS } from '../../config';
   import type { DataHexagon, PointData, SettingsObject } from '../../types';
   import Minimap from '../minis/Minimap.svelte';
-  import SidebarSettings from '../minis/SidebarSettings.svelte';
   import * as aq from 'arquero';
   import { TableService } from '../../services/tableService';
+
+  export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {
@@ -38,7 +39,6 @@
   let accSvgWidth: number;
   let accSvgHeight: number;
   let outerDiv: HTMLElement | undefined;
-  let settingsObject: SettingsObject = DEFAULT_SETTINGS;
   let tableIsSet = false;
 
   let updateQuantizationDataExportFunction: () => void;
@@ -79,7 +79,6 @@
             svgHeight={availableAccHeight}
           />
         </div>
-        <SidebarSettings bind:settingsObject />
         {#if selectedDatagons.size == 1 && Array.from(selectedDatagons)[0].size == 1}
           <div class="pt-2 font-medium text-lg text-left">Class filters</div>
           <div class="relative" bind:this={menu}>
