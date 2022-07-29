@@ -12,6 +12,7 @@
   import Minimap from '../minis/Minimap.svelte';
   import * as aq from 'arquero';
   import { TableService } from '../../services/tableService';
+  import RightSidebar from '../minis/RightSidebar.svelte';
 
   export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
 
@@ -140,7 +141,7 @@
       </div>
     </div>
     <!-- Image explorer -->
-    <div class="w-4/5 border-y-2 border-slate-200">
+    <div class="w-auto border-y-2 border-slate-200">
       <Accumulator
         initialColumns={settingsObject.columns}
         maxHeight={availableAccHeight}
@@ -152,6 +153,7 @@
         bind:initialDataHeight={accSvgHeight}
       />
     </div>
+    <RightSidebar />
   </div>
 {:else}
   <div class="flex justify-center mt-32">

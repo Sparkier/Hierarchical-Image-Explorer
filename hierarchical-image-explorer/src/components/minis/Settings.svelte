@@ -3,8 +3,6 @@
 
   import type { SettingsObject } from '../../types';
   export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
-  import HieNav from '../HieNav.svelte';
-  HieNav;
 
   export let isSettingsExpanded: boolean;
 </script>
