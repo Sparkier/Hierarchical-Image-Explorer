@@ -1,19 +1,17 @@
 <script lang="ts">
   import CancelButton from './icons/CancelButton.svelte';
   import type { filterDescriptor } from '../types';
+  import { TableService } from '../services/tableService';
+  import { createEventDispatcher } from 'svelte';
 
   //!! TODO: grab categories, once arquero is on main
   // this is very much fake
-  const hexagonCategories = ['clusterSize'];
-  const categories = [
-    'label',
-    'probability',
-    'outlier_score',
-    ...hexagonCategories,
-  ];
+  const hexagonCategories: string[] = []; // will be added once we aggregate with aquero
+  const tableColumns = TableService.getAdditionalColumns();
+  const categories = [...tableColumns, ...hexagonCategories];
 
   let filterList: filterDescriptor[] = []; // list of all filters to be applied
-  let concatenations: boolean[] = []; // list of concatenations of the filter operations (AND/OR) after selecting in the UI
+  let concatenations: boolean[] = []; // list of concatenations of the filter operations (AND/OR) after selecting in the UI true = AND, false = OR
 
   /**
    * Creates and adds a filter to the list of filters to be applied.
@@ -38,6 +36,7 @@
   function addConcatenation(isOrSelected: boolean) {
     concatenations = [...concatenations, isOrSelected];
   }
+  const dispatch = createEventDispatcher();
 </script>
 
 <div>
@@ -58,7 +57,7 @@
           <CancelButton />
         </div>
         <div class="text-lg pl-2 pt-2 pb-2">Select the filters:</div>
-        <div class="h-0.5 bg-neutral-200 order-2"></div >
+        <div class="h-0.5 bg-neutral-200 order-2" />
         <div
           class="pl-2 pt-2 order-last flex-row justify-between items-stretch"
         >
@@ -66,7 +65,7 @@
             class="h-10 text-lg rounded-sm"
             bind:value={filter.toBeFilteredOn}
           >
-            <option value="">to filter</option>
+            <option value="" disabled selected>to filter</option>
             {#each categories as cat}
               <option value={cat}>{cat}</option>
             {/each}
@@ -91,28 +90,31 @@
           />
         </div>
       </div>
-      <div class="flex items-center mt-2 mb-2">
-        <div class="mr-2 text-md font-medium text-black ">AND</div>
-        <label
-          for={'andor-toggle' + index}
-          class="inline-flex relative cursor-pointer"
-        >
-          <input
-            type="checkbox"
-            value=""
-            id={'andor-toggle' + index}
-            class="sr-only peer"
-            bind:checked={concatenations[index]}
-          />
-          <div
-            class="w-11 h-6 bg-hie-orange peer-focus:outline-none peer-focus:ring-2
+      {#if index != filterList.length - 1}
+        <div class="flex items-center mt-2 mb-2">
+          <div class="mr-2 text-md font-medium text-black ">AND</div>
+          <label
+            for={'andor-toggle' + index}
+            class="inline-flex relative cursor-pointer"
+          >
+            <input
+              type="checkbox"
+              value=""
+              id={'andor-toggle' + index}
+              class="sr-only peer"
+              bind:checked={concatenations[index]}
+            />
+            <div
+              class="w-11 h-6 bg-hie-orange peer-focus:outline-none peer-focus:ring-2
           peer-focus:ring-hie-orange rounded-full peer peer-checked:after:translate-x-full
           peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px]
           after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full
-          after:h-5 after:w-5 after:transition-all peer-checked:bg-hie-red"></div >
-        </label>
-        <div class="ml-2 text-md font-medium text-black">OR</div>
-      </div>
+          after:h-5 after:w-5 after:transition-all peer-checked:bg-hie-red"
+            />
+          </label>
+          <div class="ml-2 text-md font-medium text-black">OR</div>
+        </div>
+      {/if}
     {/each}
     <div class="text-left">
       <button
@@ -127,7 +129,10 @@
       {#if filterList.length > 0}
         <button
           class="border-2 border-slate-400 hover:bg-slate-400 hover:text-white text-black font-bold py-2 px-4 rounded"
-          on:click={() => console.log(filterList)}
+          on:click={() => {
+            TableService.applyFilters(filterList, concatenations);
+            dispatch('filterApplied');
+          }}
         >
           {filterList.length === 1 ? 'APPLY FILTER' : 'APPLY FILTERS'}
         </button>
