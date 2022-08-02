@@ -51,6 +51,8 @@
             filterList = filterList.filter((e) => e !== filter);
             concatenations.splice(index, 1);
             concatenations = [...concatenations];
+            TableService.applyFilters(filterList, concatenations);
+            dispatch('filterApplied');
           }}
         >
           <CancelButton />
