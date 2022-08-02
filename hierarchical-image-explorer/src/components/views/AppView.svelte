@@ -1,7 +1,6 @@
 <script lang="ts">
   import BackendService from '../../services/backendService';
   import Accumulator from '../Accumulator.svelte';
-  import FilterSelector from '../FilterSelector.svelte';
   import { onDestroy, onMount } from 'svelte';
   import ImgView from '../minis/ImgView.svelte';
   import ClusterView from '../minis/ClusterView.svelte';
@@ -15,7 +14,6 @@
   import RightSidebar from '../minis/RightSidebar.svelte';
 
   export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
-  export let updateQuantizationDataExportFunction: () => void;
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {
@@ -42,6 +40,7 @@
   let accSvgHeight: number;
   let outerDiv: HTMLElement | undefined;
   let tableIsSet = false;
+  let updateQuantizationDataExportFunction: () => void;
 
   const borderWidth = 2;
 
@@ -149,7 +148,12 @@
         bind:initialDataHeight={accSvgHeight}
       />
     </div>
-    <RightSidebar />
+    <RightSidebar
+      on:filterApplied={() => {
+        console.log('appview_update');
+        updateQuantizationDataExportFunction();
+      }}
+    />
   </div>
 {:else}
   <div class="flex justify-center mt-32">

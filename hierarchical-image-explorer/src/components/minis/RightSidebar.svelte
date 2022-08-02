@@ -1,6 +1,5 @@
 <script lang="ts">
   import FilterSelector from '../FilterSelector.svelte';
-  import updateQuantizationDataExportFunction from '../views/AppView.svelte';
 
   let isSidebarOpened: boolean = false;
 </script>
@@ -58,9 +57,7 @@
         </div>
       </div>
       <div class="flex mt-2 ml-4">
-        <FilterSelector
-          on:filterApplied={() => updateQuantizationDataExportFunction()}
-        />
+        <FilterSelector on:filterApplied />
       </div>
     </div>
   </div>
