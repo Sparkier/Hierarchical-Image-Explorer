@@ -150,7 +150,6 @@
     </div>
     <RightSidebar
       on:filterApplied={() => {
-        console.log('appview_update');
         updateQuantizationDataExportFunction();
       }}
     />

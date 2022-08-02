@@ -1,11 +1,11 @@
 <script lang="ts">
   import FilterSelector from '../FilterSelector.svelte';
 
-  let isSidebarOpened: boolean = false;
+  let isSidebarExpanded: boolean = false;
 </script>
 
 <div
-  class={isSidebarOpened
+  class={isSidebarExpanded
     ? 'duration-2000 transition translate-x-0 fixed right-0 h-full'
     : 'duration-2000 transition translate-x-96 fixed right-0 h-full'}
 >
@@ -14,9 +14,9 @@
   >
     <button
       class="static justify-start"
-      on:click={() => (isSidebarOpened = !isSidebarOpened)}
+      on:click={() => (isSidebarExpanded = !isSidebarExpanded)}
     >
-      <div class={isSidebarOpened ? 'w-8 -scale-x-100' : ' w-8'}>
+      <div class={isSidebarExpanded ? 'w-8 -scale-x-100' : ' w-8'}>
         <div class="mr-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -36,7 +36,7 @@
         <div class="top-0 left-0 flex mt-4 ml-4">
           <button
             type="button"
-            on:click={() => (isSidebarOpened = !isSidebarOpened)}
+            on:click={() => (isSidebarExpanded = !isSidebarExpanded)}
           >
             <svg
               class="h-6 w-6 stroke-slate-600 hover:stroke-hie-red"
