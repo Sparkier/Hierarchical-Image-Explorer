@@ -40,7 +40,6 @@
 </script>
 
 <div>
-  <div class="font-bold text-xl text-left pt-2">Filter</div>
   <div class="grid columns-1 w-full">
     {#each filterList as filter, index}
       <div
@@ -52,6 +51,8 @@
             filterList = filterList.filter((e) => e !== filter);
             concatenations.splice(index, 1);
             concatenations = [...concatenations];
+            TableService.applyFilters(filterList, concatenations);
+            dispatch('filterApplied');
           }}
         >
           <CancelButton />
@@ -116,7 +117,7 @@
         </div>
       {/if}
     {/each}
-    <div class="text-left">
+    <div class="text-left overflow-x-hidden">
       <button
         class="bg-hie-orange hover:bg-hie-red text-white font-bold py-2 px-4 rounded pt-2"
         on:click={() => {

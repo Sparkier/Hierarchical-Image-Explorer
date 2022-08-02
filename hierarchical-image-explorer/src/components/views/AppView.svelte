@@ -1,7 +1,6 @@
 <script lang="ts">
   import BackendService from '../../services/backendService';
   import Accumulator from '../Accumulator.svelte';
-  import FilterSelector from '../FilterSelector.svelte';
   import { onDestroy, onMount } from 'svelte';
   import ImgView from '../minis/ImgView.svelte';
   import ClusterView from '../minis/ClusterView.svelte';
@@ -10,9 +9,11 @@
   import { DEFAULT_SLIDER_VALUE, DEFAULT_SETTINGS } from '../../config';
   import type { DataHexagon, PointData, SettingsObject } from '../../types';
   import Minimap from '../minis/Minimap.svelte';
-  import SidebarSettings from '../minis/SidebarSettings.svelte';
   import * as aq from 'arquero';
   import { TableService } from '../../services/tableService';
+  import RightSidebar from '../minis/RightSidebar.svelte';
+
+  export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {
@@ -38,9 +39,7 @@
   let accSvgWidth: number;
   let accSvgHeight: number;
   let outerDiv: HTMLElement | undefined;
-  let settingsObject: SettingsObject = DEFAULT_SETTINGS;
   let tableIsSet = false;
-
   let updateQuantizationDataExportFunction: () => void;
 
   const borderWidth = 2;
@@ -79,7 +78,6 @@
             svgHeight={accSvgHeight}
           />
         </div>
-        <SidebarSettings bind:settingsObject />
         {#if selectedDatagons.size == 1 && Array.from(selectedDatagons)[0].size == 1}
           <div class="pt-2 font-medium text-lg text-left">Class filters</div>
           <div class="relative" bind:this={menu}>
@@ -135,13 +133,10 @@
           <div class="font-bold text-xl text-left">Cluster info</div>
           <ClusterView datagons={[...selectedDatagons]} />
         {/if}
-        <FilterSelector
-          on:filterApplied={() => updateQuantizationDataExportFunction()}
-        />
       </div>
     </div>
     <!-- Image explorer -->
-    <div class="w-4/5 border-y-2 border-slate-200">
+    <div class="w-auto grow border-y-2 border-slate-200">
       <Accumulator
         initialColumns={settingsObject.columns}
         maxHeight={availableAccHeight}
@@ -153,6 +148,11 @@
         bind:initialDataHeight={accSvgHeight}
       />
     </div>
+    <RightSidebar
+      on:filterApplied={() => {
+        updateQuantizationDataExportFunction();
+      }}
+    />
   </div>
 {:else}
   <div class="flex justify-center mt-32">

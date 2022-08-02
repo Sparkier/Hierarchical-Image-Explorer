@@ -19,7 +19,6 @@ export class TableService{
    */
   public static getAdditionalColumns(){
     const columnNames = this.getTable().select(aq.not(["x", "y", "id"])).columnNames()
-    console.log(columnNames)
     return columnNames
   }
 

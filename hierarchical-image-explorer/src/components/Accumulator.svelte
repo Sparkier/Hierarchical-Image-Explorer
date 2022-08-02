@@ -17,8 +17,9 @@
   export let maxHeight: number;
   export let initialDataHeight: number = 0;
   export let initialDataWidth: number = 0;
-  export const updateQuantizationDataExportFunction: () => void = () =>
+  export const updateQuantizationDataExportFunction: () => void = () => {
     getQuantizationData(levelOfDetail, initialColumns);
+  };
 
   const hexaShortDiag = Math.sqrt(3) / 2;
 
