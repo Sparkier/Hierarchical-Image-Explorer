@@ -9,12 +9,10 @@
 </script>
 
 <main class="font-body">
-  <div class="z-10 fixed w-full">
+  <div class="z-10 w-full">
     <HieNav bind:currentView bind:settingsObject />
   </div>
-  <div class="h-14" />
-  <!-- spacer for navbar -->
-  <div class="relative container z-0">
+  <div class="relative container z-0 fixed overflow-hidden">
     {#if currentView === 'home'}
       <HomeScreen bind:currentView />
     {:else if currentView === 'appview'}

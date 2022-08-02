@@ -10,11 +10,11 @@
 <!-- Menu container -->
 <div
   class={isSettingsExpanded
-    ? 'transform transition ease-in-out duration-500 translate-y-full'
-    : 'hidden transform transition ease-in-out duration-500 translate-y-0'}
+    ? 'transition duration-2000 opacity-100'
+    : 'transition duration-2000 opacity-0'}
 >
   <div
-    class="overflow-visible absolute right-0 h-auto bg-gray-100 rounded-b-md"
+    class="overflow-visible absolute right-0 h-auto bg-gray-100 rounded-b-md z-50"
   >
     <div class="flex flex-col">
       <div class="font-bold text-xl text-left pl-4 pt-2">Settings</div>

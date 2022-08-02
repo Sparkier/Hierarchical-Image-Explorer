@@ -15,6 +15,7 @@
   import RightSidebar from '../minis/RightSidebar.svelte';
 
   export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
+  export let updateQuantizationDataExportFunction: () => void;
 
   const handleOutsideClick = (event) => {
     if (show && !menu.contains(event.target)) {
@@ -41,8 +42,6 @@
   let accSvgHeight: number;
   let outerDiv: HTMLElement | undefined;
   let tableIsSet = false;
-
-  let updateQuantizationDataExportFunction: () => void;
 
   const borderWidth = 2;
 
@@ -135,13 +134,10 @@
           <div class="font-bold text-xl text-left">Cluster info</div>
           <ClusterView datagons={[...selectedDatagons]} />
         {/if}
-        <FilterSelector
-          on:filterApplied={() => updateQuantizationDataExportFunction()}
-        />
       </div>
     </div>
     <!-- Image explorer -->
-    <div class="w-auto border-y-2 border-slate-200">
+    <div class="w-auto grow border-y-2 border-slate-200">
       <Accumulator
         initialColumns={settingsObject.columns}
         maxHeight={availableAccHeight}

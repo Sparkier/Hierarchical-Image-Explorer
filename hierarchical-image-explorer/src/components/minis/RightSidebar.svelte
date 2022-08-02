@@ -7,10 +7,12 @@
 
 <div
   class={isSidebarOpened
-    ? 'duration-2000 transition translate-x-0 overflow-hidden'
-    : 'duration-2000 transition translate-x-96'}
+    ? 'duration-2000 transition translate-x-0 fixed right-0 h-full'
+    : 'duration-2000 transition translate-x-96 fixed right-0 h-full'}
 >
-  <div class="relative flex flex-row h-full overflow-hidden">
+  <div
+    class="relative flex flex-row min-h-full max-h-screen overflow-hidden fixed"
+  >
     <button
       class="static justify-start"
       on:click={() => (isSidebarOpened = !isSidebarOpened)}
@@ -29,7 +31,7 @@
       </div>
     </button>
     <div
-      class="inline-block flex-col w-96 border-l-2 border-y-2 border-slate-200 bg-slate-50"
+      class="inline-block flex-col w-96 border-l-2 border-y-2 border-slate-200 bg-slate-50 overflow-y-auto"
     >
       <div class="flex flex-row items-center">
         <div class="top-0 left-0 flex mt-4 ml-4">
