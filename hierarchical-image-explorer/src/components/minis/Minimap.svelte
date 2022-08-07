@@ -25,7 +25,7 @@
    * @returns quanzized list of datagons
    */
   function getQuantizedBlobs(): DataHexagon[] {
-    const quantizationResult = TableService.getDataQuantized(columns);
+    const quantizationResult = TableService.getQuantizationLocal(columns);
     rows = quantizationResult.rows;
     const virtualHexaSide = minimapWidth / (3 * columns);
     minimapHeight = (((rows + 1) * Math.sqrt(3)) / 2) * virtualHexaSide;

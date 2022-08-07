@@ -4,10 +4,11 @@
   import { onMount } from 'svelte';
   import ZoomSVG from './ZoomSVG.svelte';
   import BackendService from '../services/backendService';
-  import type { DataHexagon, PointData } from '../types';
+  import type { DataHexagon, PointData, QuantizationResults } from '../types';
   import { DEFAULT_NUM_COLUMNS } from '../config';
   import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
   import { TableService } from '../services/tableService';
+  import { currentQuantization } from '../stores';
 
   export let initialColumns = DEFAULT_NUM_COLUMNS;
   export let topleftSVGPoint: DOMPoint;
@@ -20,7 +21,7 @@
   export let sumOfSelectedImages: [{ numberOfImg: number; selection: string }] =
     [];
   export const updateQuantizationDataExportFunction: () => void = () => {
-    getQuantizationData(levelOfDetail, initialColumns);
+    requantizeData(levelOfDetail, initialColumns);
   };
 
   const hexaShortDiag = Math.sqrt(3) / 2;
@@ -32,7 +33,7 @@
   let rows = 0;
   let zoomLevel: number;
   let transform: [number, number];
-  let currentQuantization: DataHexagon[] = [];
+  let currentQuantizationLocal: DataHexagon[] = [];
   let currentFilteredQuantization: DataHexagon[] = [];
   let toolbarHeight: number;
   let selectionModeOn = false;
@@ -46,8 +47,15 @@
   $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
 
+  currentQuantization.subscribe((v) => {
+    if (v == null) return;
+    else {
+      onQuantizationChange(v);
+    }
+  });
+
   $: {
-    if (isMounted) getQuantizationData(levelOfDetail, initialColumns);
+    if (isMounted) requantizeData(levelOfDetail, initialColumns);
   }
 
   $: {
@@ -90,7 +98,7 @@
 
   onMount(() => {
     const getInitialHexagons = () => {
-      getQuantizationData(0, initialColumns, true);
+      requantizeData(0, initialColumns);
       isMounted = true;
     };
     afterInitializationQueue.push(getInitialHexagons);
@@ -109,16 +117,14 @@
     }
   }
 
-  function getQuantizationData(
-    lod: number,
-    initial_columns: number,
-    initialCall = false
-  ) {
-    const quantizationResult = TableService.getDataQuantizedFiltered(
+  function requantizeData(lod: number, initial_columns: number) {
+    const quantizationResult = TableService.updateQuantizationGlobalFiltered(
       initial_columns * 2 ** lod
     );
+  }
 
-    currentQuantization = quantizationResult.datagons;
+  function onQuantizationChange(quantizationResult: QuantizationResults) {
+    currentQuantizationLocal = quantizationResult.datagons;
     rows = quantizationResult.rows;
     columns = quantizationResult.columns;
     currentSelectionA = new Set<DataHexagon>();
@@ -140,9 +146,9 @@
         initialDataHeight = widthToHeightDataRatio * maxHeight;
       if (initialDataWidth == 0) initialDataWidth = maxWidth;
     }
-    if (initialCall) {
-      currentFilteredQuantization = currentQuantization;
-    } else applyCulling();
+
+    currentFilteredQuantization = currentQuantizationLocal;
+    applyCulling();
   }
   /**
    * Takes a point in dom coordinate space and maps it to a svg coordinate point
@@ -195,7 +201,7 @@
     const x2_quantized = Math.ceil(bottomrightSVGPoint.x / (3 * hexaSide)) + 1;
     const y2_quantized =
       Math.ceil(bottomrightSVGPoint.y / (2 * hexaShortDiag * hexaSide)) * 2 + 1;
-    currentFilteredQuantization = currentQuantization.filter((e) => {
+    currentFilteredQuantization = currentQuantizationLocal.filter((e) => {
       return (
         e.hexaX >= x1_quantized &&
         e.hexaY >= y1_quantized &&
@@ -335,7 +341,7 @@
     on:zoomEnd={() => applyCulling()}
     on:lassoSelectionEnd={() => handleLassoSelection()}
   >
-    {#if hexaSide != 0 && currentQuantization.length != 0}
+    {#if hexaSide != 0 && currentQuantizationLocal.length != 0}
       <g>
         {#each currentFilteredQuantization as datagon}
           <g

@@ -1,6 +1,7 @@
 import type ColumnTable from "arquero/dist/types/table/column-table";
 import * as aq from "arquero";
 import type { DataHexagon, filterDescriptor, PointData, QuantizationResults } from "../types";
+import { currentQuantization } from "../stores";
 
 export class TableService{
   static table:ColumnTable|null = null;
@@ -50,13 +51,18 @@ export class TableService{
     return this.filteredTable
   }
 
-  public static getDataQuantized(columns:number):QuantizationResults {
-    return this.quantize(columns, this.getTable())
+  public static updateQuantizationGlobal(columns:number) {
+    currentQuantization.set(this.quantize(columns, this.getTable()))
   }
 
-  public static getDataQuantizedFiltered(columns:number){
-    return this.quantize(columns,this.getTableFiltered())
+  public static updateQuantizationGlobalFiltered(columns:number){
+    currentQuantization.set(this.quantize(columns,this.getTableFiltered()))
   }
+
+  public static getQuantizationLocal(columns:number) : QuantizationResults {
+    return this.quantize(columns, this.getTable())
+  }
+  
 
 
 
