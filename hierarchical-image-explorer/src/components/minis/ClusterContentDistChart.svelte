@@ -20,7 +20,6 @@
     $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
     name: 'clusterDist',
     description: 'Cluster content distribution',
-    title: 'Cluster content distribution',
     background: null,
     autosize: {
       type: 'pad',
