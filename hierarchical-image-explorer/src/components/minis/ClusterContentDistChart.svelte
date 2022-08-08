@@ -30,7 +30,7 @@
       name: 'table',
     },
     mark: {
-      type: 'bar'
+      type: 'bar',
     },
     encoding: {
       x: { field: 'amount', type: 'quantitative', axis: { tickMinStep: 1 } },
@@ -41,11 +41,6 @@
       },
     },
   };
-
 </script>
 
-<VegaLite
-  class="w-full"
-  {data}
-  {spec}
-/>
+<VegaLite class="w-full" {data} {spec} />
