@@ -1,8 +1,10 @@
 <script lang="ts">
   import BackendService from '../../services/backendService';
   import type { DataHexagon } from '../../types';
-  import ClusterBarChart from './ClusterBarChart.svelte';
+  import ClusterContentDistChart from './ClusterContentDistChart.svelte';
+  import ClusterNumImgChart from './ClusterNumImgChart.svelte';
   export let datagons: DataHexagon[];
+  export let imgSum: [{ numberOfImg: number; selection: string }] = [];
 
   $: rep = getSuperRepresentant(datagons);
 
@@ -40,19 +42,18 @@
   }
 </script>
 
-<div class="pl-4 pt-4 font-medium text-lg text-left">
-  Number of images:
-  <div class="pl-2 text-slate-400">
-    {datagons.reduce((v, e) => v + e.size, 0)}
-  </div>
-</div>
-<div class="pl-4 pt-4 font-bold text-xl text-left">Representative image</div>
+<div class="pl-4 pt-4 font-medium text-lg text-left">Representative image</div>
 <img
   alt="selected"
   class="ml-4 mt-2 mb-2 w-32 h-32"
   src={BackendService.getImageUrl(rep)}
   style="image-rendering: pixelated;"
 />
-<div class="pl-4 mt-4 w-full">
-  <ClusterBarChart distribution={getLabelDistribution(datagons)} />
+<div
+  class="mt-4 pl-4 w-full flex flex-col font-medium text-lg text-left overflow-hidden"
+>
+  <div>Number of images in clusters</div>
+  <ClusterNumImgChart class="mt-4" imageSum={imgSum} />
+  <div>Label distribution in clusters</div>
+  <ClusterContentDistChart distribution={getLabelDistribution(datagons)} />
 </div>

@@ -41,6 +41,7 @@
   let outerDiv: HTMLElement | undefined;
   let tableIsSet = false;
   let updateQuantizationDataExportFunction: () => void;
+  let numberOfClusterImages: [{ numberOfImg: number; selection: string }] = [];
 
   const borderWidth = 2;
 
@@ -131,7 +132,10 @@
           </div>
         {:else if selectedDatagons.size > 0}
           <div class="font-bold text-xl text-left">Cluster info</div>
-          <ClusterView datagons={[...selectedDatagons]} />
+          <ClusterView
+            datagons={[...selectedDatagons]}
+            imgSum={numberOfClusterImages}
+          />
         {/if}
       </div>
     </div>
@@ -146,6 +150,7 @@
         bind:bottomrightSVGPoint={accBottomRightCorner}
         bind:initialDataWidth={accSvgWidth}
         bind:initialDataHeight={accSvgHeight}
+        bind:sumOfSelectedImages={numberOfClusterImages}
       />
     </div>
     <RightSidebar

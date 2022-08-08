@@ -17,6 +17,8 @@
   export let maxHeight: number;
   export let initialDataHeight: number = 0;
   export let initialDataWidth: number = 0;
+  export let sumOfSelectedImages: [{ numberOfImg: number; selection: string }] =
+    [];
   export const updateQuantizationDataExportFunction: () => void = () => {
     getQuantizationData(levelOfDetail, initialColumns);
   };
@@ -72,6 +74,18 @@
     if (svg != undefined && transform != undefined && zoomLevel != undefined) {
       updateScreenBoundaryPoints();
     }
+  }
+
+  $: {
+    sumOfSelectedImages = [];
+    sumOfSelectedImages.push({
+      numberOfImg: getSumOfSelection(currentSelectionA),
+      selection: 'A',
+    });
+    sumOfSelectedImages.push({
+      numberOfImg: getSumOfSelection(currentSelectionB),
+      selection: 'B',
+    });
   }
 
   onMount(() => {
@@ -267,6 +281,14 @@
       color: ColorUtil.getColor(datagon.dominantLabel),
       isSelected: false,
     };
+  }
+
+  function getSumOfSelection(selection: Set<DataHexagon>): number {
+    let sum: number = 0;
+    selection.forEach((d) => {
+      sum += d.size;
+    });
+    return sum;
   }
 </script>
 
