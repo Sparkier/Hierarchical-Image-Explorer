@@ -4,8 +4,6 @@
 
   export let distribution: { label: string; amount: number }[] | undefined;
 
-  let selected = 'Select a bar to show the distribution of pictures';
-
   $: data = {
     table: distribution,
   };
@@ -25,26 +23,18 @@
     title: 'Cluster content distribution',
     background: null,
     autosize: {
-      type: 'fit-x',
+      type: 'pad',
       contains: 'padding',
     },
     data: {
       name: 'table',
     },
-    params: [
-      {
-        name: 'select',
-        select: { type: 'point', encodings: ['x'] },
-      },
-    ],
     mark: {
-      type: 'bar',
-      cursor: 'pointer',
+      type: 'bar'
     },
     encoding: {
       x: { field: 'amount', type: 'quantitative', axis: { tickMinStep: 1 } },
       y: { field: 'label', type: 'nominal' },
-      fillOpacity: { condition: { param: 'select', value: 1 }, value: 0.3 },
       color: {
         field: 'label',
         scale: { range: colorscheme },
@@ -52,22 +42,10 @@
     },
   };
 
-  function handleSelection(...args: any) {
-    if (distribution == undefined) return;
-    if (args[1].label !== undefined) {
-      const amount = distribution.filter((e) => e.label == args[1].label)[0]
-        .amount;
-      selected = `Number of pictures in selected category: ${amount}`;
-    } else {
-      selected = '';
-    }
-  }
 </script>
 
 <VegaLite
   class="w-full"
   {data}
   {spec}
-  signalListeners={{ select: handleSelection }}
 />
-<div>{selected}</div>
