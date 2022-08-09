@@ -299,8 +299,8 @@
     class={`cursor-pointer ${
       selectionModeOn
         ? isASelectionActive
-          ? 'bg-selection-yellow'
-          : 'bg-selection-pink'
+          ? 'bg-selectionA'
+          : 'bg-selectionB'
         : 'bg-slate-400'
     } rounded-lg w-12 p-2 mt-1`}
     on:click={() => {
@@ -312,8 +312,8 @@
   <div
     class={`rounded-lg w-14 p-2 mt-1 text-center cursor-pointer select-none ${
       isASelectionActive
-        ? `bg-selection-yellow text-black`
-        : `bg-selection-pink text-white`
+        ? `bg-selectionA text-black`
+        : `bg-selectionB text-white`
     }`}
     on:click={() => {
       isASelectionActive = !isASelectionActive;

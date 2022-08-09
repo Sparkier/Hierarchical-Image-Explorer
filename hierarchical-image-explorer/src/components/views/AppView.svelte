@@ -4,8 +4,6 @@
   import { onDestroy, onMount } from 'svelte';
   import ImgView from '../minis/ImgView.svelte';
   import ClusterView from '../minis/ClusterView.svelte';
-  import { scale } from 'svelte/transition';
-  import RangeSlider from 'svelte-range-slider-pips';
   import { DEFAULT_SLIDER_VALUE, DEFAULT_SETTINGS } from '../../config';
   import type { DataHexagon, PointData, SettingsObject } from '../../types';
   import Minimap from '../minis/Minimap.svelte';

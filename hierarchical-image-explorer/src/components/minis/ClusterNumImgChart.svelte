@@ -20,6 +20,7 @@
       type: 'pad',
       contains: 'padding',
     },
+    background: null,
     data: {
       values: [
         {
