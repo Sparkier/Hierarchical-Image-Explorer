@@ -13,20 +13,41 @@
   let filterList: filterDescriptor[] = []; // list of all filters to be applied
   let concatenations: boolean[] = []; // list of concatenations of the filter operations (AND/OR) after selecting in the UI true = AND, false = OR
 
+  $: {
+    updateArqueroQueries(filterList);
+  }
+
   /**
    * Creates and adds a filter to the list of filters to be applied.
    */
   function addFilter(
     toBeFilteredOn: string,
     comparator: string,
-    valueToBeComparedTo: string
+    valueToBeComparedTo: string,
+    arqueroQuery: string,
+    arqueroQueryManuallyEdited: boolean
   ) {
     const filter: filterDescriptor = {
       toBeFilteredOn,
       comparator,
       valueToBeComparedTo,
+      arqueroQuery,
+      arqueroQueryManuallyEdited,
     };
     filterList = [...filterList, filter];
+  }
+
+  function updateArqueroQueries(filterList: filterDescriptor[]) {
+    filterList.map((e) => {
+      if (e.arqueroQueryManuallyEdited) return e;
+      const newFilter = e;
+      e.arqueroQuery = `d.${e.toBeFilteredOn} ${e.comparator} `;
+      if (categories.includes(e.valueToBeComparedTo)) {
+        e.arqueroQuery += `d.${e.valueToBeComparedTo}`;
+      } else {
+        e.arqueroQuery += `'${e.valueToBeComparedTo}'`;
+      }
+    });
   }
 
   /**
@@ -40,11 +61,15 @@
 </script>
 
 <div>
+  <datalist id="filterColumns">
+    <!-- Columns for right sided selection -->
+    {#each categories as cat}
+      <option>{cat}</option>
+    {/each}
+  </datalist>
   <div class="grid columns-1 w-full">
     {#each filterList as filter, index}
-      <div
-        class="w-80 h-28 bg-white rounded-md flex mt-2 mb-2 relative flex-col"
-      >
+      <div class="w-80 bg-white rounded-md flex mt-2 mb-2 relative flex-col">
         <div
           class="mr-2 mt-2 absolute top-0 right-0 order-1"
           on:click={() => {
@@ -59,12 +84,11 @@
         </div>
         <div class="text-lg pl-2 pt-2 pb-2">Select the filters:</div>
         <div class="h-0.5 bg-neutral-200 order-2" />
-        <div
-          class="pl-2 pt-2 order-last flex-row justify-between items-stretch"
-        >
+        <div class="pl-2 pt-2 flex-row justify-between items-stretch">
           <select
             class="h-10 text-lg rounded-sm"
             bind:value={filter.toBeFilteredOn}
+            on:input={() => (filter.arqueroQueryManuallyEdited = false)}
           >
             <option value="" disabled selected>to filter</option>
             {#each categories as cat}
@@ -74,22 +98,36 @@
           <select
             class="h-10 rounded-sm text-lg"
             bind:value={filter.comparator}
+            on:input={() => (filter.arqueroQueryManuallyEdited = false)}
           >
             <option value="<="> ≤ </option>
             <option value=">="> ≥ </option>
-            <option value="="> = </option>
+            <option value="=="> = </option>
             <option value="<"> {'<'} </option>
             <option value=">"> {'>'} </option>
             <option value="!="> ≠ </option>
           </select>
           <input
             bind:value={filter.valueToBeComparedTo}
+            on:input={() => (filter.arqueroQueryManuallyEdited = false)}
             class="pr-2 rounded-sm h-10 bg-neutral-200 focus:outline-none focus:border-hie-orange 
             focus:ring-hie-orange focus:ring-2 w-2/5 placeholder:italic placeholder:text-slate-400 pl-2"
             placeholder="Insert class"
+            list="filterColumns"
             type="text"
           />
         </div>
+        <div class="pl-2 pt-2 pr-4">
+          <input
+            bind:value={filter.arqueroQuery}
+            on:input={() => (filter.arqueroQueryManuallyEdited = true)}
+            class="pr-2 rounded-sm h-10 bg-neutral-200 focus:outline-none focus:border-hie-orange 
+        focus:ring-hie-orange focus:ring-2 w-full placeholder:italic placeholder:text-slate-400 pl-2"
+            placeholder="Arquero Query"
+            type="text"
+          />
+        </div>
+        <div class="mb-3" />
       </div>
       {#if index != filterList.length - 1}
         <div class="flex items-center mt-2 mb-2">
@@ -121,7 +159,7 @@
       <button
         class="bg-hie-orange hover:bg-hie-red text-white font-bold py-2 px-4 rounded pt-2"
         on:click={() => {
-          addFilter('', '=', '');
+          addFilter('', '==', '', '', false);
           addConcatenation(false);
         }}
       >
