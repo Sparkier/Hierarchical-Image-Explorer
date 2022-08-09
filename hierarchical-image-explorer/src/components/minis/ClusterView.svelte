@@ -3,7 +3,9 @@
   import type { DataHexagon } from '../../types';
   import ClusterContentDistChart from './ClusterContentDistChart.svelte';
   import ClusterNumImgChart from './ClusterNumImgChart.svelte';
-  export let datagons: DataHexagon[];
+
+  export let datagonsA: DataHexagon[];
+  export let datagonsB: DataHexagon[];
   export let imgSum: [{ numberOfImg: number; selection: string }] = [];
 
   $: rep = getSuperRepresentant(datagons);
