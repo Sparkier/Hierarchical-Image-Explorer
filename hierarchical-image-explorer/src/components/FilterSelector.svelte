@@ -37,6 +37,10 @@
     filterList = [...filterList, filter];
   }
 
+  /**
+   * Updates the arquero queries if the user is not manually setting them
+   * @param filterList list of filters to update on
+   */
   function updateArqueroQueries(filterList: filterDescriptor[]) {
     filterList.map((e) => {
       if (e.arqueroQueryManuallyEdited) return e;

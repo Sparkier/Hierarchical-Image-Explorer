@@ -35,32 +35,8 @@ export class TableService{
       }
     }
   }
-
+  
   private static applySingleFilter(filter: filterDescriptor, table:ColumnTable):ColumnTable{
-    // let compareFunction: (a:number|string,b:number|string) => boolean;
-    // switch (filter.comparator) {
-    //   case "<=":
-    //     compareFunction = (a,b) => a <= b
-    //     break;
-    //   case ">=":
-    //     compareFunction = (a,b) => a >= b
-    //     break;
-    //   case "=": 
-    //     compareFunction = (a,b) => a==b
-    //     break;
-    //   case "<":
-    //     compareFunction = (a,b) => a<b
-    //     break;
-    //   case ">": 
-    //     compareFunction = (a,b) => a>b
-    //     break;
-    //   case "!=":
-    //     compareFunction = (a,b) => a != b
-    //     break;
-    //   default:
-    //     throw new Error("Unkown comparator symbol while applying filter")
-    // }
-    // return table.filter(aq.escape((d:Record<string, string|number>) => compareFunction(d[filter.toBeFilteredOn],filter.valueToBeComparedTo)))
     return table.filter(filter.arqueroQuery)
   }
 
