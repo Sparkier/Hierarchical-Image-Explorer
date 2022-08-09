@@ -112,10 +112,10 @@ export class TableService{
       dataTable
     );
 
-    const dataList = this.aggregateQuantization(quantized, possiblePoints, xMin, yMin);
+    //const dataList = this.aggregateQuantization(quantized, possiblePoints, xMin, yMin);
 
     return {
-      datagons: dataList,
+      datagons: quantized,
       xDomain: [xMin, xMax],
       yDomain: [yMin, yMax],
       columns: columns,
@@ -208,7 +208,7 @@ export class TableService{
     scaleX: (v: number) => number,
     scaleY: (v: number) => number,
     dataTable:ColumnTable
-  ): PointData[][][] {
+  ): ColumnTable {
     // initialize empty 3d Array
     const quantized: PointData[][][] = [];
     for (let x = 0; x < columns; x++) {
@@ -218,55 +218,67 @@ export class TableService{
       }
     }
 
-    for (const filteredPointObject of dataTable) {
-      const filteredPoint = filteredPointObject as {x:number, y:number, id:string, label:string}
-      let gridX = Math.floor(
-        (filteredPoint.x - xMin - 0.5 * this.APOTHEM * hexaSide) /
-          (3 * hexaSide)
-      );
-      gridX = Math.max(0, gridX); // in edge cases since the grids first cell starts in the negative a value of -1 can appear
-      const gridY = Math.floor(
-        (filteredPoint.y - yMin) / (2 * this.APOTHEM * hexaSide)
-      );
+    const quantizedTable = dataTable.derive({
+      quantization: aq.escape((d:{x:number,y:number,id:string,label:string})=>{
+        const q = this.getSingleQuantization(d,xMin,hexaSide,yMin,columns,rows,possiblePoints,scaleX,scaleY)
+        return [q.xQuantized,q.yQuantized]
+      })
+    })
 
-      // overlay grid to narrow down possible closest hexagons to 5
-      // resulting possible hexagons:
-      // gx, gy*2
-      // gx+1 gy*2-1
-      // gx+1 gy*2+1
-      // gx gy*2+1
-      // gx gy*2-1
-      const comparisonPoints = [];
+    // for (const filteredPointObject of dataTable) {
+    //   const filteredPoint = filteredPointObject as {x:number, y:number, id:string, label:string}
+    //   const closestHexa = TableService.getSingleQuantization(filteredPoint, xMin, hexaSide, yMin, columns, rows, possiblePoints, scaleX, scaleY);
+    //   quantized[closestHexa.xQuantized][closestHexa.yQuantized].push(
+    //     filteredPoint
+    //   );
+    // }
+    return quantizedTable
+  }
 
-      if (gridX < columns && gridY * 2 <= rows)
-        comparisonPoints.push(possiblePoints[gridX][gridY * 2]);
-      if (gridX + 1 < columns && gridY * 2 - 1 > 0)
-        comparisonPoints.push(possiblePoints[gridX + 1][gridY * 2 - 1]);
-      if (gridX + 1 < columns && gridY * 2 + 1 < rows)
-        comparisonPoints.push(possiblePoints[gridX + 1][gridY * 2 + 1]);
-      if (gridX <= columns && gridY * 2 + 1 < rows)
-        comparisonPoints.push(possiblePoints[gridX][gridY * 2 + 1]);
-      if (gridX <= columns && gridY * 2 - 1 > 0)
-        comparisonPoints.push(possiblePoints[gridX][gridY * 2 - 1]);
+  private static getSingleQuantization(filteredPoint: { x: number; y: number; id: string; label: string; }, xMin: number, hexaSide: number, yMin: number, columns: number, rows: number, possiblePoints: { xCoord: number; xQuantized: number; yCoord: number; yQuantized: number; }[][], scaleX: (v: number) => number, scaleY: (v: number) => number) {
+    let gridX = Math.floor(
+      (filteredPoint.x - xMin - 0.5 * this.APOTHEM * hexaSide) /
+      (3 * hexaSide)
+    );
+    gridX = Math.max(0, gridX); // in edge cases since the grids first cell starts in the negative a value of -1 can appear
+    const gridY = Math.floor(
+      (filteredPoint.y - yMin) / (2 * this.APOTHEM * hexaSide)
+    );
 
-      if (comparisonPoints.some((i) => i === undefined)) {
-        throw new Error(
-          `Undefined element in comparisonPoints ${gridX} , ${gridY}`
-        );
-      }
-      const scaledX = scaleX(filteredPoint.x);
-      const scaledY = scaleY(filteredPoint.y);
+    // overlay grid to narrow down possible closest hexagons to 5
+    // resulting possible hexagons:
+    // gx, gy*2
+    // gx+1 gy*2-1
+    // gx+1 gy*2+1
+    // gx gy*2+1
+    // gx gy*2-1
+    const comparisonPoints = [];
 
-      const distances = comparisonPoints.map((pp) => {
-        return Math.hypot(scaledX - pp.xCoord, scaledY - pp.yCoord);
-      });
-      const closesHexaIndex = distances.indexOf(Math.min(...distances));
-      const closestHexa = comparisonPoints[closesHexaIndex];
-      quantized[closestHexa.xQuantized][closestHexa.yQuantized].push(
-        filteredPoint
+    if (gridX < columns && gridY * 2 <= rows)
+      comparisonPoints.push(possiblePoints[gridX][gridY * 2]);
+    if (gridX + 1 < columns && gridY * 2 - 1 > 0)
+      comparisonPoints.push(possiblePoints[gridX + 1][gridY * 2 - 1]);
+    if (gridX + 1 < columns && gridY * 2 + 1 < rows)
+      comparisonPoints.push(possiblePoints[gridX + 1][gridY * 2 + 1]);
+    if (gridX <= columns && gridY * 2 + 1 < rows)
+      comparisonPoints.push(possiblePoints[gridX][gridY * 2 + 1]);
+    if (gridX <= columns && gridY * 2 - 1 > 0)
+      comparisonPoints.push(possiblePoints[gridX][gridY * 2 - 1]);
+
+    if (comparisonPoints.some((i) => i === undefined)) {
+      throw new Error(
+        `Undefined element in comparisonPoints ${gridX} , ${gridY}`
       );
     }
-    return quantized
+    const scaledX = scaleX(filteredPoint.x);
+    const scaledY = scaleY(filteredPoint.y);
+
+    const distances = comparisonPoints.map((pp) => {
+      return Math.hypot(scaledX - pp.xCoord, scaledY - pp.yCoord);
+    });
+    const closesHexaIndex = distances.indexOf(Math.min(...distances));
+    const closestHexa = comparisonPoints[closesHexaIndex];
+    return closestHexa;
   }
 
   /**

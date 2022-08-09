@@ -1,9 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { quantizationRollup } from '../../services/arqueroUtils';
 
   import { ColorUtil } from '../../services/colorUtil';
   import { TableService } from '../../services/tableService';
-  import type { DataHexagon } from '../../types';
+  import { hexagonPropertiesMap } from '../../stores';
+  import type {
+    DataHexagon,
+    DerivedHexagon,
+    HexagonPropertiesMap,
+  } from '../../types';
 
   export let svgHeight: number;
   export let svgWidth: number;
@@ -14,22 +20,31 @@
   let minimapWidth: number;
   let minimapHeight: number = 0;
   let rows = 0;
-  let datagons: DataHexagon[] = [];
+  let datagons: DerivedHexagon[] = [];
+  let hexagonPropertiesMapLocal: HexagonPropertiesMap;
 
   $: svgToMinimapScaleX = (v: number) => (v / svgWidth) * minimapWidth;
   $: svgToMinimapScaleY = (v: number) => (v / svgHeight) * minimapHeight;
   $: dotsize = minimapWidth / columns / 4;
 
+  hexagonPropertiesMap.subscribe((v) => (hexagonPropertiesMapLocal = v));
+
   /**
    * retrieves the quantized data used in the minimap
    * @returns quanzized list of datagons
    */
-  function getQuantizedBlobs(): DataHexagon[] {
+  function getQuantizedBlobs(): DerivedHexagon[] {
     const quantizationResult = TableService.getQuantizationLocal(columns);
     rows = quantizationResult.rows;
     const virtualHexaSide = minimapWidth / (3 * columns);
     minimapHeight = (((rows + 1) * Math.sqrt(3)) / 2) * virtualHexaSide;
-    return quantizationResult.datagons;
+
+    const minimalTable = quantizationRollup(
+      quantizationResult.datagons,
+      hexagonPropertiesMapLocal
+    );
+    const minimalTalbeObjects = minimalTable.objects() as DerivedHexagon[];
+    return minimalTalbeObjects;
   }
 
   onMount(() => {
@@ -42,13 +57,15 @@
     <svg height={minimapHeight} width={minimapWidth}>
       {#each datagons as d}
         <circle
-          cx={((d.hexaX + (d.hexaY % 2 == 0 ? 0 : 0.5)) / columns) *
+          cx={((d.quantization[0] + (d.quantization[1] % 2 == 0 ? 0 : 0.5)) /
+            columns) *
             (minimapWidth - dotsize) +
             dotsize}
-          cy={(d.hexaY / rows) * (minimapHeight - dotsize) + dotsize}
+          cy={(d.quantization[1] / rows) * (minimapHeight - dotsize) + dotsize}
           r={dotsize}
-          fill={ColorUtil.getColor(d.dominantLabel)}
+          fill={ColorUtil.getColor(d.color)}
         />
+        <!-- Color must be adjusted once custom hexagon colorizing is implemented -->
       {/each}
       {#if topLeftSvgCorner != undefined}
         <rect

@@ -5,11 +5,17 @@
   import ImgView from '../minis/ImgView.svelte';
   import ClusterView from '../minis/ClusterView.svelte';
   import { DEFAULT_SLIDER_VALUE, DEFAULT_SETTINGS } from '../../config';
-  import type { DataHexagon, PointData, SettingsObject } from '../../types';
+  import type {
+    DataHexagon,
+    DerivedHexagon,
+    PointData,
+    SettingsObject,
+  } from '../../types';
   import Minimap from '../minis/Minimap.svelte';
   import * as aq from 'arquero';
   import { TableService } from '../../services/tableService';
   import RightSidebar from '../minis/RightSidebar.svelte';
+  import { hexagonPropertiesMap } from '../../stores';
 
   export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
 
@@ -31,8 +37,8 @@
   let show = false; // menu state
   let menu: HTMLDivElement | null = null; // menu wrapper DOM reference
   let sliderValue = DEFAULT_SLIDER_VALUE;
-  let selectedDatagonsA: Set<DataHexagon> = new Set<DataHexagon>();
-  let selectedDatagonsB: Set<DataHexagon> = new Set<DataHexagon>();
+  let selectedDatagonsA: Set<DerivedHexagon> = new Set<DerivedHexagon>();
+  let selectedDatagonsB: Set<DerivedHexagon> = new Set<DerivedHexagon>();
   let accTopLeftCorner: DOMPoint;
   let accBottomRightCorner: DOMPoint;
   let accSvgWidth: number;
@@ -40,6 +46,7 @@
   let outerDiv: HTMLElement | undefined;
   let tableIsSet = false;
   let updateQuantizationDataExportFunction: () => void;
+  let dominantLabelTextInput: string;
   let numberOfClusterImages: [{ numberOfImg: number; selection: string }] = [];
 
   const borderWidth = 2;
@@ -50,6 +57,9 @@
       : window.innerHeight -
         outerDiv.getBoundingClientRect().y -
         2 * borderWidth; // this will be used to limit the height of the accumulator to the screen
+
+  hexagonPropertiesMap.subscribe((v) => (dominantLabelTextInput = v.color));
+
   onMount(() => {
     document.addEventListener('click', handleOutsideClick, false);
     document.addEventListener('keyup', handleEscape, false);
@@ -78,6 +88,18 @@
             svgHeight={accSvgHeight}
           />
         </div>
+
+        <!-- Move me to a better place -->
+        <div class="flex">
+          <input type="text" bind:value={dominantLabelTextInput} />
+          <button
+            on:click={() =>
+              hexagonPropertiesMap.set({ color: dominantLabelTextInput })}
+            >apply</button
+          >
+        </div>
+        <!-- End move -->
+
         {#if (selectedDatagonsA.size === 1 && Array.from(selectedDatagonsA)[0].size === 1) || (selectedDatagonsB.size === 1 && Array.from(selectedDatagonsB)[0].size === 1)}
           <ImgView
             imageID={[...selectedDatagonsA][0].representantID}
