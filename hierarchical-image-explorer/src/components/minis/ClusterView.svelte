@@ -6,7 +6,7 @@
 
   export let datagonsA: DataHexagon[];
   export let datagonsB: DataHexagon[];
-  export let imgSum: [{ numberOfImg: number; selection: string }] = [];
+  export let sumOfSelectedImages: [{ numberOfImg: number; selection: string }] = [];
   $: repA = getSuperRepresentant(datagonsA);
   $: repB = getSuperRepresentant(datagonsB);
   /**
@@ -72,7 +72,7 @@
   class="mt-4 pl-4 w-full flex flex-col font-medium text-lg text-left overflow-hidden"
 >
   <div>Number of images in clusters</div>
-  <ClusterNumImgChart class="mt-4" imageSum={imgSum} />
+  <ClusterNumImgChart class="mt-4" numberOfClusterImages={sumOfSelectedImages} />
   <div>Label distribution in clusters</div>
   <ClusterContentDistChart
     distributionA={getLabelDistribution(datagonsA)}

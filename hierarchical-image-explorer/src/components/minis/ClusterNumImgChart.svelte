@@ -2,14 +2,14 @@
   import { Vega } from 'svelte-vega';
   import { ColorUtil } from '../../services/colorUtil';
 
-  export let imageSum: [{ numberOfImg: number; selection: string }];
+  export let numberOfClusterImages: [{ numberOfImg: number; selection: string }];
 
   let imgInClusterA: number = 0;
   let imgInClusterB: number = 0;
 
   $: {
-    imgInClusterA = imageSum[0].numberOfImg;
-    imgInClusterB = imageSum[1].numberOfImg;
+    imgInClusterA = numberOfClusterImages[0].numberOfImg;
+    imgInClusterB = numberOfClusterImages[1].numberOfImg;
   }
 
   $: spec = {

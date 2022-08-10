@@ -88,7 +88,7 @@
           <ClusterView
             datagonsA={[...selectedDatagonsA]}
             datagonsB={[...selectedDatagonsB]}
-            imgSum={numberOfClusterImages}
+            sumOfSelectedImages={numberOfClusterImages}
           />
         {/if}
       </div>
