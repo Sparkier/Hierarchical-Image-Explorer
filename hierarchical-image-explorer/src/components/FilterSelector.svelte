@@ -4,8 +4,6 @@
   import { TableService } from '../services/tableService';
   import { createEventDispatcher } from 'svelte';
 
-  //!! TODO: grab categories, once arquero is on main
-  // this is very much fake
   const hexagonCategories: string[] = []; // will be added once we aggregate with aquero
   const tableColumns = TableService.getAdditionalColumns();
   const categories = [...tableColumns, ...hexagonCategories];
