@@ -283,7 +283,7 @@
   }
 
   function getSumOfSelection(selection: Set<DataHexagon>): number {
-      return [...selection].reduce((sum, d) => sum + d.size, 0);
+    return [...selection].reduce((sum, d) => sum + d.size, 0);
   }
 </script>
 
