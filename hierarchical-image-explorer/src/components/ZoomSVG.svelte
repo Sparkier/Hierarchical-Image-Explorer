@@ -82,6 +82,7 @@
   {viewBox}
   bind:this={svg}
   class={selectionModeOn ? 'cursor-crosshair' : ''}
+  style="transform-box: fill-box;"
 >
   <g bind:this={g}>
     <slot />

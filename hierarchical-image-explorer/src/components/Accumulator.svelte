@@ -39,6 +39,7 @@
   let isASelectionActive = true;
   let isMounted = false;
   let afterInitializationQueue: Function[] = [];
+  let currentDatagonHover: ?DataHexagon;
 
   $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
@@ -222,7 +223,8 @@
     selectionModeOn = false;
   }
 
-  function handleDatagonSelection(datagon: DataHexagon) {
+  function handleDatagonSelection(datagon: DataHexagon | null) {
+    if (datagon == null) throw new Error('Datagon is Null');
     if (isASelectionActive) {
       if (currentSelectionA.has(datagon)) {
         currentSelectionA.delete(datagon);
@@ -327,19 +329,22 @@
               : ''}
           >
             {#if datagon.size > 1}
-              <Hexagon
-                side={hexaSide}
-                x={scaleQuantisedX(datagon.hexaX, datagon.hexaY)}
-                y={scaleQuantisedY(datagon.hexaY)}
-                stroke={getSelectionInfo(
-                  datagon,
-                  currentSelectionA,
-                  currentSelectionB
-                ).color}
-                strokeWidth={hexaSide / 5}
-                image={BackendService.getImageUrl(datagon.representantID)}
-                on:click={() => handleDatagonSelection(datagon)}
-              />
+              <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+              <g on:mouseover={() => (currentDatagonHover = datagon)}>
+                <Hexagon
+                  side={hexaSide}
+                  x={scaleQuantisedX(datagon.hexaX, datagon.hexaY)}
+                  y={scaleQuantisedY(datagon.hexaY)}
+                  stroke={getSelectionInfo(
+                    datagon,
+                    currentSelectionA,
+                    currentSelectionB
+                  ).color}
+                  strokeWidth={hexaSide / 5}
+                  image={BackendService.getImageUrl(datagon.representantID)}
+                  on:click={() => handleDatagonSelection(datagon)}
+                />
+              </g>
             {:else}
               {#if getSelectionInfo(datagon, currentSelectionA, currentSelectionB).isSelected}
                 <rect
@@ -373,6 +378,33 @@
             {/if}
           </g>
         {/each}
+        {#if currentDatagonHover != null}
+          <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+          <g
+            on:click={() => handleDatagonSelection(currentDatagonHover)}
+            on:mouseout={() => {
+              currentDatagonHover = null;
+            }}
+          >
+            <Hexagon
+              side={hexaSide * 2}
+              x={scaleQuantisedX(
+                currentDatagonHover.hexaX,
+                currentDatagonHover.hexaY
+              ) - hexaSide}
+              y={scaleQuantisedY(currentDatagonHover.hexaY) - hexaSide}
+              stroke={getSelectionInfo(
+                currentDatagonHover,
+                currentSelectionA,
+                currentSelectionB
+              ).color}
+              strokeWidth={hexaSide / 5}
+              image={BackendService.getImageUrl(
+                currentDatagonHover.representantID
+              )}
+            />
+          </g>
+        {/if}
       </g>
     {/if}
   </ZoomSVG>
