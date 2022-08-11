@@ -8,8 +8,10 @@
   let imgInClusterB: number = 0;
 
   $: {
+      if (numberOfClusterImages.length == 2){
     imgInClusterA = numberOfClusterImages[0].numberOfImg;
     imgInClusterB = numberOfClusterImages[1].numberOfImg;
+      }
   }
 
   $: spec = {

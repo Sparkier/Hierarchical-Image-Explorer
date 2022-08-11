@@ -77,15 +77,14 @@
   }
 
   $: {
-    sumOfSelectedImages = [];
-    sumOfSelectedImages.push({
+    sumOfSelectedImages[0] = {
       numberOfImg: getSumOfSelection(currentSelectionA),
       selection: 'A',
-    });
-    sumOfSelectedImages.push({
+    };
+    sumOfSelectedImages[1] = {
       numberOfImg: getSumOfSelection(currentSelectionB),
       selection: 'B',
-    });
+    };
   }
 
   onMount(() => {
@@ -284,11 +283,7 @@
   }
 
   function getSumOfSelection(selection: Set<DataHexagon>): number {
-    let sum: number = 0;
-    selection.forEach((d) => {
-      sum += d.size;
-    });
-    return sum;
+      return [...selection].reduce((sum, d) => sum + d.size, 0);
   }
 </script>
 
