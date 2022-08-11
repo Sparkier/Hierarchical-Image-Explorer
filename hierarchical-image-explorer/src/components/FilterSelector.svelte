@@ -13,9 +13,7 @@
   let filterList: filterDescriptor[] = []; // list of all filters to be applied
   let concatenations: boolean[] = []; // list of concatenations of the filter operations (AND/OR) after selecting in the UI true = AND, false = OR
 
-  $: {
-    updateArqueroQueries(filterList);
-  }
+  $: updateArqueroQueries(filterList);
 
   /**
    * Creates and adds a filter to the list of filters to be applied.
