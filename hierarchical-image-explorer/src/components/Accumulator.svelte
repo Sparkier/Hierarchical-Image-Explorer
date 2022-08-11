@@ -384,7 +384,6 @@
             on:click={() => handleDatagonSelection(currentDatagonHover)}
             on:mouseout={() => {
               currentDatagonHover = null;
-              console.log('mouseout');
             }}
           >
             <Hexagon
