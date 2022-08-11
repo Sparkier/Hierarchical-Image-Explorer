@@ -32,6 +32,8 @@ export type filterDescriptor = {
   toBeFilteredOn: string; // type to be filtered on
   comparator: string; // comparison operator to be used
   valueToBeComparedTo: string; // value to be compared with
+  arqueroQuery: string;
+  arqueroQueryManuallyEdited: boolean;
 };
 
 export type SettingsObject = { columns: number};
