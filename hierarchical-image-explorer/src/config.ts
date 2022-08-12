@@ -1,6 +1,6 @@
 import type { SettingsObject } from './types';
 
-export const DEFAULT_NUM_COLUMNS = 20;
+export const DEFAULT_NUM_COLUMNS = 10;
 export const DEFAULT_NUM_OF_COLUMNS = 10;
 export const DEFAULT_NUM_OF_ROWS = 80;
 export const DEFAULT_SLIDER_VALUE = 1.0;

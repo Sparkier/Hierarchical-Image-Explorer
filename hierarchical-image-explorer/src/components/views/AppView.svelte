@@ -89,7 +89,7 @@
           />
         </div>
 
-        <!-- Move me to a better place -->
+        <!-- Move me to a better place for demonstration only -->
         <div class="flex">
           <input type="text" bind:value={dominantLabelTextInput} />
           <button

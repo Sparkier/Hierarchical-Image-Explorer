@@ -3,7 +3,7 @@ import * as aq from 'arquero';
 import type ColumnTable from "arquero/dist/types/table/column-table";
 
 export function quantizationRollup(table:ColumnTable, hexagonPropertiesMap:HexagonPropertiesMap){
-  const rolledUpTable = table.groupby('quantization')
+  return table.groupby('quantization')
           .rollup({
             quantization: (d: { quantization: [number, number] }) =>
               aq.op.any(d.quantization),
@@ -12,6 +12,5 @@ export function quantizationRollup(table:ColumnTable, hexagonPropertiesMap:Hexag
             count: (d) => aq.op.count(),
             dominantLabel: (d: { label: string }) => aq.op.mode(d.label),
           })
-  rolledUpTable.print()
-  return rolledUpTable
+
 }
