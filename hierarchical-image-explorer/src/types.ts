@@ -44,4 +44,5 @@ export type DerivedHexagon = {quantization:[number,number], count:number, repres
 
 export type HexagonPropertiesMap = {
   color: string;
+  representantID: string
 };

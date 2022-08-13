@@ -10,6 +10,8 @@
     selection: string;
   }[] = [];
 
+  export let columnName: string;
+
   const colorscheme = [
     ColorUtil.SELECTION_HIGHLIGHT_COLOR_A,
     ColorUtil.SELECTION_HIGHLIGHT_COLOR_B,
@@ -24,7 +26,6 @@
         return { label: e.label, amount: e.amount, selection: 'B' };
       }),
     ];
-    distribution.sort();
   }
 
   $: data = {
@@ -47,12 +48,19 @@
       type: 'bar',
     },
     encoding: {
-      x: { field: 'amount', type: 'quantitative', axis: { tickMinStep: 1 } },
-      y: { field: 'label', type: 'nominal' },
+      x: {
+        field: 'amount',
+        type: 'quantitative',
+      },
+      y: { field: 'label', type: 'nominal', title: columnName },
       color: {
         field: 'selection',
         scale: { range: colorscheme },
       },
+      tooltip: [
+        { field: 'label', type: 'nominal' },
+        { field: 'amount', type: 'quantitative' },
+      ],
     },
   };
 </script>

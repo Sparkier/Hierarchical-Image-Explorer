@@ -15,7 +15,12 @@
   import * as aq from 'arquero';
   import { TableService } from '../../services/tableService';
   import RightSidebar from '../minis/RightSidebar.svelte';
-  import { hexagonPropertiesMap } from '../../stores';
+  import { currentQuantization, hexagonPropertiesMap } from '../../stores';
+  import type ColumnTable from 'arquero/dist/types/table/column-table';
+  import { getTotalSelectionSize } from '../../services/arqueroUtils';
+  import App from '../../App.svelte';
+  import { ArraySet } from '../../ArraySet';
+  import { SIZE } from 'vega-lite/build/src/channel';
 
   export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
 
@@ -37,8 +42,12 @@
   let show = false; // menu state
   let menu: HTMLDivElement | null = null; // menu wrapper DOM reference
   let sliderValue = DEFAULT_SLIDER_VALUE;
-  let selectedDatagonsA: Set<DerivedHexagon> = new Set<DerivedHexagon>();
-  let selectedDatagonsB: Set<DerivedHexagon> = new Set<DerivedHexagon>();
+  let selectedDatagonsA: ArraySet<[number, number]> = new ArraySet<
+    [number, number]
+  >();
+  let selectedDatagonsB: ArraySet<[number, number]> = new ArraySet<
+    [number, number]
+  >();
   let accTopLeftCorner: DOMPoint;
   let accBottomRightCorner: DOMPoint;
   let accSvgWidth: number;
@@ -47,7 +56,7 @@
   let tableIsSet = false;
   let updateQuantizationDataExportFunction: () => void;
   let dominantLabelTextInput: string;
-  let numberOfClusterImages: [{ numberOfImg: number; selection: string }] = [];
+  let currentQuantizationLocal: ColumnTable;
 
   const borderWidth = 2;
 
@@ -59,6 +68,11 @@
         2 * borderWidth; // this will be used to limit the height of the accumulator to the screen
 
   hexagonPropertiesMap.subscribe((v) => (dominantLabelTextInput = v.color));
+  currentQuantization.subscribe((v) => {
+    if (v != null) {
+      currentQuantizationLocal = v.datagons;
+    }
+  });
 
   onMount(() => {
     document.addEventListener('click', handleOutsideClick, false);
@@ -88,30 +102,23 @@
             svgHeight={accSvgHeight}
           />
         </div>
-
-        <!-- Move me to a better place for demonstration only -->
-        <div class="flex">
-          <input type="text" bind:value={dominantLabelTextInput} />
-          <button
-            on:click={() =>
-              hexagonPropertiesMap.set({ color: dominantLabelTextInput })}
-            >apply</button
-          >
-        </div>
-        <!-- End move -->
-
-        {#if (selectedDatagonsA.size === 1 && Array.from(selectedDatagonsA)[0].size === 1) || (selectedDatagonsB.size === 1 && Array.from(selectedDatagonsB)[0].size === 1)}
-          <ImgView
-            imageID={[...selectedDatagonsA][0].representantID}
-            imageLabel={[...selectedDatagonsA][0].dominantLabel}
-          />
-        {:else if selectedDatagonsA.size > 0 || selectedDatagonsB.size > 0}
-          <div class="font-bold text-xl text-left">Cluster info</div>
-          <ClusterView
-            datagonsA={[...selectedDatagonsA]}
-            datagonsB={[...selectedDatagonsB]}
-            sumOfSelectedImages={numberOfClusterImages}
-          />
+        {#if currentQuantizationLocal != undefined}
+          {#if getTotalSelectionSize(selectedDatagonsA, selectedDatagonsB, currentQuantizationLocal) == 1}
+            <ImgView
+              selection={new ArraySet([
+                ...selectedDatagonsA.toArray(),
+                ...selectedDatagonsB.toArray(),
+              ])}
+              {currentQuantizationLocal}
+            />
+          {:else if selectedDatagonsA.size() > 0 || selectedDatagonsB.size() > 0}
+            <div class="font-bold text-xl text-left">Cluster info</div>
+            <ClusterView
+              datagonsA={selectedDatagonsA}
+              datagonsB={selectedDatagonsB}
+              {currentQuantizationLocal}
+            />
+          {/if}
         {/if}
       </div>
     </div>
@@ -127,7 +134,6 @@
         bind:bottomrightSVGPoint={accBottomRightCorner}
         bind:initialDataWidth={accSvgWidth}
         bind:initialDataHeight={accSvgHeight}
-        bind:sumOfSelectedImages={numberOfClusterImages}
       />
     </div>
     <RightSidebar
