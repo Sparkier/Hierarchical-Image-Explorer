@@ -10,8 +10,6 @@
 
   let selectedRow: { id: string };
 
-  $: console.log(currentQuantizationLocal);
-
   $: {
     if (
       currentQuantizationLocal != null &&
