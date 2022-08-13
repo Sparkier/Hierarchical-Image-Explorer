@@ -10,7 +10,7 @@ export function quantizationRollup(table:ColumnTable, hexagonPropertiesMap:Hexag
               aq.op.any(d.quantization),
             representantID: (d:{id:string}) => aq.op.mode(d.id),
             color: hexagonPropertiesMap.color,
-            count: (d) => aq.op.count(),
+            count: () => aq.op.count(),
             dominantLabel: hexagonPropertiesMap.representantID,
           })
 
