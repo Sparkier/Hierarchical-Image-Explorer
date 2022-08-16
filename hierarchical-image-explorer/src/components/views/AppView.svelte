@@ -57,6 +57,7 @@
   let updateQuantizationDataExportFunction: () => void;
   let dominantLabelTextInput: string;
   let currentQuantizationLocal: ColumnTable;
+  let isLeftSidebarExpanded = false;
 
   const borderWidth = 2;
 
@@ -90,36 +91,42 @@
 </script>
 
 {#if tableIsSet != false}
+  <div class="w-64 bottom-0 right-0 z-10 bg-slate-50 fixed rounded-tl-lg p-4">
+    <Minimap
+      topLeftSvgCorner={accTopLeftCorner}
+      bottomRightSvgCorner={accBottomRightCorner}
+      svgWidth={accSvgWidth}
+      svgHeight={accSvgHeight}
+    />
+  </div>
   <div class="flex items-stretch" bind:this={outerDiv}>
-    <!-- Leftbar -->
-    <div class="w-96 border-r-2 border-y-2 border-slate-200 bg-slate-50">
-      <div class={'p-4 overflow-auto'} style="height: {availableAccHeight}px;">
-        <div class="w-56">
-          <Minimap
-            topLeftSvgCorner={accTopLeftCorner}
-            bottomRightSvgCorner={accBottomRightCorner}
-            svgWidth={accSvgWidth}
-            svgHeight={accSvgHeight}
-          />
-        </div>
-        {#if currentQuantizationLocal != undefined}
-          {#if getTotalSelectionSize(selectedDatagonsA, selectedDatagonsB, currentQuantizationLocal) == 1}
-            <ImgView
-              selection={new ArraySet([
+    <!--Left sidebar-->
+    <div
+      class={isLeftSidebarExpanded
+        ? 'duration-2000 transition translate-x-0 fixed left-0 h-full relative'
+        : 'duration-2000 transition -translate-x-96 fixed left-0 h-full'}
+    >
+      <div class="w-96 border-r-2 border-y-2 border-slate-200 bg-slate-50">
+        <div class="p-4 overflow-auto" style="height: {availableAccHeight}px;">
+          {#if currentQuantizationLocal != undefined}
+            {#if getTotalSelectionSize(selectedDatagonsA, selectedDatagonsB, currentQuantizationLocal) == 1}
+              <ImgView
+                selection={new ArraySet([
                 ...selectedDatagonsA.toArray(),
                 ...selectedDatagonsB.toArray(),
               ])}
-              {currentQuantizationLocal}
+                {currentQuantizationLocal}
             />
-          {:else if selectedDatagonsA.size() > 0 || selectedDatagonsB.size() > 0}
+          {:else if selectedDatagonsA.size > 0 || selectedDatagonsB.size > 0}
             <div class="font-bold text-xl text-left">Cluster info</div>
             <ClusterView
-              datagonsA={selectedDatagonsA}
-              datagonsB={selectedDatagonsB}
-              {currentQuantizationLocal}
+                datagonsA={selectedDatagonsA}
+                datagonsB={selectedDatagonsB}
+                {currentQuantizationLocal}
             />
           {/if}
-        {/if}
+          {/if}
+        </div>
       </div>
     </div>
     <!-- Image explorer -->
