@@ -12,7 +12,11 @@
   import { DEFAULT_NUM_COLUMNS } from '../config';
   import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
   import { TableService } from '../services/tableService';
-  import { currentQuantization, hexagonPropertiesMap } from '../stores';
+  import {
+    currentQuantization,
+    hexagonPropertiesMap,
+    selectedColorPalette,
+  } from '../stores';
   import type ColumnTable from 'arquero/dist/types/table/column-table';
   import * as aq from 'arquero';
   import { quantizationRollup } from '../services/arqueroUtils';
@@ -55,6 +59,7 @@
   let hexagonPropertiesMapLocal: HexagonPropertiesMap;
   let culledQuantizationObject: DerivedHexagon[] = [];
   let currentDatagonHover: DerivedHexagon | undefined = undefined;
+  let selectedColorPaletteLocal = '';
 
   $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
@@ -68,6 +73,11 @@
 
   hexagonPropertiesMap.subscribe((v) => {
     hexagonPropertiesMapLocal = v;
+    aggregate();
+  });
+
+  selectedColorPalette.subscribe((v) => {
+    selectedColorPaletteLocal = v;
     aggregate();
   });
 
@@ -310,7 +320,7 @@
       return { color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_B, isSelected: true };
     }
     return {
-      color: ColorUtil.getColor(datagon.color),
+      color: ColorUtil.getColor(datagon.color, selectedColorPaletteLocal),
       isSelected: false,
     };
   }
