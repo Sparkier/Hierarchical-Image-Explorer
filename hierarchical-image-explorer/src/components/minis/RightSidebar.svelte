@@ -6,7 +6,7 @@
 
 <div
   class={isSidebarExpanded
-    ? 'duration-2000 transition translate-x-0 fixed right-0 h-full'
+    ? 'duration-2000 transition translate-x-0 fixed right-0 h-full z-20'
     : 'duration-2000 transition translate-x-96 fixed right-0 h-full'}
 >
   <div
