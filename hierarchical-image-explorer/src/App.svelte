@@ -3,7 +3,6 @@
   import HomeScreen from './components/views/HomeScreen.svelte';
   import AppView from './components/views/AppView.svelte';
   import type { SettingsObject } from './types';
-  import { ArraySet } from './ArraySet';
 
   let currentView = 'appview';
   let settingsObject: SettingsObject;
