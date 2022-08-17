@@ -1,79 +1,104 @@
-import type ColumnTable from "arquero/dist/types/table/column-table";
-import * as aq from "arquero";
-import type { DataHexagon, filterDescriptor, PointData, QuantizationResults } from "../types";
-import { currentQuantization } from "../stores";
+import type ColumnTable from 'arquero/dist/types/table/column-table';
+import * as aq from 'arquero';
+import type {
+  DataHexagon,
+  filterDescriptor,
+  PointData,
+  QuantizationResults,
+} from '../types';
+import { currentQuantization } from '../stores';
 
-export class TableService{
-  static table:ColumnTable|null = null;
+export class TableService {
+  static table: ColumnTable | null = null;
   private static APOTHEM = Math.sqrt(3) / 2;
   private static HEXA_RATIO = Math.sqrt(3);
-  private static filteredTable: ColumnTable| null = null;
-  
-  public static setTable(table:ColumnTable){
+  private static filteredTable: ColumnTable | null = null;
+
+  public static setTable(table: ColumnTable) {
     this.table = table;
     this.filteredTable = table;
   }
 
   /**
    * Gives you the columns in the origianl table minus ["x", "y", "id"]
-   * @returns 
+   * @returns
    */
-  public static getAdditionalColumns(){
-    const columnNames = this.getTable().select(aq.not(["x", "y", "id"])).columnNames()
-    return columnNames
+  public static getAdditionalColumns() {
+    const columnNames = this.getTable()
+      .select(aq.not(['x', 'y', 'id']))
+      .columnNames();
+    return columnNames;
   }
 
-  public static applyFilters(filters: filterDescriptor[], concatinations: boolean[]){
-    this.filteredTable = this.getTable()
-    for (let i = 0; i < filters.length; i++){
-      if(i == 0) this.filteredTable = this.applySingleFilter(filters[0],this.getTableFiltered())
-      else{
-        if(concatinations[i-1]){ // OR case
-          this.filteredTable = this.getTableFiltered().union(this.applySingleFilter(filters[i],this.getTable()))
-        } else { // AND case
-          this.filteredTable = this.applySingleFilter(filters[i],this.getTableFiltered())
+  public static applyFilters(
+    filters: filterDescriptor[],
+    concatinations: boolean[]
+  ) {
+    this.filteredTable = this.getTable();
+    for (let i = 0; i < filters.length; i++) {
+      if (i == 0)
+        this.filteredTable = this.applySingleFilter(
+          filters[0],
+          this.getTableFiltered()
+        );
+      else {
+        if (concatinations[i - 1]) {
+          // OR case
+          this.filteredTable = this.getTableFiltered().union(
+            this.applySingleFilter(filters[i], this.getTable())
+          );
+        } else {
+          // AND case
+          this.filteredTable = this.applySingleFilter(
+            filters[i],
+            this.getTableFiltered()
+          );
         }
       }
     }
   }
-  
-  private static applySingleFilter(filter: filterDescriptor, table:ColumnTable):ColumnTable{
-    return table.filter(filter.arqueroQuery)
+
+  private static applySingleFilter(
+    filter: filterDescriptor,
+    table: ColumnTable
+  ): ColumnTable {
+    return table.filter(filter.arqueroQuery);
   }
 
   public static getTable(): ColumnTable {
-    if (this.table == null) throw new Error("Table is null")
-    return this.table
+    if (this.table == null) throw new Error('Table is null');
+    return this.table;
   }
 
   public static getTableFiltered(): ColumnTable {
-    if (this.filteredTable == null) throw new Error("Filtered Table is null")
-    return this.filteredTable
+    if (this.filteredTable == null) throw new Error('Filtered Table is null');
+    return this.filteredTable;
   }
 
-  public static updateQuantizationGlobal(columns:number) {
-    currentQuantization.set(this.quantize(columns, this.getTable()))
+  public static updateQuantizationGlobal(columns: number) {
+    currentQuantization.set(this.quantize(columns, this.getTable()));
   }
 
-  public static updateQuantizationGlobalFiltered(columns:number){
-    currentQuantization.set(this.quantize(columns,this.getTableFiltered()))
+  public static updateQuantizationGlobalFiltered(columns: number) {
+    currentQuantization.set(this.quantize(columns, this.getTableFiltered()));
   }
 
-  public static getQuantizationLocal(columns:number) : QuantizationResults {
-    return this.quantize(columns, this.getTable())
+  public static getQuantizationLocal(columns: number): QuantizationResults {
+    return this.quantize(columns, this.getTable());
   }
-  
-
-
 
   /**
    * Aggregates the dimensionality reduction points into hexagons
    * @param columns amount of columns to agrregate in rows is automatically calculated based on this number and the shape of the data
    * @returns List of Quantizationresults
    */
-  public static quantize(columns: number, dataTable:ColumnTable): QuantizationResults {
-    const { xMin, xMax, yExtent, xExtent, yMin, yMax } =
-      this.getExtents(this.getTable());
+  public static quantize(
+    columns: number,
+    dataTable: ColumnTable
+  ): QuantizationResults {
+    const { xMin, xMax, yExtent, xExtent, yMin, yMax } = this.getExtents(
+      this.getTable()
+    );
 
     const hexaSide = Math.abs(xMin - xMax) / (3 * columns);
 
@@ -89,10 +114,10 @@ export class TableService{
         columns,
         yMin,
         yExtent,
-        rows,
+        rows
       );
 
-   const possiblePoints = this.calculatePossiblePoints(
+    const possiblePoints = this.calculatePossiblePoints(
       columns,
       rows,
       scaleQuantizedX,
@@ -111,8 +136,6 @@ export class TableService{
       scaleY,
       dataTable
     );
-
-    //const dataList = this.aggregateQuantization(quantized, possiblePoints, xMin, yMin);
 
     return {
       datagons: quantized,
@@ -174,7 +197,7 @@ export class TableService{
         }
       }
     }
-    return dataList
+    return dataList;
   }
 
   /**
@@ -207,7 +230,7 @@ export class TableService{
     }[][],
     scaleX: (v: number) => number,
     scaleY: (v: number) => number,
-    dataTable:ColumnTable
+    dataTable: ColumnTable
   ): ColumnTable {
     // initialize empty 3d Array
     const quantized: PointData[][][] = [];
@@ -219,26 +242,44 @@ export class TableService{
     }
 
     const quantizedTable = dataTable.derive({
-      quantization: aq.escape((d:{x:number,y:number,id:string,label:string})=>{
-        const q = this.getSingleQuantization(d,xMin,hexaSide,yMin,columns,rows,possiblePoints,scaleX,scaleY)
-        return [q.xQuantized,q.yQuantized]
-      })
-    })
-
-    // for (const filteredPointObject of dataTable) {
-    //   const filteredPoint = filteredPointObject as {x:number, y:number, id:string, label:string}
-    //   const closestHexa = TableService.getSingleQuantization(filteredPoint, xMin, hexaSide, yMin, columns, rows, possiblePoints, scaleX, scaleY);
-    //   quantized[closestHexa.xQuantized][closestHexa.yQuantized].push(
-    //     filteredPoint
-    //   );
-    // }
-    return quantizedTable
+      quantization: aq.escape(
+        (d: { x: number; y: number; id: string; label: string }) => {
+          const q = this.getSingleQuantization(
+            d,
+            xMin,
+            hexaSide,
+            yMin,
+            columns,
+            rows,
+            possiblePoints,
+            scaleX,
+            scaleY
+          );
+          return [q.xQuantized, q.yQuantized];
+        }
+      ),
+    });
+    return quantizedTable;
   }
 
-  private static getSingleQuantization(filteredPoint: { x: number; y: number; id: string; label: string; }, xMin: number, hexaSide: number, yMin: number, columns: number, rows: number, possiblePoints: { xCoord: number; xQuantized: number; yCoord: number; yQuantized: number; }[][], scaleX: (v: number) => number, scaleY: (v: number) => number) {
+  private static getSingleQuantization(
+    filteredPoint: { x: number; y: number; id: string; label: string },
+    xMin: number,
+    hexaSide: number,
+    yMin: number,
+    columns: number,
+    rows: number,
+    possiblePoints: {
+      xCoord: number;
+      xQuantized: number;
+      yCoord: number;
+      yQuantized: number;
+    }[][],
+    scaleX: (v: number) => number,
+    scaleY: (v: number) => number
+  ) {
     let gridX = Math.floor(
-      (filteredPoint.x - xMin - 0.5 * this.APOTHEM * hexaSide) /
-      (3 * hexaSide)
+      (filteredPoint.x - xMin - 0.5 * this.APOTHEM * hexaSide) / (3 * hexaSide)
     );
     gridX = Math.max(0, gridX); // in edge cases since the grids first cell starts in the negative a value of -1 can appear
     const gridY = Math.floor(
@@ -296,7 +337,12 @@ export class TableService{
     scaleQuantizedX: (v: number, row: number) => number,
     scaleQuantizedY: (v: number) => number,
     hexaSide: number
-  ): { xCoord: number; xQuantized: number; yCoord: number; yQuantized: number; }[][] {
+  ): {
+    xCoord: number;
+    xQuantized: number;
+    yCoord: number;
+    yQuantized: number;
+  }[][] {
     const possiblePoints: {
       xCoord: number;
       xQuantized: number;
@@ -321,7 +367,7 @@ export class TableService{
         };
       }
     }
-    return possiblePoints
+    return possiblePoints;
   }
 
   /**
@@ -343,7 +389,12 @@ export class TableService{
     yMin: number,
     yExtent: number,
     rows: number
-  ): { scaleQuantizedX: (v: number, row: number) => number; scaleQuantizedY: (v: number) => number; scaleX: (v: number) => number; scaleY: (v: number) => number; } {
+  ): {
+    scaleQuantizedX: (v: number, row: number) => number;
+    scaleQuantizedY: (v: number) => number;
+    scaleX: (v: number) => number;
+    scaleY: (v: number) => number;
+  } {
     const scaleQuantizedX = (v: number, row: number) => {
       return v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
     };
@@ -365,14 +416,30 @@ export class TableService{
    * Returns the minima, maxima and extent of the data from the table
    * @returns object with xMin, xMax, xExtent, yExten yMin, yMax
    */
-  private static getExtents(dataTable:ColumnTable): { xMin: number; xMax: number; xExtent: number; yExtent: number; yMin: number; yMax: number; } {
-    const {xMin, xMax, yMin, yMax} = dataTable.rollup({
-      xMin: aq.op.min('x'),
-      xMax: aq.op.max('x'),
-      yMin: aq.op.min('y'),
-      yMax: aq.op.max('y'),
-    }).object() as {xMin:number, xMax:number, yMin:number, yMax:number}
-    return { xMin, xMax, xExtent:Math.abs(xMin-xMax), yExtent:Math.abs(yMin-yMax), yMin, yMax };
+  private static getExtents(dataTable: ColumnTable): {
+    xMin: number;
+    xMax: number;
+    xExtent: number;
+    yExtent: number;
+    yMin: number;
+    yMax: number;
+  } {
+    const { xMin, xMax, yMin, yMax } = dataTable
+      .rollup({
+        xMin: aq.op.min('x'),
+        xMax: aq.op.max('x'),
+        yMin: aq.op.min('y'),
+        yMax: aq.op.max('y'),
+      })
+      .object() as { xMin: number; xMax: number; yMin: number; yMax: number };
+    return {
+      xMin,
+      xMax,
+      xExtent: Math.abs(xMin - xMax),
+      yExtent: Math.abs(yMin - yMax),
+      yMin,
+      yMax,
+    };
   }
 
   /**

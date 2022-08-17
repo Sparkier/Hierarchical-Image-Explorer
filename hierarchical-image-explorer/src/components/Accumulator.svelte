@@ -30,8 +30,6 @@
   export let maxHeight: number;
   export let initialDataHeight: number = 0;
   export let initialDataWidth: number = 0;
-  // export let sumOfSelectedImages: { numberOfImg: number; selection: string }[] =
-  //   [];
   export const updateQuantizationDataExportFunction: () => void = () => {
     requantizeData(levelOfDetail, initialColumns);
   };
@@ -103,17 +101,6 @@
       updateScreenBoundaryPoints();
     }
   }
-
-  // $: {
-  //   sumOfSelectedImages[0] = {
-  //     numberOfImg: getSumOfSelection(currentSelectionA),
-  //     selection: 'A',
-  //   };
-  //   sumOfSelectedImages[1] = {
-  //     numberOfImg: getSumOfSelection(currentSelectionB),
-  //     selection: 'B',
-  //   };
-  // }
 
   onMount(() => {
     const getInitialHexagons = () => {
