@@ -2,9 +2,10 @@
   import { Vega } from 'svelte-vega';
   import { ColorUtil } from '../../services/colorUtil';
 
-  export let numberOfClusterImages: [
-    { numberOfImg: number; selection: string }
-  ];
+  export let numberOfClusterImages: {
+    numberOfImg: number;
+    selection: string;
+  }[];
 
   let imgInClusterA: number = 0;
   let imgInClusterB: number = 0;
@@ -70,4 +71,4 @@
   };
 </script>
 
-<Vega class="w-full" {spec} />
+<Vega {spec} />

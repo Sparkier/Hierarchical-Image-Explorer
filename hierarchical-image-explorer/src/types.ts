@@ -1,3 +1,5 @@
+import type ColumnTable from "arquero/dist/types/table/column-table";
+
 export type PointData = {
   id: string;
   x: number;
@@ -21,7 +23,7 @@ export type DataHexagon = {
 };
 
 export type QuantizationResults = {
-  datagons: DataHexagon[];
+  datagons: ColumnTable;
   xDomain: [number, number];
   yDomain: [number, number];
   columns: number;
@@ -37,3 +39,10 @@ export type filterDescriptor = {
 };
 
 export type SettingsObject = { columns: number};
+
+export type DerivedHexagon = {quantization:[number,number], count:number, representantID:string, dominantLabel:string, color:string}
+
+export type HexagonPropertiesMap = {
+  color: string;
+  representantID: string
+};

@@ -4,23 +4,34 @@
   import { onMount } from 'svelte';
   import ZoomSVG from './ZoomSVG.svelte';
   import BackendService from '../services/backendService';
-  import type { DataHexagon, PointData } from '../types';
+  import type {
+    DerivedHexagon,
+    HexagonPropertiesMap,
+    QuantizationResults,
+  } from '../types';
   import { DEFAULT_NUM_COLUMNS } from '../config';
   import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
   import { TableService } from '../services/tableService';
+  import { currentQuantization, hexagonPropertiesMap } from '../stores';
+  import type ColumnTable from 'arquero/dist/types/table/column-table';
+  import * as aq from 'arquero';
+  import { quantizationRollup } from '../services/arqueroUtils';
+  import { ArraySet } from '../ArraySet';
 
   export let initialColumns = DEFAULT_NUM_COLUMNS;
   export let topleftSVGPoint: DOMPoint;
   export let bottomrightSVGPoint: DOMPoint;
-  export let currentSelectionA: Set<DataHexagon> = new Set<DataHexagon>();
-  export let currentSelectionB: Set<DataHexagon> = new Set<DataHexagon>();
+  export let currentSelectionA: ArraySet<[number, number]> = new ArraySet<
+    [number, number]
+  >();
+  export let currentSelectionB: ArraySet<[number, number]> = new ArraySet<
+    [number, number]
+  >();
   export let maxHeight: number;
   export let initialDataHeight: number = 0;
   export let initialDataWidth: number = 0;
-  export let sumOfSelectedImages: [{ numberOfImg: number; selection: string }] =
-    [];
   export const updateQuantizationDataExportFunction: () => void = () => {
-    getQuantizationData(levelOfDetail, initialColumns);
+    requantizeData(levelOfDetail, initialColumns);
   };
 
   const hexaShortDiag = Math.sqrt(3) / 2;
@@ -30,10 +41,10 @@
   let g: SVGSVGElement;
   let svgContainer: HTMLElement;
   let rows = 0;
-  let zoomLevel: number;
-  let transform: [number, number];
-  let currentQuantization: DataHexagon[] = [];
-  let currentFilteredQuantization: DataHexagon[] = [];
+  let zoomLevel: number = 1;
+  let transform: [number, number] = [0, 0];
+  let currentQuantizationLocal: ColumnTable;
+  let currentCulledQuantization: ColumnTable;
   let toolbarHeight: number;
   let selectionModeOn = false;
   let hexaSide: number = 0;
@@ -41,13 +52,27 @@
   let isASelectionActive = true;
   let isMounted = false;
   let afterInitializationQueue: Function[] = [];
-  let currentDatagonHover: ?DataHexagon;
+  let hexagonPropertiesMapLocal: HexagonPropertiesMap;
+  let culledQuantizationObject: DerivedHexagon[] = [];
+  let currentDatagonHover: DerivedHexagon | undefined = undefined;
 
   $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
 
+  currentQuantization.subscribe((v) => {
+    if (v == null) return;
+    else {
+      onQuantizationChange(v);
+    }
+  });
+
+  hexagonPropertiesMap.subscribe((v) => {
+    hexagonPropertiesMapLocal = v;
+    aggregate();
+  });
+
   $: {
-    if (isMounted) getQuantizationData(levelOfDetail, initialColumns);
+    if (isMounted) requantizeData(levelOfDetail, initialColumns);
   }
 
   $: {
@@ -77,52 +102,38 @@
     }
   }
 
-  $: {
-    sumOfSelectedImages[0] = {
-      numberOfImg: getSumOfSelection(currentSelectionA),
-      selection: 'A',
-    };
-    sumOfSelectedImages[1] = {
-      numberOfImg: getSumOfSelection(currentSelectionB),
-      selection: 'B',
-    };
-  }
-
   onMount(() => {
     const getInitialHexagons = () => {
-      getQuantizationData(0, initialColumns, true);
+      requantizeData(0, initialColumns);
       isMounted = true;
     };
     afterInitializationQueue.push(getInitialHexagons);
+    afterInitializationQueue.push(updateScreenBoundaryPoints);
   });
 
   function handleKeyDown(event: KeyboardEvent) {
     if (event.key === 'Escape') {
-      currentSelectionA = new Set<DataHexagon>();
-      currentSelectionB = new Set<DataHexagon>();
+      currentSelectionA = new ArraySet<[number, number]>();
+      currentSelectionB = new ArraySet<[number, number]>();
     }
     if (event.key === 'x') {
       isASelectionActive = !isASelectionActive;
     }
-    if (event.key === 'Shift') {
+    if (event.key === 'Alt') {
       selectionModeOn = true;
     }
   }
 
-  function getQuantizationData(
-    lod: number,
-    initial_columns: number,
-    initialCall = false
-  ) {
-    const quantizationResult = TableService.getDataQuantizedFiltered(
-      initial_columns * 2 ** lod
-    );
+  function requantizeData(lod: number, initial_columns: number) {
+    TableService.updateQuantizationGlobalFiltered(initial_columns * 2 ** lod);
+  }
 
-    currentQuantization = quantizationResult.datagons;
+  function onQuantizationChange(quantizationResult: QuantizationResults) {
+    currentQuantizationLocal = quantizationResult.datagons;
     rows = quantizationResult.rows;
     columns = quantizationResult.columns;
-    currentSelectionA = new Set<DataHexagon>();
-    currentSelectionB = new Set<DataHexagon>();
+    currentSelectionA = new ArraySet<[number, number]>();
+    currentSelectionB = new ArraySet<[number, number]>();
 
     const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows); // formula derived from width and height with "virtual" hexaside = 1 and then simplify
 
@@ -140,9 +151,10 @@
         initialDataHeight = widthToHeightDataRatio * maxHeight;
       if (initialDataWidth == 0) initialDataWidth = maxWidth;
     }
-    if (initialCall) {
-      currentFilteredQuantization = currentQuantization;
-    } else applyCulling();
+
+    currentCulledQuantization = currentQuantizationLocal;
+    applyCulling();
+    aggregate();
   }
   /**
    * Takes a point in dom coordinate space and maps it to a svg coordinate point
@@ -188,21 +200,39 @@
 
   function applyCulling() {
     // overestimate the inverse of scaleQuantized with a simple grid
-    if (topleftSVGPoint == undefined) return;
-    const x1_quantized = Math.floor(topleftSVGPoint.x / (3 * hexaSide)) - 1;
-    const y1_quantized =
-      Math.floor(topleftSVGPoint.y / (2 * hexaShortDiag * hexaSide)) * 2 - 1;
-    const x2_quantized = Math.ceil(bottomrightSVGPoint.x / (3 * hexaSide)) + 1;
-    const y2_quantized =
-      Math.ceil(bottomrightSVGPoint.y / (2 * hexaShortDiag * hexaSide)) * 2 + 1;
-    currentFilteredQuantization = currentQuantization.filter((e) => {
-      return (
-        e.hexaX >= x1_quantized &&
-        e.hexaY >= y1_quantized &&
-        e.hexaX <= x2_quantized &&
-        e.hexaY <= y2_quantized
+    if (topleftSVGPoint != undefined) {
+      updateScreenBoundaryPoints();
+      const x1_quantized = Math.floor(topleftSVGPoint.x / (3 * hexaSide)) - 1;
+      const y1_quantized =
+        Math.floor(topleftSVGPoint.y / (2 * hexaShortDiag * hexaSide)) * 2 - 1;
+      const x2_quantized =
+        Math.ceil(bottomrightSVGPoint.x / (3 * hexaSide)) + 1;
+      const y2_quantized =
+        Math.ceil(bottomrightSVGPoint.y / (2 * hexaShortDiag * hexaSide)) * 2 +
+        1;
+      currentCulledQuantization = currentQuantizationLocal.filter(
+        aq.escape((e: { quantization: [number, number] }) => {
+          return (
+            e.quantization[0] >= x1_quantized &&
+            e.quantization[1] >= y1_quantized &&
+            e.quantization[0] <= x2_quantized &&
+            e.quantization[1] <= y2_quantized
+          );
+        })
       );
-    });
+    } else {
+      currentCulledQuantization = currentQuantizationLocal;
+    }
+  }
+
+  function aggregate() {
+    culledQuantizationObject =
+      currentCulledQuantization == undefined
+        ? []
+        : (quantizationRollup(
+            currentCulledQuantization,
+            hexagonPropertiesMapLocal
+          ).objects() as DerivedHexagon[]);
   }
 
   function updateScreenBoundaryPoints() {
@@ -221,9 +251,9 @@
    * When intersection is detected the hexagon will be added to the selected list
    */
   function handleLassoSelection() {
-    const newlySelectedHexagons = currentFilteredQuantization.filter((d) => {
-      const svgX = scaleQuantisedX(d.hexaX, d.hexaY);
-      const svgY = scaleQuantisedY(d.hexaY);
+    const newlySelectedHexagons = culledQuantizationObject.filter((d) => {
+      const svgX = scaleQuantisedX(d.quantization[0], d.quantization[1]);
+      const svgY = scaleQuantisedY(d.quantization[1]);
       const svgXCenter = svgX + hexaSide;
       const svgYCenter = svgY + hexaShortDiag * hexaSide;
       const domPoint = svgToScreen(svg, svgXCenter, svgYCenter, g);
@@ -232,65 +262,62 @@
       if (hitlist.id == 'lassoPolygon') return true;
       return false;
     });
-    newlySelectedHexagons.forEach((e) => handleDatagonSelection(e));
+    newlySelectedHexagons.forEach((e) =>
+      handleDatagonSelection(e.quantization)
+    );
     selectionModeOn = false;
   }
 
-  function handleDatagonSelection(datagon: DataHexagon | null) {
-    if (datagon == null) throw new Error('Datagon is Null');
+  function handleDatagonSelection(datagonCoords: [number, number]) {
     if (isASelectionActive) {
-      if (currentSelectionA.has(datagon)) {
-        currentSelectionA.delete(datagon);
+      if (currentSelectionA.has(datagonCoords)) {
+        currentSelectionA.delete(datagonCoords);
         currentSelectionA = currentSelectionA;
         return;
       }
-      if (currentSelectionB.has(datagon)) {
-        currentSelectionB.delete(datagon);
+      if (currentSelectionB.has(datagonCoords)) {
+        currentSelectionB.delete(datagonCoords);
         currentSelectionB = currentSelectionB;
       }
-      currentSelectionA = currentSelectionA.add(datagon);
+      currentSelectionA = currentSelectionA.add(datagonCoords);
     } else {
       // Selection B is active
-      if (currentSelectionB.has(datagon)) {
-        currentSelectionB.delete(datagon);
+      if (currentSelectionB.has(datagonCoords)) {
+        currentSelectionB.delete(datagonCoords);
         currentSelectionB = currentSelectionB;
         return;
       }
-      if (currentSelectionA.has(datagon)) {
-        currentSelectionA.delete(datagon);
+      if (currentSelectionA.has(datagonCoords)) {
+        currentSelectionA.delete(datagonCoords);
         currentSelectionA = currentSelectionA;
       }
-      currentSelectionB = currentSelectionB.add(datagon);
+      currentSelectionB = currentSelectionB.add(datagonCoords);
     }
   }
 
   function getSelectionInfo(
-    datagon: DataHexagon,
-    selA: Set<DataHexagon>,
-    selB: Set<DataHexagon>
+    datagon: DerivedHexagon,
+    selA: ArraySet<[number, number]>,
+    selB: ArraySet<[number, number]>
   ): {
     color: string;
     isSelected: boolean;
   } {
-    if (selA.has(datagon)) {
+    if (selA.has(datagon.quantization)) {
       return { color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_A, isSelected: true };
     }
-    if (selB.has(datagon)) {
+    if (selB.has(datagon.quantization)) {
       return { color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_B, isSelected: true };
     }
     return {
-      color: ColorUtil.getColor(datagon.dominantLabel),
+      color: ColorUtil.getColor(datagon.color),
       isSelected: false,
     };
-  }
-
-  function getSumOfSelection(selection: Set<DataHexagon>): number {
-    return [...selection].reduce((sum, d) => sum + d.size, 0);
   }
 </script>
 
 <svelte:window on:keyup={handleKeyDown} />
-
+<!-- Toolbar -->
 <div class="flex gap-2 px-2" bind:clientHeight={toolbarHeight}>
   <div
     class={`cursor-pointer ${
@@ -319,6 +346,7 @@
     A | B
   </div>
 </div>
+<!-- SVG Space -->
 <div
   bind:clientWidth={maxWidth}
   bind:this={svgContainer}
@@ -332,26 +360,32 @@
     bind:svg
     bind:g
     {selectionModeOn}
-    on:zoomEnd={() => applyCulling()}
+    on:zoomEnd={() => {
+      applyCulling();
+      aggregate();
+    }}
     on:lassoSelectionEnd={() => handleLassoSelection()}
   >
-    {#if hexaSide != 0 && currentQuantization.length != 0}
+    {#if hexaSide != 0 && culledQuantizationObject.length != 0}
       <g>
-        {#each currentFilteredQuantization as datagon}
+        {#each culledQuantizationObject as datagon}
           <g
-            style={currentSelectionA.size + currentSelectionB.size > 0 &&
+            style={currentSelectionA.size() + currentSelectionB.size() > 0 &&
             !getSelectionInfo(datagon, currentSelectionA, currentSelectionB)
               .isSelected
               ? 'filter: opacity(60%)'
               : ''}
           >
-            {#if datagon.size > 1}
+            {#if datagon.count > 1}
               <!-- svelte-ignore a11y-mouse-events-have-key-events -->
               <g on:mouseover={() => (currentDatagonHover = datagon)}>
                 <Hexagon
                   side={hexaSide}
-                  x={scaleQuantisedX(datagon.hexaX, datagon.hexaY)}
-                  y={scaleQuantisedY(datagon.hexaY)}
+                  x={scaleQuantisedX(
+                    datagon.quantization[0],
+                    datagon.quantization[1]
+                  )}
+                  y={scaleQuantisedY(datagon.quantization[1])}
                   stroke={getSelectionInfo(
                     datagon,
                     currentSelectionA,
@@ -359,16 +393,19 @@
                   ).color}
                   strokeWidth={hexaSide / 5}
                   image={BackendService.getImageUrl(datagon.representantID)}
-                  on:click={() => handleDatagonSelection(datagon)}
+                  on:click={() => handleDatagonSelection(datagon.quantization)}
                 />
               </g>
             {:else}
               {#if getSelectionInfo(datagon, currentSelectionA, currentSelectionB).isSelected}
                 <rect
-                  x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
+                  x={scaleQuantisedX(
+                    datagon.quantization[0],
+                    datagon.quantization[1]
+                  ) +
                     hexaSide / 2 -
                     hexaSide / 10}
-                  y={scaleQuantisedY(datagon.hexaY) +
+                  y={scaleQuantisedY(datagon.quantization[1]) +
                     (2 * hexaShortDiag * hexaSide - hexaSide) / 2 -
                     hexaSide / 10}
                   width={hexaSide + 2 * (hexaSide / 10)}
@@ -384,32 +421,39 @@
               <image
                 width={hexaSide}
                 height={hexaSide}
-                x={scaleQuantisedX(datagon.hexaX, datagon.hexaY) +
+                x={scaleQuantisedX(
+                  datagon.quantization[0],
+                  datagon.quantization[1]
+                ) +
                   (2 * hexaSide - hexaSide) / 2}
-                y={scaleQuantisedY(datagon.hexaY) +
+                y={scaleQuantisedY(datagon.quantization[1]) +
                   (2 * hexaShortDiag * hexaSide - hexaSide) / 2}
                 href={BackendService.getImageUrl(datagon.representantID)}
                 style={'image-rendering: pixelated;'}
-                on:click={() => handleDatagonSelection(datagon)}
+                on:click={() => handleDatagonSelection(datagon.quantization)}
               />
             {/if}
           </g>
         {/each}
-        {#if currentDatagonHover != null}
+        {#if !selectionModeOn && currentDatagonHover !== undefined}
           <!-- svelte-ignore a11y-mouse-events-have-key-events -->
           <g
-            on:click={() => handleDatagonSelection(currentDatagonHover)}
+            on:click={() => {
+              if (currentDatagonHover == undefined) return;
+              handleDatagonSelection(currentDatagonHover.quantization);
+            }}
             on:mouseout={() => {
-              currentDatagonHover = null;
+              currentDatagonHover = undefined;
             }}
           >
             <Hexagon
               side={hexaSide * 2}
               x={scaleQuantisedX(
-                currentDatagonHover.hexaX,
-                currentDatagonHover.hexaY
+                currentDatagonHover.quantization[0],
+                currentDatagonHover.quantization[1]
               ) - hexaSide}
-              y={scaleQuantisedY(currentDatagonHover.hexaY) - hexaSide}
+              y={scaleQuantisedY(currentDatagonHover.quantization[1]) -
+                hexaSide}
               stroke={getSelectionInfo(
                 currentDatagonHover,
                 currentSelectionA,
