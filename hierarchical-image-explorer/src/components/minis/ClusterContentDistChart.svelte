@@ -12,18 +12,21 @@
 
   export let columnName: string;
 
-  const colorscheme = [
-    ColorUtil.SELECTION_HIGHLIGHT_COLOR_A,
-    ColorUtil.SELECTION_HIGHLIGHT_COLOR_B,
-  ];
-
   $: {
     distribution = [
       ...distributionA.map((e) => {
-        return { label: e.label, amount: e.amount, selection: 'A' };
+        return {
+          label: e.label,
+          amount: e.amount,
+          selection: 'A',
+        };
       }),
       ...distributionB.map((e) => {
-        return { label: e.label, amount: e.amount, selection: 'B' };
+        return {
+          label: e.label,
+          amount: e.amount,
+          selection: 'B',
+        };
       }),
     ];
   }
@@ -55,7 +58,13 @@
       y: { field: 'label', type: 'nominal', title: columnName },
       color: {
         field: 'selection',
-        scale: { range: colorscheme },
+        scale: {
+          domain: ['A', 'B'],
+          range: [
+            ColorUtil.SELECTION_HIGHLIGHT_COLOR_A,
+            ColorUtil.SELECTION_HIGHLIGHT_COLOR_B,
+          ],
+        },
       },
       tooltip: [
         { field: 'label', type: 'nominal' },
