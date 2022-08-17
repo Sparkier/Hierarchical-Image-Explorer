@@ -30,8 +30,6 @@
   export let maxHeight: number;
   export let initialDataHeight: number = 0;
   export let initialDataWidth: number = 0;
-  export let sumOfSelectedImages: [{ numberOfImg: number; selection: string }] =
-    [];
   export const updateQuantizationDataExportFunction: () => void = () => {
     requantizeData(levelOfDetail, initialColumns);
   };
