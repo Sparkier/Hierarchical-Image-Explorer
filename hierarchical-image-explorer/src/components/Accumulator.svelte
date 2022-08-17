@@ -104,17 +104,6 @@
     }
   }
 
-  $: {
-    sumOfSelectedImages[0] = {
-      numberOfImg: getSumOfSelection(currentSelectionA),
-      selection: 'A',
-    };
-    sumOfSelectedImages[1] = {
-      numberOfImg: getSumOfSelection(currentSelectionB),
-      selection: 'B',
-    };
-  }
-
   onMount(() => {
     const getInitialHexagons = () => {
       requantizeData(0, initialColumns);
@@ -326,10 +315,6 @@
       color: ColorUtil.getColor(datagon.color),
       isSelected: false,
     };
-  }
-
-  function getSumOfSelection(selection: Set<DataHexagon>): number {
-    return [...selection].reduce((sum, d) => sum + d.size, 0);
   }
 </script>
 

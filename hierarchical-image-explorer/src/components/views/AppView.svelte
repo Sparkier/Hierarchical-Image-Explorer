@@ -18,9 +18,7 @@
   import { currentQuantization, hexagonPropertiesMap } from '../../stores';
   import type ColumnTable from 'arquero/dist/types/table/column-table';
   import { getTotalSelectionSize } from '../../services/arqueroUtils';
-  import App from '../../App.svelte';
   import { ArraySet } from '../../ArraySet';
-  import { SIZE } from 'vega-lite/build/src/channel';
 
   export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
 
@@ -57,7 +55,6 @@
   let updateQuantizationDataExportFunction: () => void;
   let dominantLabelTextInput: string;
   let currentQuantizationLocal: ColumnTable;
-  let isLeftSidebarExpanded = false;
 
   const borderWidth = 2;
 
@@ -88,6 +85,9 @@
     document.removeEventListener('click', handleOutsideClick, false);
     document.removeEventListener('keyup', handleEscape, false);
   });
+
+  $: isLeftSidebarExpanded =
+    selectedDatagonsA.size() > 0 || selectedDatagonsB.size() > 0;
 </script>
 
 {#if tableIsSet != false}
@@ -112,19 +112,19 @@
             {#if getTotalSelectionSize(selectedDatagonsA, selectedDatagonsB, currentQuantizationLocal) == 1}
               <ImgView
                 selection={new ArraySet([
-                ...selectedDatagonsA.toArray(),
-                ...selectedDatagonsB.toArray(),
-              ])}
+                  ...selectedDatagonsA.toArray(),
+                  ...selectedDatagonsB.toArray(),
+                ])}
                 {currentQuantizationLocal}
-            />
-          {:else if selectedDatagonsA.size > 0 || selectedDatagonsB.size > 0}
-            <div class="font-bold text-xl text-left">Cluster info</div>
-            <ClusterView
+              />
+            {:else if selectedDatagonsA.size() > 0 || selectedDatagonsB.size() > 0}
+              <div class="font-bold text-xl text-left">Cluster info</div>
+              <ClusterView
                 datagonsA={selectedDatagonsA}
                 datagonsB={selectedDatagonsB}
                 {currentQuantizationLocal}
-            />
-          {/if}
+              />
+            {/if}
           {/if}
         </div>
       </div>
