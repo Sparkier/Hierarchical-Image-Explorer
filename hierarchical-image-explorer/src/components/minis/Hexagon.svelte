@@ -33,7 +33,7 @@
 </script>
 
 <!--
-  A polygon is used to create a clipppath for our image. 
+  A polygon is used to create a clip path for our image.
   Then the polygon borders are drawn over the images.
  -->
 <g
@@ -42,11 +42,11 @@
   on:mouseenter
   on:mouseleave
 >
-  <polygon id={IDString + '_polygon'} points="{r} {br} {bl} {l} {tl} {tr}"></polygon >
+  <polygon id={IDString + '_polygon'} points="{r} {br} {bl} {l} {tl} {tr}" />
 
   <defs>
     <clipPath id={IDString + '_clipping'}>
-      <use xlink:href="#{IDString + '_polygon'}"></use >
+      <use xlink:href="#{IDString + '_polygon'}" />
     </clipPath>
   </defs>
 
@@ -75,5 +75,6 @@
     xlink:href="#{IDString + '_polygon'}"
     fill="none"
     {stroke}
-    stroke-width={strokeWidth}></use >
+    stroke-width={strokeWidth}
+  />
 </g>

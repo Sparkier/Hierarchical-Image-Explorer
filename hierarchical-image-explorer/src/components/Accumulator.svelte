@@ -40,6 +40,7 @@
   };
 
   const hexaShortDiag = Math.sqrt(3) / 2;
+  const afterInitializationQueue: Function[] = [];
 
   let maxWidth: number;
   let svg: SVGSVGElement;
@@ -56,7 +57,6 @@
   let columns: number = initialColumns;
   let isASelectionActive: boolean = true;
   let isMounted: boolean = false;
-  let afterInitializationQueue: Function[] = [];
   let hexagonPropertiesMapLocal: HexagonPropertiesMap;
   let culledQuantizationObject: DerivedHexagon[] = [];
   let currentDatagonHover: DerivedHexagon | undefined = undefined;
@@ -67,7 +67,8 @@
   $: scaleQuantisedX = (v: number, row: number) => {
     return maxWidth == undefined
       ? 0
-      : v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
+      : v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide); 
+      // every other hexagon (3*hexaside) is moved over by half a hexagon (1.5*hexaside) to create the grid
   };
   $: scaleQuantisedY = (v: number) => {
     return hexaShortDiag * hexaSide * v;
@@ -101,7 +102,6 @@
       svgAvailHeight != 0
     ) {
       afterInitializationQueue.forEach((e) => e());
-      afterInitializationQueue = [];
     }
   }
   $: {

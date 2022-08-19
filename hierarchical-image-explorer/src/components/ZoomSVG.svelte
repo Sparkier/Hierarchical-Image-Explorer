@@ -57,7 +57,7 @@
         .on('end', () => {
           if (!selectionModeOn) dispatchZoomEndEvent();
         })
-        .scaleExtent([1, 2000])
+        .scaleExtent([1, Number.POSITIVE_INFINITY])
     );
   }
 
