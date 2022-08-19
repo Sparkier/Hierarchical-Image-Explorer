@@ -23,7 +23,7 @@
 </script>
 
 <div class="font-bold text-xl text-left">Image Details</div>
-{#if selectedRow != undefined && selectedRow != null}
+{#if selectedRow !== undefined && selectedRow != null}
   <div class="pt-2 pb-2 flex-col justify-center">
     <img
       alt="select hexagon first"

@@ -1,6 +1,4 @@
 <script lang="ts">
-  import Borders from './Borders.svelte';
-
   export let side: number = 100;
   export let image: string = '';
   export let scale: number = 1;
@@ -35,7 +33,7 @@
 </script>
 
 <!--
-  A polygon is used to create a clipppath for our image. 
+  A polygon is used to create a clip path for our image.
   Then the polygon borders are drawn over the images.
  -->
 <g
@@ -52,7 +50,7 @@
     </clipPath>
   </defs>
 
-  {#if image != ''}
+  {#if image !== ''}
     <image
       href={image}
       width={side * 2}

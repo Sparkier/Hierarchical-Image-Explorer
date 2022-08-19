@@ -4,42 +4,39 @@
   import { onDestroy, onMount } from 'svelte';
   import ImgView from '../minis/ImgView.svelte';
   import ClusterView from '../minis/ClusterView.svelte';
-  import { DEFAULT_SLIDER_VALUE, DEFAULT_SETTINGS } from '../../config';
-  import type {
-    DataHexagon,
-    DerivedHexagon,
-    PointData,
-    SettingsObject,
-  } from '../../types';
+  import { DEFAULT_SETTINGS } from '../../config';
+  import type { SettingsObject } from '../../types';
   import Minimap from '../minis/Minimap.svelte';
   import * as aq from 'arquero';
   import { TableService } from '../../services/tableService';
   import RightSidebar from '../minis/RightSidebar.svelte';
-  import { currentQuantization, hexagonPropertiesMap } from '../../stores';
+  import { currentQuantization } from '../../stores';
   import type ColumnTable from 'arquero/dist/types/table/column-table';
   import { getTotalSelectionSize } from '../../services/arqueroUtils';
   import { ArraySet } from '../../ArraySet';
 
   export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
 
-  const handleOutsideClick = (event) => {
-    if (show && !menu.contains(event.target)) {
+  const handleOutsideClick = (event: MouseEvent) => {
+    if (
+      show &&
+      menu != null &&
+      event != null &&
+      event.target != null &&
+      !menu.contains(event.target as Element)
+    ) {
       show = false;
     }
   };
 
-  const handleEscape = (event) => {
+  const handleEscape = (event: KeyboardEvent) => {
     if (show && event.key === 'Escape') {
       show = false;
     }
   };
 
-  let xExtent: number[] = [];
-  let yExtent: number[] = [];
-  let data: PointData[];
-  let show = false; // menu state
+  let show: boolean = false; // menu state
   let menu: HTMLDivElement | null = null; // menu wrapper DOM reference
-  let sliderValue = DEFAULT_SLIDER_VALUE;
   let selectedDatagonsA: ArraySet<[number, number]> = new ArraySet<
     [number, number]
   >();
@@ -51,12 +48,11 @@
   let accSvgWidth: number;
   let accSvgHeight: number;
   let outerDiv: HTMLElement | undefined;
-  let tableIsSet = false;
+  let tableIsSet: boolean = false;
   let updateQuantizationDataExportFunction: () => void;
-  let dominantLabelTextInput: string;
   let currentQuantizationLocal: ColumnTable;
 
-  const borderWidth = 2;
+  const borderWidth: number = 2;
 
   $: availableAccHeight =
     outerDiv == undefined
@@ -65,7 +61,6 @@
         outerDiv.getBoundingClientRect().y -
         2 * borderWidth; // this will be used to limit the height of the accumulator to the screen
 
-  hexagonPropertiesMap.subscribe((v) => (dominantLabelTextInput = v.color));
   currentQuantization.subscribe((v) => {
     if (v != null) {
       currentQuantizationLocal = v.datagons;
@@ -90,7 +85,7 @@
     selectedDatagonsA.size() > 0 || selectedDatagonsB.size() > 0;
 </script>
 
-{#if tableIsSet != false}
+{#if tableIsSet !== false}
   <div class="w-64 bottom-0 right-0 z-10 bg-slate-50 fixed rounded-tl-lg p-4">
     <Minimap
       topLeftSvgCorner={accTopLeftCorner}
@@ -108,8 +103,8 @@
     >
       <div class="w-96 border-r-2 border-y-2 border-slate-200 bg-slate-50">
         <div class="p-4 overflow-auto" style="height: {availableAccHeight}px;">
-          {#if currentQuantizationLocal != undefined}
-            {#if getTotalSelectionSize(selectedDatagonsA, selectedDatagonsB, currentQuantizationLocal) == 1}
+          {#if currentQuantizationLocal !== undefined}
+            {#if getTotalSelectionSize(selectedDatagonsA, selectedDatagonsB, currentQuantizationLocal) === 1}
               <ImgView
                 selection={new ArraySet([
                   ...selectedDatagonsA.toArray(),

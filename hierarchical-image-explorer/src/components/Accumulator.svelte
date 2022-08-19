@@ -21,6 +21,7 @@
   import * as aq from 'arquero';
   import { quantizationRollup } from '../services/arqueroUtils';
   import { ArraySet } from '../ArraySet';
+  import type { TableExpr } from 'arquero/dist/types/table/transformable';
 
   export let initialColumns = DEFAULT_NUM_COLUMNS;
   export let topleftSVGPoint: DOMPoint;
@@ -39,30 +40,39 @@
   };
 
   const hexaShortDiag = Math.sqrt(3) / 2;
+  const afterInitializationQueue: Function[] = [];
 
   let maxWidth: number;
   let svg: SVGSVGElement;
   let g: SVGSVGElement;
   let svgContainer: HTMLElement;
-  let rows = 0;
+  let rows: number = 0;
   let zoomLevel: number = 1;
   let transform: [number, number] = [0, 0];
   let currentQuantizationLocal: ColumnTable;
   let currentCulledQuantization: ColumnTable;
   let toolbarHeight: number;
-  let selectionModeOn = false;
+  let selectionModeOn: boolean = false;
   let hexaSide: number = 0;
-  let columns = initialColumns;
-  let isASelectionActive = true;
-  let isMounted = false;
-  let afterInitializationQueue: Function[] = [];
+  let columns: number = initialColumns;
+  let isASelectionActive: boolean = true;
+  let isMounted: boolean = false;
   let hexagonPropertiesMapLocal: HexagonPropertiesMap;
   let culledQuantizationObject: DerivedHexagon[] = [];
   let currentDatagonHover: DerivedHexagon | undefined = undefined;
-  let selectedColorPaletteLocal = '';
+  let selectedColorPaletteLocal: string = '';
 
   $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
+  $: scaleQuantisedX = (v: number, row: number) => {
+    return maxWidth == undefined
+      ? 0
+      : v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide); 
+      // every other hexagon (3*hexaside) is moved over by half a hexagon (1.5*hexaside) to create the grid
+  };
+  $: scaleQuantisedY = (v: number) => {
+    return hexaShortDiag * hexaSide * v;
+  };
 
   currentQuantization.subscribe((v) => {
     if (v == null) return;
@@ -84,28 +94,16 @@
   $: {
     if (isMounted) requantizeData(levelOfDetail, initialColumns);
   }
-
   $: {
+    // runs a set of functions once everything is set up (svg is created)
     if (
       afterInitializationQueue.length != 0 &&
       svg != undefined &&
       svgAvailHeight != 0
     ) {
       afterInitializationQueue.forEach((e) => e());
-      afterInitializationQueue = [];
     }
   }
-
-  $: scaleQuantisedX = (v: number, row: number) => {
-    return maxWidth == undefined
-      ? 0
-      : v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
-  };
-
-  $: scaleQuantisedY = (v: number) => {
-    return hexaShortDiag * hexaSide * v;
-  };
-
   $: {
     if (svg != undefined && transform != undefined && zoomLevel != undefined) {
       updateScreenBoundaryPoints();
@@ -121,6 +119,9 @@
     afterInitializationQueue.push(updateScreenBoundaryPoints);
   });
 
+  /**
+   * handles key presses for selection tools
+   */
   function handleKeyDown(event: KeyboardEvent) {
     if (event.key === 'Escape') {
       currentSelectionA = new ArraySet<[number, number]>();
@@ -134,10 +135,19 @@
     }
   }
 
-  function requantizeData(lod: number, initial_columns: number) {
-    TableService.updateQuantizationGlobalFiltered(initial_columns * 2 ** lod);
+  /**
+   * requests a new quantization with rows as an argument
+   * @param lod level of detail (whole number)
+   * @param initialColumns column amount for lod = 0
+   */
+  function requantizeData(lod: number, initialColumns: number) {
+    TableService.updateQuantizationGlobalFiltered(initialColumns * 2 ** lod);
   }
 
+  /**
+   * handles re rendering of newly quantized data
+   * @param quantizationResult quantization result
+   */
   function onQuantizationChange(quantizationResult: QuantizationResults) {
     currentQuantizationLocal = quantizationResult.datagons;
     rows = quantizationResult.rows;
@@ -166,6 +176,7 @@
     applyCulling();
     aggregate();
   }
+
   /**
    * Takes a point in dom coordinate space and maps it to a svg coordinate point
    * @param element svg element
@@ -208,6 +219,9 @@
     return pt.matrixTransform(matrix);
   }
 
+  /**
+   * applies culling so only hexagons that are on screen are rendered in the svg
+   */
   function applyCulling() {
     // overestimate the inverse of scaleQuantized with a simple grid
     if (topleftSVGPoint != undefined) {
@@ -221,7 +235,7 @@
         Math.ceil(bottomrightSVGPoint.y / (2 * hexaShortDiag * hexaSide)) * 2 +
         1;
       currentCulledQuantization = currentQuantizationLocal.filter(
-        aq.escape((e: { quantization: [number, number] }) => {
+        <TableExpr>aq.escape((e: { quantization: [number, number] }) => {
           return (
             e.quantization[0] >= x1_quantized &&
             e.quantization[1] >= y1_quantized &&
@@ -235,6 +249,9 @@
     }
   }
 
+  /**
+   * (re) aggregates the information in the hexagons
+   */
   function aggregate() {
     culledQuantizationObject =
       currentCulledQuantization == undefined
@@ -245,6 +262,9 @@
           ).objects() as DerivedHexagon[]);
   }
 
+  /**
+   *  updates the svg coordinates that mark the viewport
+   */
   function updateScreenBoundaryPoints() {
     const svgCbr = svgContainer.getBoundingClientRect();
     topleftSVGPoint = screenToSvg(svg, svgCbr.x, svgCbr.y, g);
@@ -269,8 +289,7 @@
       const domPoint = svgToScreen(svg, svgXCenter, svgYCenter, g);
       const hitlist = document.elementFromPoint(domPoint.x, domPoint.y);
       if (hitlist == null) return false;
-      if (hitlist.id == 'lassoPolygon') return true;
-      return false;
+      return hitlist.id == 'lassoPolygon';
     });
     newlySelectedHexagons.forEach((e) =>
       handleDatagonSelection(e.quantization)
@@ -278,6 +297,10 @@
     selectionModeOn = false;
   }
 
+  /**
+   * handles selection action of a datagon if not selected datagon is selected if selected it is deselected
+   * @param datagonCoords array containing coordinates of selected datagon
+   */
   function handleDatagonSelection(datagonCoords: [number, number]) {
     if (isASelectionActive) {
       if (currentSelectionA.has(datagonCoords)) {
@@ -305,6 +328,12 @@
     }
   }
 
+  /**
+   * Helper function for hexagon rendering returns hexagon color and selection status
+   * @param datagon datagon in question
+   * @param selA set containing coordinates of hexagons in A selection
+   * @param selB set containing coordinates of hexagons in B selection
+   */
   function getSelectionInfo(
     datagon: DerivedHexagon,
     selA: ArraySet<[number, number]>,
@@ -376,7 +405,7 @@
     }}
     on:lassoSelectionEnd={() => handleLassoSelection()}
   >
-    {#if hexaSide != 0 && culledQuantizationObject.length != 0}
+    {#if hexaSide !== 0 && culledQuantizationObject.length !== 0}
       <g>
         {#each culledQuantizationObject as datagon}
           <g
@@ -449,7 +478,7 @@
           <!-- svelte-ignore a11y-mouse-events-have-key-events -->
           <g
             on:click={() => {
-              if (currentDatagonHover == undefined) return;
+              if (currentDatagonHover === undefined) return;
               handleDatagonSelection(currentDatagonHover.quantization);
             }}
             on:mouseout={() => {
@@ -479,5 +508,4 @@
       </g>
     {/if}
   </ZoomSVG>
-  <div />
 </div>

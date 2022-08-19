@@ -1,26 +1,4 @@
-import type ColumnTable from "arquero/dist/types/table/column-table";
-
-export type PointData = {
-  id: string;
-  x: number;
-  y: number;
-  label: string;
-};
-
-export type SWGInfo = {
-  image_id: string;
-  file_path: string;
-  label: string;
-};
-
-export type DataHexagon = {
-  hexaX: number;
-  hexaY: number;
-  size: number;
-  dominantLabel: string;
-  representantID: string;
-  labelDistribution: { label: string; amount: number }[];
-};
+import type ColumnTable from 'arquero/dist/types/table/column-table';
 
 export type QuantizationResults = {
   datagons: ColumnTable;
@@ -38,11 +16,17 @@ export type filterDescriptor = {
   arqueroQueryManuallyEdited: boolean;
 };
 
-export type SettingsObject = { columns: number};
+export type SettingsObject = { columns: number };
 
-export type DerivedHexagon = {quantization:[number,number], count:number, representantID:string, dominantLabel:string, color:string}
+export type DerivedHexagon = {
+  quantization: [number, number];
+  count: number;
+  representantID: string;
+  dominantLabel: string;
+  color: string;
+};
 
 export type HexagonPropertiesMap = {
   color: string;
-  representantID: string
+  representantID: string;
 };
