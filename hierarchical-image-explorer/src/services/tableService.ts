@@ -7,6 +7,7 @@ import type {
   QuantizationResults,
 } from '../types';
 import { currentQuantization } from '../stores';
+import { get } from 'svelte/store';
 
 export class TableService {
   static table: ColumnTable | null = null;
@@ -28,6 +29,20 @@ export class TableService {
       .select(aq.not(['x', 'y', 'id']))
       .columnNames();
     return columnNames;
+  }
+
+  public static getType(query:string){
+    const tableObject = this.getTable().groupby("id").rollup({toGet:query}).object() as {toGet:unknown}
+    return typeof tableObject.toGet
+  }
+
+  public static getQueryExtentQuantized(query:string): { min: number; max: number; }{
+    const currentQuantLocal = get(currentQuantization);
+    if (currentQuantLocal == null) throw new Error("Current quantization is null")
+    return currentQuantLocal.datagons.groupby("quantization")
+      .rollup({value: query})
+      .rollup({min:'d => op.min(d.value)', max: 'd => op.max(d.value)'})
+      .object() as {min:number,max:number}
   }
 
   public static applyFilters(

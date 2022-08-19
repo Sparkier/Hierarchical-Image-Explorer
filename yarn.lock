@@ -1525,6 +1525,11 @@ chownr@^2.0.0:
   resolved "https://registry.yarnpkg.com/chownr/-/chownr-2.0.0.tgz#15bfbe53d2eab4cf70f18a8cd68ebe5b3cb1dece"
   integrity sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==
 
+chroma.ts@^1.0.10:
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/chroma.ts/-/chroma.ts-1.0.10.tgz#2b965d8f2c2eee44d25072902e5787fe259d4565"
+  integrity sha512-0FOQiB6LaiOwoyaxP+a4d3sCIOSf7YvBKj3TfeQM4ZBb2yskRxe4FlT2P4YNpHz7kIB5rXsfmpyniyrYRRyVHw==
+
 ci-info@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ci-info/-/ci-info-2.0.0.tgz#67a9e964be31a51e15e5010d58e6f12834002f46"
