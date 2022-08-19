@@ -22,10 +22,6 @@ export class ColorUtil {
    return gradient.gradient((v-this.dataRange.min)/(Math.abs(this.dataRange.min-this.dataRange.max))).css()
   }
 
-
-
-
-
   /**
    * Assigns colors to label values
    * @param label

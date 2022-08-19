@@ -39,7 +39,10 @@ export class TableService {
   public static getQueryExtentQuantized(query:string): { min: number; max: number; }{
     const currentQuantLocal = get(currentQuantization);
     if (currentQuantLocal == null) throw new Error("Current quantization is null")
-    return currentQuantLocal.datagons.groupby("quantization").rollup({value: query}).rollup({min:'d => op.min(d.value)', max: 'd => op.max(d.value)'}).object() as {min:number,max:number}
+    return currentQuantLocal.datagons.groupby("quantization")
+      .rollup({value: query})
+      .rollup({min:'d => op.min(d.value)', max: 'd => op.max(d.value)'})
+      .object() as {min:number,max:number}
   }
 
   public static applyFilters(
