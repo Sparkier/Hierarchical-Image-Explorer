@@ -57,13 +57,29 @@
       {
         mark: {
           type: 'arc',
-          stroke: '#fff',
         },
       },
       {
-        mark: { type: 'text', outerRadius: '110', fill: '#202630' },
+        mark: {
+          type: 'text',
+          outerRadius: '115',
+          fill: '#202630',
+          fontWeight: 'bold',
+          fontSize: 16,
+        },
         encoding: {
           text: { field: 'cluster', type: 'nominal' },
+        },
+      },
+      {
+        mark: {
+          type: 'text',
+          outerRadius: '50',
+          fill: '#ffffff',
+          fontSize: 14,
+        },
+        encoding: {
+          text: { field: 'imgInCluster', type: 'quantitative' },
         },
       },
     ],
