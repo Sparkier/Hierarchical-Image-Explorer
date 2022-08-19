@@ -1,25 +1,21 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { get } from 'svelte/store';
   import { quantizationRollup } from '../../services/arqueroUtils';
-
   import { ColorUtil } from '../../services/colorUtil';
   import { TableService } from '../../services/tableService';
-  import { hexagonPropertiesMap } from '../../stores';
-  import type {
-    DataHexagon,
-    DerivedHexagon,
-    HexagonPropertiesMap,
-  } from '../../types';
+  import { hexagonPropertiesMap, selectedColorPalette } from '../../stores';
+  import type { DerivedHexagon, HexagonPropertiesMap } from '../../types';
 
   export let svgHeight: number;
   export let svgWidth: number;
   export let topLeftSvgCorner: DOMPoint;
   export let bottomRightSvgCorner: DOMPoint;
-  export let columns = 20;
+  export let columns: number = 20;
 
   let minimapWidth: number;
   let minimapHeight: number = 0;
-  let rows = 0;
+  let rows: number = 0;
   let datagons: DerivedHexagon[] = [];
   let hexagonPropertiesMapLocal: HexagonPropertiesMap;
 
@@ -31,7 +27,7 @@
 
   /**
    * retrieves the quantized data used in the minimap
-   * @returns quanzized list of datagons
+   * @returns quantized list of datagons
    */
   function getQuantizedBlobs(): DerivedHexagon[] {
     const quantizationResult = TableService.getQuantizationLocal(columns);
@@ -43,8 +39,7 @@
       quantizationResult.datagons,
       hexagonPropertiesMapLocal
     );
-    const minimalTalbeObjects = minimalTable.objects() as DerivedHexagon[];
-    return minimalTalbeObjects;
+    return minimalTable.objects() as DerivedHexagon[];
   }
 
   onMount(() => {
@@ -57,17 +52,17 @@
     <svg height={minimapHeight} width={minimapWidth}>
       {#each datagons as d}
         <circle
-          cx={((d.quantization[0] + (d.quantization[1] % 2 == 0 ? 0 : 0.5)) /
+          cx={((d.quantization[0] + (d.quantization[1] % 2 === 0 ? 0 : 0.5)) /
             columns) *
             (minimapWidth - dotsize) +
             dotsize}
           cy={(d.quantization[1] / rows) * (minimapHeight - dotsize) + dotsize}
           r={dotsize}
-          fill={ColorUtil.getColor(d.color)}
+          fill={ColorUtil.getColor(d.color, get(selectedColorPalette))}
         />
         <!-- Color must be adjusted once custom hexagon colorizing is implemented -->
       {/each}
-      {#if topLeftSvgCorner != undefined}
+      {#if topLeftSvgCorner !== undefined}
         <rect
           x={svgToMinimapScaleX(topLeftSvgCorner.x)}
           y={svgToMinimapScaleY(topLeftSvgCorner.y)}

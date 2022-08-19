@@ -3,6 +3,12 @@ import * as aq from 'arquero';
 import type ColumnTable from 'arquero/dist/types/table/column-table';
 import type { ArraySet } from '../ArraySet';
 
+/**
+ * Aggregates information based on quantization
+ * @param table data source
+ * @param hexagonPropertiesMap object containing queries
+ * @returns table with aggregated information
+ */
 export function quantizationRollup(
   table: ColumnTable,
   hexagonPropertiesMap: HexagonPropertiesMap
@@ -17,6 +23,13 @@ export function quantizationRollup(
   });
 }
 
+/**
+ * Filters table to given selection
+ * @param table data source
+ * @param selectionA set containing coordinates of hexagons selected in A
+ * @param selectionB (optional) set containing coordinates of hexagons selected in B
+ * @returns table only containing datapoints with matching quantization
+ */
 export function getSelection(
   table: ColumnTable,
   selectionA: ArraySet<[number, number]>,
@@ -36,6 +49,13 @@ export function getSelection(
   return table.filter(aq.escape(filterFunction));
 }
 
+/**
+ * Calculates the amount of datapoints matching the selection
+ * @param selectionA set containing coordinates of hexagons selected in A
+ * @param selectionB set containing coordinates of hexagons selected in B
+ * @param table data source
+ * @returns number of datapoints matching selection
+ */
 export function getTotalSelectionSize(
   selectionA: ArraySet<[number, number]>,
   selectionB: ArraySet<[number, number]>,

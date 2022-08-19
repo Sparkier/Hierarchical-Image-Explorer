@@ -23,9 +23,12 @@
   hexagonPropertiesMap.subscribe((v) => {
     if (colorQuery == '') colorQuery = v.color;
   });
-
   colorPropertyType.subscribe((v) => (colorPropertyTypeLocal = v));
 
+  /**
+   * Updates the color query and sets the queries type and
+   * if necessary calculates the extent of the data
+   */
   function updateColorProperty() {
     hexagonPropertiesMap.update((e) => {
       e.color = colorQuery;
@@ -56,21 +59,21 @@
         <div class="gap-4 pl-2 items-center pr-2">
           <form
             class="flex flex-row justify-between"
-            on:submit|preventDefault={(e) => {
+            on:submit|preventDefault={() => {
               settingsObject.columns = numCols;
             }}
           >
             <div class="text-lg pr-2 ">Number of columns:</div>
             <input
               class="w-16 rounded-md focus:outline-none focus:border-hie-orange
-            focus:ring-hie-orange focus:ring-2 pl-2"
+            focus:ring-hie-orange focus:ring-2 pl-2 ml-auto"
               type="number"
               name="columnsValue"
               id="columnsValue"
               bind:value={numCols}
             />
             <input
-              class="pl-2 text-lg hover:text-hie-red ml-auto"
+              class="pl-2 text-lg hover:text-hie-red"
               type="submit"
               value="apply"
             />
@@ -86,8 +89,8 @@
               class="w-48 rounded-md focus:outline-none focus:border-hie-orange
             focus:ring-hie-orange focus:ring-2 pl-2"
               type="text"
-              name="columnsValue"
-              id="columnsValue"
+              name="colorQuery"
+              id="colorQuery"
               bind:value={colorQuery}
             />
             <input
@@ -96,7 +99,7 @@
               value="apply"
             />
           </form>
-          {#if colorPropertyTypeLocal == 'number'}
+          {#if colorPropertyTypeLocal === 'number'}
             <div class="flex mt-2">
               <div class="mr-4">Color scheme</div>
               <select bind:value={selectedGradient}>

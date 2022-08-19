@@ -71,4 +71,4 @@
   };
 </script>
 
-<Vega class="w-full" {spec} />
+<Vega {spec} />

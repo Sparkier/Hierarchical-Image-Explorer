@@ -1,6 +1,7 @@
 # Hierarchical Image Explorer (HIE)
 
 The goal of this project is to develop a Level of Detail visualization for large-scale image datasets, that allows interactive exploration of the data. It is part of the specialization subject Computer Graphics in the 5th and 6th semester for computer science and media students at Ulm University.
+The project with an example dataset loaded can be found [here](http://nemesis.informatik.uni-ulm.de/frontend/main/)
 
 ### Getting started
 

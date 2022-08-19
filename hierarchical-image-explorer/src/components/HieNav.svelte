@@ -10,11 +10,6 @@
   export let settingsObject: SettingsObject;
 
   let isSettingsExpanded: boolean = false;
-
-  $: isCurrentViewClasses = (v: string) =>
-    currentView == v
-      ? 'text-hie-red hover:text-white'
-      : 'text-white text-lg hover:text-hie-red';
 </script>
 
 <nav class="bg-neutral-800">

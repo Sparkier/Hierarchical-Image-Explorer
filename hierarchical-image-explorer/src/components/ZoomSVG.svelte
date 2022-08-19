@@ -18,17 +18,10 @@
   const dispatch = createEventDispatcher();
 
   $: {
-    if (selectionModeOn == false) {
+    if (selectionModeOn === false) {
       lassoPoints = '';
       lassoStart = undefined;
     }
-  }
-
-  function dispatchZoomEndEvent() {
-    dispatch('zoomEnd', {
-      transform: transform,
-      zoomLevel: zoomLevel,
-    });
   }
 
   onMount(() => {
@@ -37,6 +30,19 @@
     }
   });
 
+  /**
+   * dispatches a zoom event containing transform and scale (zoomLevel)
+   */
+  function dispatchZoomEndEvent() {
+    dispatch('zoomEnd', {
+      transform: transform,
+      zoomLevel: zoomLevel,
+    });
+  }
+
+  /**
+   * adds a d3 zoom function to the svg element
+   */
   function setupZoom() {
     select(svg).call(
       zoom()
@@ -51,25 +57,36 @@
         .on('end', () => {
           if (!selectionModeOn) dispatchZoomEndEvent();
         })
-        .scaleExtent([1, 200])
+        .scaleExtent([1, 2000])
     );
   }
 
+  /**
+   * Starts the lasso selection process
+   * @param e selection event
+   */
   function startLasso(e) {
     if (!selectionModeOn) return;
     if (!lassoActive) {
       lassoStart = { x: e.layerX, y: e.layerY };
       lassoPoints = `${e.layerX},${e.layerY} `;
       lassoActive = true;
-    } else lassoEnd(e);
+    } else lassoEnd();
   }
 
+  /**
+   * updates the lasso points with current event position
+   * @param e selection event
+   */
   function lassoMove(e) {
     if (!lassoActive) return;
     lassoPoints += `${e.layerX},${e.layerY} `;
   }
 
-  function lassoEnd(e) {
+  /**
+   * Ends the lasso selection process
+   */
+  function lassoEnd() {
     if (!selectionModeOn) return;
     lassoActive = false;
     dispatch('lassoSelectionEnd');
@@ -88,7 +105,7 @@
     <slot />
   </g>
   <g>
-    {#if lassoStart != undefined && selectionModeOn}
+    {#if lassoStart !== undefined && selectionModeOn}
       <circle cx={lassoStart.x} cy={lassoStart.y} r="5" fill="red" />
       <polygon
         id="lassoPolygon"

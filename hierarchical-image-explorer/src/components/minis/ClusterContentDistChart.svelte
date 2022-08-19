@@ -8,8 +8,7 @@
     label: string;
     amount: number;
     selection: string;
-  }[] = [];
-
+  }[];
   export let columnName: string;
 
   $: {
@@ -74,4 +73,4 @@
   };
 </script>
 
-<VegaLite class="w-full" {data} {spec} />
+<VegaLite {data} {spec} />

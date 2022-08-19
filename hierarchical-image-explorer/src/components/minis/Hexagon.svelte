@@ -1,6 +1,4 @@
 <script lang="ts">
-  import Borders from './Borders.svelte';
-
   export let side: number = 100;
   export let image: string = '';
   export let scale: number = 1;
@@ -44,15 +42,15 @@
   on:mouseenter
   on:mouseleave
 >
-  <polygon id={IDString + '_polygon'} points="{r} {br} {bl} {l} {tl} {tr}" />
+  <polygon id={IDString + '_polygon'} points="{r} {br} {bl} {l} {tl} {tr}"></polygon >
 
   <defs>
     <clipPath id={IDString + '_clipping'}>
-      <use xlink:href="#{IDString + '_polygon'}" />
+      <use xlink:href="#{IDString + '_polygon'}"></use >
     </clipPath>
   </defs>
 
-  {#if image != ''}
+  {#if image !== ''}
     <image
       href={image}
       width={side * 2}
@@ -77,6 +75,5 @@
     xlink:href="#{IDString + '_polygon'}"
     fill="none"
     {stroke}
-    stroke-width={strokeWidth}
-  />
+    stroke-width={strokeWidth}></use >
 </g>

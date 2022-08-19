@@ -4,9 +4,9 @@
   import { TableService } from '../services/tableService';
   import { createEventDispatcher } from 'svelte';
 
-  const hexagonCategories: string[] = []; // will be added once we aggregate with aquero
-  const tableColumns = TableService.getAdditionalColumns();
-  const categories = [...tableColumns, ...hexagonCategories];
+  const hexagonCategories: string[] = []; // will be added once we aggregate with arquero
+  const tableColumns: string[] = TableService.getAdditionalColumns();
+  const categories: string[] = [...tableColumns, ...hexagonCategories];
 
   let filterList: filterDescriptor[] = []; // list of all filters to be applied
   let concatenations: boolean[] = []; // list of concatenations of the filter operations (AND/OR) after selecting in the UI true = AND, false = OR
@@ -129,7 +129,7 @@
         </div>
         <div class="mb-3" />
       </div>
-      {#if index != filterList.length - 1}
+      {#if index !== filterList.length - 1}
         <div class="flex items-center mt-2 mb-2">
           <div class="mr-2 text-md font-medium text-black ">AND</div>
           <label

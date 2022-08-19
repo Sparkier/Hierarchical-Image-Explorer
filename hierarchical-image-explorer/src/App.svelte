@@ -3,9 +3,10 @@
   import HomeScreen from './components/views/HomeScreen.svelte';
   import AppView from './components/views/AppView.svelte';
   import type { SettingsObject } from './types';
+  import { DEFAULT_SETTINGS } from './config';
 
-  let currentView = 'appview';
-  let settingsObject: SettingsObject;
+  let currentView: string = 'appview';
+  let settingsObject: SettingsObject = DEFAULT_SETTINGS;
 </script>
 
 <main class="font-body">
@@ -13,11 +14,12 @@
     <HieNav bind:currentView bind:settingsObject />
   </div>
   <div class="relative container z-0 fixed overflow-hidden">
-    {#if currentView === 'home'}
+    <div class={currentView === 'home' ? '' : 'hidden'}>
       <HomeScreen bind:currentView />
-    {:else if currentView === 'appview'}
+    </div>
+    <div class={currentView === 'appview' ? '' : 'hidden'}>
       <AppView {settingsObject} />
-    {/if}
+    </div>
   </div>
 </main>
 
