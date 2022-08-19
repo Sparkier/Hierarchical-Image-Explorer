@@ -32,7 +32,7 @@ export class TableService {
   }
 
   public static getType(query:string){
-    const tableObject = this.getTable().groupby("id").rollup({toGet:query}).object() as {toGet:any}
+    const tableObject = this.getTable().groupby("id").rollup({toGet:query}).object() as {toGet:unknown}
     return typeof tableObject.toGet
   }
 
