@@ -10,6 +10,12 @@
 
   let data: { values: BoxPlotDatum[] };
 
+  /**
+   * Aggregates the stats needed for a boxplot (q_0,...,q_4) from a given table and column
+   * @param table data source
+   * @param column the column to use
+   * @param name name to put in the boxplot object
+   */
   function getBoxplotStats(
     table: ColumnTable,
     column: string,
@@ -25,7 +31,6 @@
       })
       .object() as BoxPlotDatum;
     result.name = name;
-    result.outliers = [];
     return result;
   }
 
@@ -72,13 +77,6 @@
         mark: { type: 'tick', color: 'white', size: 14 },
         encoding: {
           x: { field: 'median', type: 'quantitative' },
-        },
-      },
-      {
-        transform: [{ flatten: ['outliers'] }],
-        mark: { type: 'point', style: 'boxplot-outliers' },
-        encoding: {
-          x: { field: 'outliers', type: 'quantitative' },
         },
       },
     ],

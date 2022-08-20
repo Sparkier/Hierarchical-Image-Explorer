@@ -38,5 +38,4 @@ export type BoxPlotDatum = {
   q1: number;
   q2: number;
   name:string;
-  outliers: [];
 }
