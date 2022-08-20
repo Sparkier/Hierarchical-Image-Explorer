@@ -7,6 +7,7 @@
   import * as aq from 'arquero';
   import type { ArraySet } from '../../ArraySet';
   import { TableService } from '../../services/tableService';
+  import BoxPlot from './BoxPlot.svelte';
 
   export let datagonsA: ArraySet<[number, number]>;
   export let datagonsB: ArraySet<[number, number]>;
@@ -23,6 +24,7 @@
   $: selectedRowsB = getSelection(currentQuantizationLocal, datagonsB);
   $: repA = getSuperRepresentant(datagonsA, selectedRowsA);
   $: repB = getSuperRepresentant(datagonsB, selectedRowsB);
+  $: columnType = typeof TableService.getTable().column(selectedColumn)?.get(1);
 
   /**
    * Gets the representantID for a selection.
@@ -71,8 +73,6 @@
     table: ColumnTable,
     isASelection: boolean
   ): { label: string; amount: number }[] {
-    const columnType = typeof table.column(column)?.get(1);
-
     if (columnType == 'number') {
       const avgObject = table
         .rollup({
@@ -175,9 +175,21 @@
       <option value={col}>{col}</option>
     {/each}
   </select>
-  <ClusterContentDistChart
-    distributionA={getColumnDistribution(selectedColumn, selectedRowsA, true)}
-    distributionB={getColumnDistribution(selectedColumn, selectedRowsB, false)}
-    columnName={selectedColumn}
-  />
+  {#if columnType == 'number'}
+    <BoxPlot
+      {selectedRowsA}
+      {selectedRowsB}
+      selectedColumnName={selectedColumn}
+    />
+  {:else}
+    <ClusterContentDistChart
+      distributionA={getColumnDistribution(selectedColumn, selectedRowsA, true)}
+      distributionB={getColumnDistribution(
+        selectedColumn,
+        selectedRowsB,
+        false
+      )}
+      columnName={selectedColumn}
+    />
+  {/if}
 </div>

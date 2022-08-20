@@ -30,3 +30,13 @@ export type HexagonPropertiesMap = {
   color: string;
   representantID: string;
 };
+
+export type BoxPlotDatum = {
+  min: number;
+  max: number;
+  median: number;
+  q1: number;
+  q2: number;
+  name:string;
+  outliers: [];
+}
