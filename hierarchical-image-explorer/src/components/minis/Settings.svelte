@@ -4,6 +4,7 @@
   import { TableService } from '../../services/tableService';
   import {
     colorPropertyType,
+    colorQueryMaxima,
     hexagonPropertiesMap,
     selectedColorPalette,
   } from '../../stores';
@@ -38,7 +39,7 @@
     const dataType = TableService.getType(colorQuery);
     colorPropertyType.set(dataType);
     if (dataType == 'number') {
-      ColorUtil.dataRange = TableService.getQueryExtentQuantized(colorQuery);
+      colorQueryMaxima.set(TableService.getQueryExtentQuantized(colorQuery));
     }
   }
 </script>

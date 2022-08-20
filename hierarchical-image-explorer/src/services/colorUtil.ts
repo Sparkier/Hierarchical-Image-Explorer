@@ -1,4 +1,6 @@
 import * as chroma from 'chroma.ts';
+import { get } from 'svelte/store';
+import { colorQueryMaxima } from '../stores';
 
 export class ColorUtil {
   public static colors: string[] = [
@@ -16,10 +18,7 @@ export class ColorUtil {
 
   public static SELECTION_HIGHLIGHT_COLOR_A = '#A03D52';
   public static SELECTION_HIGHLIGHT_COLOR_B = '#8D8797';
-
   public static colorMap: Map<string, string> = new Map();
-
-  public static dataRange: { min: number; max: number } = { min: 0, max: 0 };
 
   public static gradients: {
     name: string;
@@ -34,6 +33,17 @@ export class ColorUtil {
   ];
 
   /**
+   * Returns a css gradient (left to right) as a style string for a given name of a gradient in this.gradients
+   * @param gradientName name of gradient
+   * @returns css gradient (e.g. linear-gradient(to right,#751f7e,#ff6000))
+   */
+  public static getCssGradient(gradientName:string){
+    const gradient = this.gradients.find((e) => e.name == gradientName);
+    if (gradient == undefined) throw new Error('Color gradient undefined');
+    return `linear-gradient(to right,${gradient.gradient.colors().toString().replace("[","").replace("]","")})`
+  }
+
+  /**
    * Converts a number value to a color value
    * @param v value
    * @param selectedColorPalette name of color palette to use
@@ -42,10 +52,11 @@ export class ColorUtil {
   private static getContinuousValue(v: number, selectedColorPalette: string) {
     const gradient = this.gradients.find((e) => e.name == selectedColorPalette);
     if (gradient == undefined) throw new Error('Color gradient undefined');
+    const extent = get(colorQueryMaxima)
     return gradient
       .gradient(
-        (v - this.dataRange.min) /
-          Math.abs(this.dataRange.min - this.dataRange.max)
+        (v - extent.min) /
+          Math.abs(extent.min - extent.max)
       )
       .css();
   }
