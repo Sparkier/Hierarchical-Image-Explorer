@@ -3,6 +3,7 @@
   import * as aq from 'arquero';
   import { VegaLite } from 'svelte-vega';
   import type { BoxPlotDatum } from '../../types';
+  import { ColorUtil } from '../../services/colorUtil';
 
   export let selectedRowsA: ColumnTable;
   export let selectedRowsB: ColumnTable;
@@ -66,11 +67,25 @@
         },
       },
       {
-        mark: { type: 'bar', size: 14 },
+        mark: {
+          type: 'bar',
+          size: 14,
+        },
         encoding: {
           x: { field: 'q1', type: 'quantitative' },
           x2: { field: 'q3' },
-          color: { field: 'name', type: 'nominal', legend: null },
+          color: {
+            field: 'name',
+            type: 'nominal',
+            legend: null,
+            scale: {
+              domain: ['Cluster A', 'Cluster B'],
+              range: [
+                ColorUtil.SELECTION_HIGHLIGHT_COLOR_A,
+                ColorUtil.SELECTION_HIGHLIGHT_COLOR_B,
+              ],
+            },
+          },
         },
       },
       {

@@ -2,6 +2,7 @@
   import type ColumnTable from 'arquero/dist/types/table/column-table';
   import * as aq from 'arquero';
   import { VegaLite } from 'svelte-vega';
+  import { ColorUtil } from '../../services/colorUtil';
 
   export let barColor: string;
   export let selectedRows: ColumnTable;
