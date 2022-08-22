@@ -7,6 +7,9 @@
   import * as aq from 'arquero';
   import type { ArraySet } from '../../ArraySet';
   import { TableService } from '../../services/tableService';
+  import BoxPlot from './BoxPlot.svelte';
+  import Histogram from './Histogram.svelte';
+  import { ColorUtil } from '../../services/colorUtil';
 
   export let datagonsA: ArraySet<[number, number]>;
   export let datagonsB: ArraySet<[number, number]>;
@@ -14,6 +17,7 @@
 
   let possibleColumns: string[] = TableService.getAdditionalColumns();
   let selectedColumn: string = possibleColumns[0];
+  let selectedExtent: { min: number; max: number } = { min: 0, max: 0 };
 
   $: sumOfSelectedImages = [
     { numberOfImg: selectedRowsA.numRows(), selection: 'A' },
@@ -23,6 +27,18 @@
   $: selectedRowsB = getSelection(currentQuantizationLocal, datagonsB);
   $: repA = getSuperRepresentant(datagonsA, selectedRowsA);
   $: repB = getSuperRepresentant(datagonsB, selectedRowsB);
+  $: columnType = typeof TableService.getTable().column(selectedColumn)?.get(1);
+
+  $: {
+    if (columnType == 'number')
+      selectedExtent = selectedRowsA
+        .union(selectedRowsB)
+        .rollup({
+          min: aq.op.min(selectedColumn),
+          max: aq.op.max(selectedColumn),
+        })
+        .object() as { min: number; max: number };
+  }
 
   /**
    * Gets the representantID for a selection.
@@ -71,8 +87,6 @@
     table: ColumnTable,
     isASelection: boolean
   ): { label: string; amount: number }[] {
-    const columnType = typeof table.column(column)?.get(1);
-
     if (columnType == 'number') {
       const avgObject = table
         .rollup({
@@ -175,9 +189,37 @@
       <option value={col}>{col}</option>
     {/each}
   </select>
-  <ClusterContentDistChart
-    distributionA={getColumnDistribution(selectedColumn, selectedRowsA, true)}
-    distributionB={getColumnDistribution(selectedColumn, selectedRowsB, false)}
-    columnName={selectedColumn}
-  />
+  {#if columnType == 'number'}
+    <BoxPlot
+      {selectedRowsA}
+      {selectedRowsB}
+      selectedColumnName={selectedColumn}
+    />
+    {#if selectedRowsA.numRows() > 0}
+      <Histogram
+        extent={selectedExtent}
+        selectedRows={selectedRowsA}
+        selectedColumnName={selectedColumn}
+        barColor={ColorUtil.SELECTION_HIGHLIGHT_COLOR_A}
+      />
+    {/if}
+    {#if selectedRowsB.numRows() > 0}
+      <Histogram
+        extent={selectedExtent}
+        selectedRows={selectedRowsB}
+        selectedColumnName={selectedColumn}
+        barColor={ColorUtil.SELECTION_HIGHLIGHT_COLOR_B}
+      />
+    {/if}
+  {:else}
+    <ClusterContentDistChart
+      distributionA={getColumnDistribution(selectedColumn, selectedRowsA, true)}
+      distributionB={getColumnDistribution(
+        selectedColumn,
+        selectedRowsB,
+        false
+      )}
+      columnName={selectedColumn}
+    />
+  {/if}
 </div>
