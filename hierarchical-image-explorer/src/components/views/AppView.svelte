@@ -10,10 +10,11 @@
   import * as aq from 'arquero';
   import { TableService } from '../../services/tableService';
   import RightSidebar from '../minis/RightSidebar.svelte';
-  import { currentQuantization } from '../../stores';
+  import { colorPropertyType, currentQuantization } from '../../stores';
   import type ColumnTable from 'arquero/dist/types/table/column-table';
   import { getTotalSelectionSize } from '../../services/arqueroUtils';
   import { ArraySet } from '../../ArraySet';
+  import ColorScaleLegend from '../minis/ColorScaleLegend.svelte';
 
   export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
 
@@ -87,6 +88,11 @@
 
 {#if tableIsSet !== false}
   <div class="w-64 bottom-0 right-0 z-10 bg-slate-50 fixed rounded-tl-lg p-4">
+    {#if $colorPropertyType == 'number'}
+      <div class="flex">
+        <ColorScaleLegend />
+      </div>
+    {/if}
     <Minimap
       topLeftSvgCorner={accTopLeftCorner}
       bottomRightSvgCorner={accBottomRightCorner}
