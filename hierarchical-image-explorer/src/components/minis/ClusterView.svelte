@@ -10,6 +10,7 @@
   import BoxPlot from './BoxPlot.svelte';
   import Histogram from './Histogram.svelte';
   import { ColorUtil } from '../../services/colorUtil';
+  import PieChart from './PieChart.svelte';
 
   export let datagonsA: ArraySet<[number, number]>;
   export let datagonsB: ArraySet<[number, number]>;
@@ -209,6 +210,17 @@
         selectedRows={selectedRowsB}
         selectedColumnName={selectedColumn}
         barColor={ColorUtil.SELECTION_HIGHLIGHT_COLOR_B}
+      />
+    {/if}
+  {:else if columnType == 'string'}
+    {#if selectedRowsA.numRows() > 0 && selectedRowsB.numRows() == 0}
+      <PieChart
+        data={getColumnDistribution(selectedColumn, selectedRowsA, true)}
+      />
+    {/if}
+    {#if selectedRowsA.numRows() == 0 && selectedRowsB.numRows() > 0}
+      <PieChart
+        data={getColumnDistribution(selectedColumn, selectedRowsB, false)}
       />
     {/if}
   {:else}
