@@ -46,7 +46,7 @@ Once one or multiple clusters are selected, the left sidebar opens, and the user
 
 Furthermore, if the dataset provides adequate columns such as labels, outlier score or probability, the user can select the columns in the dropdown menu to be displayed in a graph. Subsequently, discrete values are displayed as a mirrored bar chart (if two selections are chosen) or as a pie chart (if only one selection is chosen). Continuous  values are displayed as a box plot or histogram.
 
-<img src="docs/img/Graph.png" width="500">
+<img src="docs/img/graph.png" width="500">
 
 #### Settings
 
