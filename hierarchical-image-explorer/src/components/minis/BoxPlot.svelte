@@ -11,30 +11,6 @@
 
   let data: { values: BoxPlotDatum[] };
 
-  /**
-   * Aggregates the stats needed for a boxplot (q_0,...,q_4) from a given table and column
-   * @param table data source
-   * @param column the column to use
-   * @param name name to put in the boxplot object
-   */
-  function getBoxplotStats(
-    table: ColumnTable,
-    column: string,
-    name: string
-  ): BoxPlotDatum {
-    const result = table
-      .rollup({
-        min: aq.op.min(column),
-        max: aq.op.max(column),
-        median: aq.op.median(column),
-        q1: aq.op.quantile(column, 0.25),
-        q3: aq.op.quantile(column, 0.75),
-      })
-      .object() as BoxPlotDatum;
-    result.name = name;
-    return result;
-  }
-
   $: {
     data = { values: [] };
     if (selectedRowsA.numRows() > 0) {
@@ -96,6 +72,30 @@
       },
     ],
   };
+
+  /**
+   * Aggregates the stats needed for a boxplot (q_0,...,q_4) from a given table and column
+   * @param table data source
+   * @param column the column to use
+   * @param name name to put in the boxplot object
+   */
+  function getBoxplotStats(
+    table: ColumnTable,
+    column: string,
+    name: string
+  ): BoxPlotDatum {
+    const result = table
+      .rollup({
+        min: aq.op.min(column),
+        max: aq.op.max(column),
+        median: aq.op.median(column),
+        q1: aq.op.quantile(column, 0.25),
+        q3: aq.op.quantile(column, 0.75),
+      })
+      .object() as BoxPlotDatum;
+    result.name = name;
+    return result;
+  }
 </script>
 
 <main>
