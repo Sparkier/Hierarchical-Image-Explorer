@@ -1,27 +1,24 @@
 <script lang="ts">
+  import { get } from 'svelte/store';
+
   import { ColorUtil } from '../../services/colorUtil';
 
   import { colorQueryMaxima, selectedColorPalette } from '../../stores';
 
-  let colorQueryMaximaLocal: { min: number; max: number };
-  let gradientStyle = '';
-
-  colorQueryMaxima.subscribe((v) => (colorQueryMaximaLocal = v));
-  selectedColorPalette.subscribe((v) => {
-    gradientStyle = 'background: ' + ColorUtil.getCssGradient(v) + ';';
-  });
+  $: gradientStyle =
+    'background: ' + ColorUtil.getCssGradient($selectedColorPalette) + ';';
 </script>
 
 <div class="flex gap-2 w-full mb-2">
   <div class="grow-0 align-middle">
-    {colorQueryMaximaLocal.min.toString().length > 5
-      ? colorQueryMaximaLocal.min.toExponential(2)
-      : colorQueryMaximaLocal.min}
+    {$colorQueryMaxima.min.toString().length > 5
+      ? $colorQueryMaxima.min.toExponential(2)
+      : $colorQueryMaxima.min}
   </div>
   <div class="grow w-max h-6" style={gradientStyle} />
   <div class="grow-0 align-middle">
-    {colorQueryMaximaLocal.max.toString().length > 5
-      ? colorQueryMaximaLocal.max.toExponential(2)
-      : colorQueryMaximaLocal.max}
+    {$colorQueryMaxima.max.toString().length > 5
+      ? $colorQueryMaxima.max.toExponential(2)
+      : $colorQueryMaxima.max}
   </div>
 </div>

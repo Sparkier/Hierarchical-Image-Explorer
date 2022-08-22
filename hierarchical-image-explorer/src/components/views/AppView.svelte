@@ -14,7 +14,6 @@
   import type ColumnTable from 'arquero/dist/types/table/column-table';
   import { getTotalSelectionSize } from '../../services/arqueroUtils';
   import { ArraySet } from '../../ArraySet';
-  import { get } from 'svelte/store';
   import ColorScaleLegend from '../minis/ColorScaleLegend.svelte';
 
   export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
@@ -53,7 +52,6 @@
   let tableIsSet: boolean = false;
   let updateQuantizationDataExportFunction: () => void;
   let currentQuantizationLocal: ColumnTable;
-  let colorPropertyTypeLocal: string = '';
 
   const borderWidth: number = 2;
 
@@ -69,8 +67,6 @@
       currentQuantizationLocal = v.datagons;
     }
   });
-
-  colorPropertyType.subscribe((v) => (colorPropertyTypeLocal = v));
 
   onMount(() => {
     document.addEventListener('click', handleOutsideClick, false);
@@ -92,7 +88,7 @@
 
 {#if tableIsSet !== false}
   <div class="w-64 bottom-0 right-0 z-10 bg-slate-50 fixed rounded-tl-lg p-4">
-    {#if colorPropertyTypeLocal == 'number'}
+    {#if $colorPropertyType == 'number'}
       <div class="flex">
         <ColorScaleLegend />
       </div>

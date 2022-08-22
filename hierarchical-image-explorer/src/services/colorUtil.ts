@@ -37,10 +37,14 @@ export class ColorUtil {
    * @param gradientName name of gradient
    * @returns css gradient (e.g. linear-gradient(to right,#751f7e,#ff6000))
    */
-  public static getCssGradient(gradientName:string){
+  public static getCssGradient(gradientName: string) {
     const gradient = this.gradients.find((e) => e.name == gradientName);
     if (gradient == undefined) throw new Error('Color gradient undefined');
-    return `linear-gradient(to right,${gradient.gradient.colors().toString().replace("[","").replace("]","")})`
+    return `linear-gradient(to right,${gradient.gradient
+      .colors()
+      .toString()
+      .replace('[', '')
+      .replace(']', '')})`;
   }
 
   /**
@@ -52,12 +56,9 @@ export class ColorUtil {
   private static getContinuousValue(v: number, selectedColorPalette: string) {
     const gradient = this.gradients.find((e) => e.name == selectedColorPalette);
     if (gradient == undefined) throw new Error('Color gradient undefined');
-    const extent = get(colorQueryMaxima)
+    const extent = get(colorQueryMaxima);
     return gradient
-      .gradient(
-        (v - extent.min) /
-          Math.abs(extent.min - extent.max)
-      )
+      .gradient((v - extent.min) / Math.abs(extent.min - extent.max))
       .css();
   }
 
