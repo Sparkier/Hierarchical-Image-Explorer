@@ -1,8 +1,5 @@
 <script lang="ts">
-  import { get } from 'svelte/store';
-
   import { ColorUtil } from '../../services/colorUtil';
-
   import { colorQueryMaxima, selectedColorPalette } from '../../stores';
 
   $: gradientStyle =
