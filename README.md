@@ -1,7 +1,70 @@
 # Hierarchical Image Explorer (HIE)
+![image](docs/img/banner.png)
+The goal of this project was to develop a Level of Detail visualization for large-scale image datasets, that allows interactive exploration of the data. It is part of the specialization subject Computer Graphics in the 5th and 6th semester for computer science and media students at Ulm University.
 
-The goal of this project is to develop a Level of Detail visualization for large-scale image datasets, that allows interactive exploration of the data. It is part of the specialization subject Computer Graphics in the 5th and 6th semester for computer science and media students at Ulm University.
-The project with an example dataset loaded can be found [here](http://nemesis.informatik.uni-ulm.de/frontend/main/)
+![image](docs/img/fullscreen_view.png)
+
+---
+
+## Frontend
+The project with an example dataset loaded can be found [here](http://nemesis.informatik.uni-ulm.de/frontend/main/).
+
+### Starting up
+* Adjust `SERVER_ADDRESS` in `src/config.ts` to the backend IP.
+* Build static site with `yarn build` (or run dev-mode with `yarn dev` for live preview)
+
+### Home page
+After building the website, you are directed to the home page of the project. To start exploring data, click "Let's explore some data!"
+
+### Exploring data
+The image explorer offers a view of clusters of images in a certain alignment on a 2D plane. To explore the data, zooming and panning is possible. Zooming in will reveal continuously smaller clusters until only one image is visible. Every cluster can be selected to reveal additional information.
+
+#### Selecting clusters
+Selecting clusters (and single images) can be done in two ways:
+1. Selecting them one by one with a click
+2. Using the lasso tool (`ALT` or button on top)
+
+We support selecting two none overlapping sets of clusters and offer various ways to compare them.
+
+To switch between selecting group A and B use `x` or the button next to the lasso tool.
+To unselect all clusters at once, use `ESC`.
+
+#### Filters
+The dataset can be filtered using a simple UI and more complex queries. To add a filter, open the right panel and click "add filter". If multiple filters are present, they are processed in order. Filters can be concatenated in with `OR` and `AND`. These operations apply to all the previous filters in the list.
+Under each filter, the corresponding [arquero](https://uwdata.github.io/arquero/api/) query is displayed. These can be directly edited to achieve more complex filter operations.
+
+<img src="docs/img/filtering.png" width="200">
+ 
+#### Minimap
+In the bottom right of the view is a minimap. The minimap always displays the clusters of the unfiltered dataset. 
+
+#### Graphs and cluster info
+Once one or multiple clusters are selected, the left sidebar opens, and the user is provided with additional information on the selected clusters:
+
+- the representative image of the selections
+- the number of images in each cluster as a pie chart
+
+Furthermore, if the dataset provides adequate columns such as labels, outlier score or probability, the user can select the columns in the dropdown menu to be displayed in a graph. Subsequently, discrete values are displayed as a mirrored bar chart (if two selections are chosen) or as a pie chart (if only one selection is chosen). Continuous  values are displayed as a box plot or histogram.
+
+<img src="docs/img/Graph.png" width="500">
+
+#### Settings
+
+Settings can be changed in the settings menu (gearwheel) in the upper right corner. You can alternate the following:
+
+1. Number of columns
+    - change the number of columns displayed (standard setting is 10)
+    - *note: since hexagons have to be shifted by half a hexagon every row to get a perfect fit, only columns with hexagons having the same height are counted as one column and too high values (>20) may lead to performance issues*
+
+2. Color query
+    * This property determines the hexagon outline color. It can be modified with an [arquero](https://uwdata.github.io/arquero/api/) expression. If the query results in a number, a continuous color scale is applied. One can switch between different scales. For other values, the categorical [tableau-10](https://www.tableau.com/about/blog/2016/7/colors-upgrade-tableau-10-56782) palette is used. If needed, the colors may repeat.
+
+<img src="docs/img/settings.png" width="200">
+
+---
+
+## Backend
+This section covers the interaction with the backend of the image explorer. You will learn how to get the project started on your local machine, as well as how to integrate new datasets.
 
 ### Getting started
 
@@ -79,17 +142,8 @@ One row might look like this:
 Now start the backend server with `yarn start -c configurations/config_example.json`
 The frontend needs no further adjustment to different datasets.
 
+---
 
+Enjoy exploring data!
 
-### Committing
-
-To have nice commit messages throughout, we use [commitizen](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly). To commit, use `git cz`.
-
-We require reviewed pull requests before merging to `main`. This means:
-
-1. You cannot directly push to the `main` branch.
-2. You should create a new branch for a change you want to make.
-3. Changes should be as small as possible to allow for a quick review.
-4. Once you have applied all the changes you wanted to make to your branch, you need to open a pull request on GitHub.
-5. You need to assign a reviewer and get approval before you are able to merge your changes.
-6. Your pull request needs to pass all checks on GitHub before being merged.
+Cheers, Daniel & Niklas<sup>2</sup>
