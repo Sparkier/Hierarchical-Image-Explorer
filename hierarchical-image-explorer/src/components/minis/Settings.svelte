@@ -64,7 +64,7 @@
               settingsObject.columns = numCols;
             }}
           >
-            <div class="text-lg pr-2 ">Number of columns:</div>
+            <div class="text-lg pr-2 ">Hexagon resolution:</div>
             <input
               class="w-16 rounded-md focus:outline-none focus:border-hie-orange
             focus:ring-hie-orange focus:ring-2 pl-2 ml-auto"
