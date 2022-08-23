@@ -22,14 +22,15 @@
   $: svgToMinimapScaleX = (v: number) => (v / svgWidth) * minimapWidth;
   $: svgToMinimapScaleY = (v: number) => (v / svgHeight) * minimapHeight;
   $: dotsize = minimapWidth / columns / 4;
-
-  hexagonPropertiesMap.subscribe((v) => (hexagonPropertiesMapLocal = v));
+  $: hexagonPropertiesMapLocal = $hexagonPropertiesMap;
 
   /**
    * retrieves the quantized data used in the minimap
    * @returns quantized list of datagons
    */
-  function getQuantizedBlobs(): DerivedHexagon[] {
+  function getQuantizedBlobs(
+    propertyMap: HexagonPropertiesMap
+  ): DerivedHexagon[] {
     const quantizationResult = TableService.getQuantizationLocal(columns);
     rows = quantizationResult.rows;
     const virtualHexaSide = minimapWidth / (3 * columns);
@@ -37,13 +38,17 @@
 
     const minimalTable = quantizationRollup(
       quantizationResult.datagons,
-      hexagonPropertiesMapLocal
+      propertyMap
     );
     return minimalTable.objects() as DerivedHexagon[];
   }
 
+  $: {
+    datagons = getQuantizedBlobs(hexagonPropertiesMapLocal);
+  }
+
   onMount(() => {
-    datagons = getQuantizedBlobs();
+    datagons = getQuantizedBlobs(hexagonPropertiesMapLocal);
   });
 </script>
 
@@ -58,7 +63,7 @@
             dotsize}
           cy={(d.quantization[1] / rows) * (minimapHeight - dotsize) + dotsize}
           r={dotsize}
-          fill={ColorUtil.getColor(d.color, get(selectedColorPalette))}
+          fill={ColorUtil.getColor(d.color, $selectedColorPalette)}
         />
         <!-- Color must be adjusted once custom hexagon colorizing is implemented -->
       {/each}

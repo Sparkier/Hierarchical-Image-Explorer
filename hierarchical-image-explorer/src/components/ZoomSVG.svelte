@@ -52,10 +52,8 @@
             zoomLevel = k;
             transform = [x, y];
             select(g).attr('transform', `translate(${x}, ${y}) scale(${k})`);
+            dispatchZoomEndEvent();
           }
-        })
-        .on('end', () => {
-          if (!selectionModeOn) dispatchZoomEndEvent();
         })
         .scaleExtent([1, Number.POSITIVE_INFINITY])
     );
