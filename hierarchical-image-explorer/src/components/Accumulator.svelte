@@ -67,8 +67,8 @@
   $: scaleQuantisedX = (v: number, row: number) => {
     return maxWidth == undefined
       ? 0
-      : v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide); 
-      // every other hexagon (3*hexaside) is moved over by half a hexagon (1.5*hexaside) to create the grid
+      : v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
+    // every other hexagon (3*hexaside) is moved over by half a hexagon (1.5*hexaside) to create the grid
   };
   $: scaleQuantisedY = (v: number) => {
     return hexaShortDiag * hexaSide * v;
@@ -365,7 +365,7 @@
           ? 'bg-selectionA'
           : 'bg-selectionB'
         : 'bg-slate-400'
-    } rounded-lg w-12 p-2 mt-1`}
+    } rounded-lg w-12 p-2 mt-1 ml-auto`}
     on:click={() => {
       selectionModeOn = !selectionModeOn;
     }}
@@ -373,7 +373,7 @@
     <LassoSelectIcon />
   </div>
   <div
-    class={`rounded-lg w-14 p-2 mt-1 text-center cursor-pointer select-none ${
+    class={`rounded-lg w-14 p-2 mt-1 text-center cursor-pointer select-none mr-auto ${
       isASelectionActive
         ? `bg-selectionA text-black`
         : `bg-selectionB text-white`

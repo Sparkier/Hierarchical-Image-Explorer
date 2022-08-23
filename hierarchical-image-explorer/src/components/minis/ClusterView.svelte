@@ -212,7 +212,7 @@
         barColor={ColorUtil.SELECTION_HIGHLIGHT_COLOR_B}
       />
     {/if}
-  {:else if columnType == 'string'}
+  {:else}
     {#if selectedRowsA.numRows() > 0 && selectedRowsB.numRows() == 0}
       <PieChart
         data={getColumnDistribution(selectedColumn, selectedRowsA, true)}
@@ -222,16 +222,20 @@
       <PieChart
         data={getColumnDistribution(selectedColumn, selectedRowsB, false)}
       />
+    {:else if selectedRowsA.numRows() > 0 && selectedRowsB.numRows() > 0}
+      <ClusterContentDistChart
+        distributionA={getColumnDistribution(
+          selectedColumn,
+          selectedRowsA,
+          true
+        )}
+        distributionB={getColumnDistribution(
+          selectedColumn,
+          selectedRowsB,
+          false
+        )}
+        columnName={selectedColumn}
+      />
     {/if}
-  {:else}
-    <ClusterContentDistChart
-      distributionA={getColumnDistribution(selectedColumn, selectedRowsA, true)}
-      distributionB={getColumnDistribution(
-        selectedColumn,
-        selectedRowsB,
-        false
-      )}
-      columnName={selectedColumn}
-    />
   {/if}
 </div>

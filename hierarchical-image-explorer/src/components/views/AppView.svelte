@@ -87,7 +87,8 @@
 </script>
 
 {#if tableIsSet !== false}
-  <div class="w-64 bottom-0 right-0 z-10 bg-slate-50 fixed rounded-tl-lg p-4">
+  <!-- Minimap -->
+  <div class="w-72 bottom-0 right-0 z-20 bg-slate-50 fixed rounded-tl-lg p-4">
     {#if $colorPropertyType == 'number'}
       <div class="flex">
         <ColorScaleLegend />
@@ -104,8 +105,8 @@
     <!--Left sidebar-->
     <div
       class={isLeftSidebarExpanded
-        ? 'duration-2000 transition translate-x-0 fixed left-0 h-full relative'
-        : 'duration-2000 transition -translate-x-96 fixed left-0 h-full'}
+        ? 'duration-2000 transition translate-x-0 left-0 h-full fixed z-10 delay-150'
+        : 'duration-2000 transition -translate-x-96 left-0 h-full fixed'}
     >
       <div class="w-96 border-r-2 border-y-2 border-slate-200 bg-slate-50">
         <div class="p-4 overflow-auto" style="height: {availableAccHeight}px;">
