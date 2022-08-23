@@ -1,12 +1,12 @@
 # Hierarchical Image Explorer (HIE)
 ![image](docs/img/banner.png)
-The goal of this project was to develop a Level of Detail visualization for large-scale image datasets, that allows interactive exploration of the data. It is part of the specialization subject Computer Graphics in the 5th and 6th semester for computer science and media students at Ulm University.
+The goal of this project was to develop a Level of Detail visualization for large-scale image datasets that allows interactive exploration of the data. It is part of the specialization subject Computer Graphics in the 5th and 6th semester for computer science and media students at Ulm University.
 
 ![image](docs/img/fullscreen_view.png)
 
 ---
 
-## Frontend
+## Frontend development
 The project with an example dataset loaded can be found [here](http://nemesis.informatik.uni-ulm.de/frontend/main/).
 
 ### Starting up
@@ -52,8 +52,9 @@ Furthermore, if the dataset provides adequate columns such as labels, outlier sc
 
 Settings can be changed in the settings menu (gearwheel) in the upper right corner. You can alternate the following:
 
-1. Number of columns
-    - change the number of columns displayed (standard setting is 10)
+1. Resolution
+    - determines how many hexagons will be layed over the data and will be displayed on screen (higher resolution -> more hexagons, vice versa)
+    - effectively changes the number of columns displayed (standard setting is 10)
     - *note: since hexagons have to be shifted by half a hexagon every row to get a perfect fit, only columns with hexagons having the same height are counted as one column and too high values (>20) may lead to performance issues*
 
 2. Color query
@@ -63,8 +64,8 @@ Settings can be changed in the settings menu (gearwheel) in the upper right corn
 
 ---
 
-## Backend
-This section covers the interaction with the backend of the image explorer. You will learn how to get the project started on your local machine, as well as how to integrate new datasets.
+## Backend development
+This section covers the interaction with the backend of the image explorer. You will learn how to get the project started on your local machine, as well as how to integrate new datasets. The backend provides the frontend with the image data as an arrow table as well as the images itself. Furthermore, it handles everything from preparing new datasets, to aggregating and loading in the datasets to be explored in the frontend.
 
 ### Getting started
 
