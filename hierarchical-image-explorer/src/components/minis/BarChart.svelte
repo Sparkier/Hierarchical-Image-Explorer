@@ -28,9 +28,10 @@
     data: {
       values: distribution,
     },
-    mark: { type: 'arc', tooltip: true },
+    mark: { type: 'bar' },
     encoding: {
-      theta: { field: 'amount', type: 'quantitative', stack: 'normalize' },
+      y: { field: 'category' },
+      x: { field: 'amount', type: 'quantitative' },
       color: {
         field: 'category',
         scale: { range: colorscheme },
