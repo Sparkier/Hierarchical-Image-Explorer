@@ -7,13 +7,26 @@
     selection: string;
   }[];
 
-  let imgInClusterA: number = 0;
-  let imgInClusterB: number = 0;
+  let visValues: { cluster: string; imgInCluster: number; color: string }[] =
+    [];
 
   $: {
     if (numberOfClusterImages.length == 2) {
-      imgInClusterA = numberOfClusterImages[0].numberOfImg;
-      imgInClusterB = numberOfClusterImages[1].numberOfImg;
+      visValues = [];
+      if (numberOfClusterImages[0].numberOfImg > 0) {
+        visValues.push({
+          cluster: 'A',
+          imgInCluster: numberOfClusterImages[0].numberOfImg,
+          color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_A,
+        });
+      }
+      if (numberOfClusterImages[1].numberOfImg > 0) {
+        visValues.push({
+          cluster: 'B',
+          imgInCluster: numberOfClusterImages[1].numberOfImg,
+          color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_B,
+        });
+      }
     }
   }
 
@@ -21,27 +34,14 @@
     $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
     description:
       'Comparing the number of images contained in selected clusters',
-    autosize: {
-      type: 'pad',
-      contains: 'padding',
-    },
     background: null,
+    width: 'container',
     data: {
-      values: [
-        {
-          cluster: 'A',
-          imgInCluster: imgInClusterA,
-          color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_A,
-        },
-        {
-          cluster: 'B',
-          imgInCluster: imgInClusterB,
-          color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_B,
-        },
-      ],
+      values: visValues,
     },
+    mark: { type: 'bar' },
     encoding: {
-      theta: { field: 'imgInCluster', type: 'quantitative', stack: true },
+      x: { field: 'imgInCluster', type: 'quantitative', title: '# images' },
       color: {
         field: 'color',
         type: 'nominal',
@@ -52,38 +52,8 @@
         { field: 'cluster', type: 'nominal' },
         { field: 'imgInCluster', type: 'quantitative' },
       ],
+      y: { field: 'cluster' },
     },
-    layer: [
-      {
-        mark: {
-          type: 'arc',
-        },
-      },
-      {
-        mark: {
-          type: 'text',
-          outerRadius: '115',
-          fill: '#202630',
-          fontWeight: 'bold',
-          fontSize: 16,
-        },
-        encoding: {
-          text: { field: 'cluster', type: 'nominal' },
-        },
-      },
-      {
-        mark: {
-          type: 'text',
-          outerRadius: '50',
-          fill: '#ffffff',
-          fontSize: 14,
-        },
-        encoding: {
-          text: { field: 'imgInCluster', type: 'quantitative' },
-        },
-      },
-    ],
-    view: { stroke: null },
   };
 </script>
 
