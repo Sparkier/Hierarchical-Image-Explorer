@@ -38,6 +38,7 @@
  -->
 <g
   transform="scale({scale}) translate({x}, {y})"
+  viewBox="0 0 100 100"
   on:click
   on:mouseenter
   on:mouseleave
@@ -48,16 +49,16 @@
     <clipPath id={IDString + '_clipping'}>
       <use xlink:href="#{IDString + '_polygon'}" />
     </clipPath>
+
+    {#if image !== ''}
+      <pattern id={IDString + '_img'} height="100%" width="100%" patternContentUnits="objectBoundingBox">
+        <image height="1" width="1" preserveAspectRatio="xMidYMid slice" xlink:href={image} />
+      </pattern>
+    {/if}
   </defs>
 
   {#if image !== ''}
-    <image
-      href={image}
-      width={side * 2}
-      height={side * 2}
-      clip-path="url(#{IDString + '_clipping'})"
-      style="image-rendering: pixelated;"
-    >
+    <polygon fill="url(#{IDString + '_img'})" points="{r} {br} {bl} {l} {tl} {tr}">
       <text
         class="pointer-events-none"
         transform="translate({side},{side})"
@@ -68,7 +69,7 @@
       >
         {text}
       </text>
-    </image>
+    </polygon>
   {/if}
   <use
     clip-path="url(#{IDString + '_clipping'})"
