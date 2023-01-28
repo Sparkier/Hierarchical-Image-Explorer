@@ -42,8 +42,8 @@
 
   $: spec = {
     $schema: 'https://vega.github.io/schema/vega/v5.json',
-    name: 'clusterDist',
-    description: 'Cluster content distribution',
+    name: 'groupDist',
+    description: 'Group content distribution',
     background: null,
     height: 20 * categories.length,
     padding: 5,
@@ -131,7 +131,7 @@
             orient: 'bottom',
             scale: 'x',
             format: 's',
-            title: 'Cluster A',
+            title: 'Group A',
             tickCount: 5,
           },
         ],
@@ -182,7 +182,7 @@
             orient: 'bottom',
             scale: 'x',
             format: 's',
-            title: 'Cluster B',
+            title: 'Group B',
             tickCount: 5,
           },
         ],

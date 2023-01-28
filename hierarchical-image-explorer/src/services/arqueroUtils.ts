@@ -12,7 +12,7 @@ import type { ArraySet } from '../ArraySet';
 export function quantizationRollup(
   table: ColumnTable,
   hexagonPropertiesMap: HexagonPropertiesMap
-) {
+): ColumnTable {
   return table.groupby('quantization').rollup({
     quantization: (d: { quantization: [number, number] }) =>
       aq.op.any(d.quantization),
@@ -33,9 +33,8 @@ export function quantizationRollup(
 export function getSelection(
   table: ColumnTable,
   selectionA: ArraySet<[number, number]>,
-
   selectionB: ArraySet<[number, number]> | null = null
-) {
+): ColumnTable {
   const filterFunction =
     selectionB == null
       ? (d: { quantization: [number, number] }) => {
@@ -60,7 +59,7 @@ export function getTotalSelectionSize(
   selectionA: ArraySet<[number, number]>,
   selectionB: ArraySet<[number, number]>,
   table: ColumnTable
-) {
+): number {
   if (table == undefined) return -1;
   const sizeObject = getSelection(table, selectionA, selectionB)
     .select('id')
