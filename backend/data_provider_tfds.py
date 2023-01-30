@@ -85,7 +85,7 @@ def dir_path(string):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('dataset', type=str, help='Any image data set: https://www.tensorflow.org/datasets/catalog/overview')
+    parser.add_argument('--dataset', type=str, help='Any image data set, .e.g, binarized_mnist: https://www.tensorflow.org/datasets/catalog/overview')
     parser.add_argument(
         '-o',
         '--out_path',
