@@ -1,20 +1,22 @@
 """Converts a Tensorflow datasets dataset into a format that can be used by data_processing.py"""
 import argparse
-import sys
-import tarfile
-import pickle
-from pathlib import Path
-import urllib.request
-import zipfile
-from PIL import Image
-import pyarrow as pa
-from pyarrow import _csv
-import tensorflow_datasets as tfds
 import os
+from pathlib import Path
+
 import numpy as np
+import pyarrow as pa
+import tensorflow_datasets as tfds
+from PIL import Image
+from pyarrow import _csv
+
 
 def export_images(image_dir, dataset):
-    """ Helper function to save images from a Dataset"""
+    """Helper function to save images from a dataset.
+
+    Args:
+        image_dir (Path): where to find the iages to be exported
+        dataset (Dataset): the dataset from which to export the images
+    """
     image_dir.mkdir(parents=True, exist_ok=True)
     for i, item in dataset.enumerate():
         if isinstance(item, dict):
@@ -36,9 +38,10 @@ def export_images(image_dir, dataset):
             image = Image.fromarray((image).astype(np.uint8), 'RGB')
         image.save(Path(image_dir, file_name))
 
+
 def setup_data_provider(data_set, split, data_path):
     data, ds_stats = tfds.load(
-            data_set, split=split, shuffle_files=False, with_info=True, data_dir=data_path)
+        data_set, split=split, shuffle_files=False, with_info=True, data_dir=data_path)
     image_dir = Path(data_path, data_set, split)
 
     if not image_dir.exists() or len(os.listdir(image_dir)) < data.cardinality().numpy():
@@ -62,12 +65,11 @@ def setup_data_provider(data_set, split, data_path):
         if "label" in item:
             labels.append(label_names[item['label'].numpy()])
 
-    swg_dict = {"image_id": file_names, "file_path": file_paths, "label": labels}
-    return swg_dict
-    
+    return {"image_id": file_names, "file_path": file_paths, "label": labels}
 
-def write_data_table(destination, dataset, store_csv, swg_name, swg_dict):
-    """Writes data into an arrow IPC file"""
+
+def write_data_table(destination, dataset, store_csv, swg_name):
+    swg_dict = setup_data_provider(args.dataset, args.split, args.data_path)
     arrow_table = pa.Table.from_pydict(swg_dict)
     output_path = Path(destination) / dataset / (swg_name + ".arrow")
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -78,14 +80,30 @@ def write_data_table(destination, dataset, store_csv, swg_name, swg_dict):
         _csv.write_csv(arrow_table, str(
             output_path).replace(".arrow", ".csv"))
 
+
 def dir_path(string):
+    """Check if a string is a path directory.
+
+    Args:
+        string (str): the string to be checked
+
+    Raises:
+        NotADirectoryError: error indicating the string is not a directory path
+
+    Returns:
+        str: the original string
+    """
     if Path(string).is_dir():
         return string
     raise NotADirectoryError(string)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, help='Any image data set, .e.g, binarized_mnist: https://www.tensorflow.org/datasets/catalog/overview')
+    parser.add_argument(
+        '--dataset', type=str,
+        help='Any image data set, .e.g, binarized_mnist: \
+            https://www.tensorflow.org/datasets/catalog/overview')
     parser.add_argument(
         '-o',
         '--out_path',
@@ -93,7 +111,7 @@ if __name__ == "__main__":
         default="data",
         type=str)
     parser.add_argument("--data_path", type=dir_path,
-                default='D:/data/tensorflow_datasets')
+                        default='D:/data/tensorflow_datasets')
     parser.add_argument(
         '-csv',
         '--store_csv',
@@ -106,6 +124,4 @@ if __name__ == "__main__":
         default="test",
         type=str)
     args = parser.parse_args()
-    swg_dict = setup_data_provider(args.dataset, args.split, args.data_path)
-    write_data_table(args.out_path, args.dataset, args.store_csv, args.dataset, swg_dict)
-
+    write_data_table(args.out_path, args.dataset, args.store_csv, args.dataset)
