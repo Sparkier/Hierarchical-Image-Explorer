@@ -4,6 +4,7 @@ scikit-learn
 neo4j
 pandas
 tensorflow
+tensorflow_datasets
 keras
 hdbscan
 umap-learn

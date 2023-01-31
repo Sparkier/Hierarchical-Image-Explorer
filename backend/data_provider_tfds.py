@@ -1,14 +1,15 @@
-"""Converts a Tensorflow datasets dataset into a format that can be used by data_processing.py"""
+"""Converts a Tensorflow datasets dataset into a format that can be used by data_processing.py
+    Example usage:
+        python -m data_provider_tfds --dataset mnist --split test
+"""
 import argparse
 import os
 from pathlib import Path
 
 import numpy as np
-import pyarrow as pa
 import tensorflow_datasets as tfds
 from PIL import Image
-from pyarrow import _csv
-
+import data_provider_util
 
 def export_images(image_dir, dataset):
     """Helper function to save images from a dataset.
@@ -68,17 +69,6 @@ def setup_data_provider(data_set, split, data_path):
     return {"image_id": file_names, "file_path": file_paths, "label": labels}
 
 
-def write_data_table(destination, dataset, store_csv, swg_name):
-    swg_dict = setup_data_provider(args.dataset, args.split, args.data_path)
-    arrow_table = pa.Table.from_pydict(swg_dict)
-    output_path = Path(destination) / dataset / (swg_name + ".arrow")
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    writer = pa.RecordBatchFileWriter(output_path, arrow_table.schema)
-    writer.write(arrow_table)
-    writer.close()
-    if store_csv:
-        _csv.write_csv(arrow_table, str(
-            output_path).replace(".arrow", ".csv"))
 
 
 def dir_path(string):
@@ -106,8 +96,8 @@ if __name__ == "__main__":
             https://www.tensorflow.org/datasets/catalog/overview')
     parser.add_argument(
         '-o',
-        '--out_path',
-        help='Path to generate the swg file in',
+        '--out_dir',
+        help='Directory to generate dataset description files in (.arrow, .csv)',
         default="data",
         type=str)
     parser.add_argument("--data_path", type=dir_path,
@@ -124,4 +114,6 @@ if __name__ == "__main__":
         default="test",
         type=str)
     args = parser.parse_args()
-    write_data_table(args.out_path, args.dataset, args.store_csv, args.dataset)
+    swg_dict = setup_data_provider(args.dataset, args.split, args.data_path)
+    data_provider_util.write_data_table(args.out_dir, args.dataset, args.store_csv, f"{args.dataset}_{args.split}", swg_dict)
+
