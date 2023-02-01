@@ -2,28 +2,27 @@
   import { Vega } from 'svelte-vega';
   import { ColorUtil } from '../../services/colorUtil';
 
-  export let numberOfClusterImages: {
+  export let numberOfGroupImages: {
     numberOfImg: number;
     selection: string;
   }[];
 
-  let visValues: { cluster: string; imgInCluster: number; color: string }[] =
-    [];
+  let visValues: { group: string; imgInGroup: number; color: string }[] = [];
 
   $: {
-    if (numberOfClusterImages.length == 2) {
+    if (numberOfGroupImages.length == 2) {
       visValues = [];
-      if (numberOfClusterImages[0].numberOfImg > 0) {
+      if (numberOfGroupImages[0].numberOfImg > 0) {
         visValues.push({
-          cluster: 'A',
-          imgInCluster: numberOfClusterImages[0].numberOfImg,
+          group: 'A',
+          imgInGroup: numberOfGroupImages[0].numberOfImg,
           color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_A,
         });
       }
-      if (numberOfClusterImages[1].numberOfImg > 0) {
+      if (numberOfGroupImages[1].numberOfImg > 0) {
         visValues.push({
-          cluster: 'B',
-          imgInCluster: numberOfClusterImages[1].numberOfImg,
+          group: 'B',
+          imgInGroup: numberOfGroupImages[1].numberOfImg,
           color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_B,
         });
       }
@@ -32,8 +31,7 @@
 
   $: spec = {
     $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
-    description:
-      'Comparing the number of images contained in selected clusters',
+    description: 'Comparing the number of images contained in selected groups',
     background: null,
     width: 'container',
     data: {
@@ -41,7 +39,7 @@
     },
     mark: { type: 'bar' },
     encoding: {
-      x: { field: 'imgInCluster', type: 'quantitative', title: '# images' },
+      x: { field: 'imgInGroup', type: 'quantitative', title: '# images' },
       color: {
         field: 'color',
         type: 'nominal',
@@ -49,10 +47,10 @@
         legend: null,
       },
       tooltip: [
-        { field: 'cluster', type: 'nominal' },
-        { field: 'imgInCluster', type: 'quantitative' },
+        { field: 'group', type: 'nominal' },
+        { field: 'imgInGroup', type: 'quantitative' },
       ],
-      y: { field: 'cluster' },
+      y: { field: 'group' },
     },
   };
 </script>

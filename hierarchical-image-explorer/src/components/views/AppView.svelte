@@ -3,7 +3,7 @@
   import Accumulator from '../Accumulator.svelte';
   import { onDestroy, onMount } from 'svelte';
   import ImgView from '../minis/ImgView.svelte';
-  import ClusterView from '../minis/ClusterView.svelte';
+  import GroupView from '../minis/GroupView.svelte';
   import { DEFAULT_SETTINGS } from '../../config';
   import type { SettingsObject } from '../../types';
   import Minimap from '../minis/Minimap.svelte';
@@ -120,8 +120,8 @@
                 {currentQuantizationLocal}
               />
             {:else if selectedDatagonsA.size() > 0 || selectedDatagonsB.size() > 0}
-              <div class="font-bold text-xl text-left">Cluster info</div>
-              <ClusterView
+              <div class="font-bold text-xl text-left">Group info</div>
+              <GroupView
                 datagonsA={selectedDatagonsA}
                 datagonsB={selectedDatagonsB}
                 {currentQuantizationLocal}

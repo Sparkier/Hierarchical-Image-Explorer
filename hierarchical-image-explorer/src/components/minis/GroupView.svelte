@@ -2,8 +2,8 @@
   import type ColumnTable from 'arquero/dist/types/table/column-table';
   import { getSelection } from '../../services/arqueroUtils';
   import BackendService from '../../services/backendService';
-  import ClusterContentDistChart from './ClusterContentDistChart.svelte';
-  import ClusterNumImgChart from './ClusterNumImgChart.svelte';
+  import GroupContentDistChart from './GroupContentDistChart.svelte';
+  import GroupNumImgChart from './GroupNumImgChart.svelte';
   import * as aq from 'arquero';
   import type { ArraySet } from '../../ArraySet';
   import { TableService } from '../../services/tableService';
@@ -45,7 +45,7 @@
    * Gets the representantID for a selection.
    * @param selectedCoordinates set of selected hexagon coordinates
    * @param selection selected data
-   * @returns ID for cluster (super) representative image, returns undefined when selection is empty
+   * @returns ID for group (super) representative image, returns undefined when selection is empty
    */
   function getSuperRepresentant(
     selectedCoordinates: ArraySet<[number, number]>,
@@ -161,7 +161,7 @@
         style="image-rendering: pixelated;"
       />
     {/if}
-    <figcaption class="text-center">Cluster A</figcaption>
+    <figcaption class="text-center">Group A</figcaption>
   </figure>
   {#if repB !== undefined}
     <figure>
@@ -173,18 +173,25 @@
           style="image-rendering: pixelated;"
         />
       {/if}
-      <figcaption class="text-center">Cluster B</figcaption>
+      <figcaption class="text-center">Group B</figcaption>
     </figure>
   {/if}
 </div>
 <div
   class="mt-4 pl-4 w-full flex flex-col font-medium text-lg text-left overflow-hidden"
 >
-  <div>Number of images in clusters</div>
-  <ClusterNumImgChart numberOfClusterImages={sumOfSelectedImages} />
-  <div class="mt-2 mb-2 font-semibold">
-    {selectedColumn} distribution in clusters
-  </div>
+  {#if selectedRowsA.numRows() > 0 && selectedRowsB.numRows() > 0}
+    <div>Number of images:</div>
+    <GroupNumImgChart numberOfGroupImages={sumOfSelectedImages} />
+  {:else}
+    <div>
+      Number of images:
+      {selectedRowsA.numRows() > 0
+        ? selectedRowsA.numRows()
+        : selectedRowsB.numRows()}
+    </div>
+  {/if}
+  <div class="mt-2 mb-2 ">Data distribution:</div>
   <select class="h-10 text-lg rounded-sm mb-4" bind:value={selectedColumn}>
     {#each possibleColumns as col}
       <option value={col}>{col}</option>
@@ -223,7 +230,7 @@
         data={getColumnDistribution(selectedColumn, selectedRowsB, false)}
       />
     {:else if selectedRowsA.numRows() > 0 && selectedRowsB.numRows() > 0}
-      <ClusterContentDistChart
+      <GroupContentDistChart
         distributionA={getColumnDistribution(
           selectedColumn,
           selectedRowsA,

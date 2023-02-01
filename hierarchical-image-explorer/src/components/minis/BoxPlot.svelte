@@ -15,12 +15,12 @@
     data = { values: [] };
     if (selectedRowsA.numRows() > 0) {
       data.values.push(
-        getBoxplotStats(selectedRowsA, selectedColumnName, 'Cluster A')
+        getBoxplotStats(selectedRowsA, selectedColumnName, 'Group A')
       );
     }
     if (selectedRowsB.numRows() > 0) {
       data.values.push(
-        getBoxplotStats(selectedRowsB, selectedColumnName, 'Cluster B')
+        getBoxplotStats(selectedRowsB, selectedColumnName, 'Group B')
       );
     }
   }
@@ -55,7 +55,7 @@
             type: 'nominal',
             legend: null,
             scale: {
-              domain: ['Cluster A', 'Cluster B'],
+              domain: ['Group A', 'Group B'],
               range: [
                 ColorUtil.SELECTION_HIGHLIGHT_COLOR_A,
                 ColorUtil.SELECTION_HIGHLIGHT_COLOR_B,

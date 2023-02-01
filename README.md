@@ -22,19 +22,21 @@ After building the website, you are directed to the home page of the project. To
 
 ### Exploring data
 
-The image explorer offers a view of clusters of images in a certain alignment on a 2D plane. To explore the data, zooming and panning is possible. Zooming in will reveal continuously smaller clusters until only one image is visible. Every cluster can be selected to reveal additional information.
+The image explorer offers a view of groups of images in a certain alignment on a 2D plane.
+To explore the data, zooming and panning is possible.
+Zooming in will reveal continuously smaller groups until only one image is visible. Every group can be selected to reveal additional information.
 
-#### Selecting clusters
+#### Selecting groups
 
-Selecting clusters (and single images) can be done in two ways:
+Selecting groups (and single images) can be done in two ways:
 
 1. Selecting them one by one with a click
 2. Using the lasso tool (`ALT` or button on top)
 
-We support selecting two none overlapping sets of clusters and offer various ways to compare them.
+We support selecting two none overlapping sets of groups and offer various ways to compare them.
 
 To switch between selecting group A and B use `x` or the button next to the lasso tool.
-To unselect all clusters at once, use `ESC`.
+To unselect all groups at once, use `ESC`.
 
 #### Filters
 
@@ -44,14 +46,14 @@ Under each filter, the corresponding [arquero](https://uwdata.github.io/arquero/
 <img src="docs/img/filtering.png" width="200">
  
 #### Minimap
-In the bottom right of the view is a minimap. The minimap always displays the clusters of the unfiltered dataset.
+In the bottom right of the view is a minimap. The minimap always displays the groups of the unfiltered dataset.
 
-#### Graphs and cluster info
+#### Graphs and group info
 
-Once one or multiple clusters are selected, the left sidebar opens, and the user is provided with additional information on the selected clusters:
+Once one or multiple groups are selected, the left sidebar opens, and the user is provided with additional information on the selected groups:
 
 - the representative image of the selections
-- the number of images in each cluster as a pie chart
+- the number of images in each group as a bar chart
 
 Furthermore, if the dataset provides adequate columns such as labels, outlier score or probability, the user can select the columns in the dropdown menu to be displayed in a graph. Subsequently, discrete values are displayed as a mirrored bar chart (if two selections are chosen) or as a pie chart (if only one selection is chosen). Continuous values are displayed as a box plot or histogram.
 
