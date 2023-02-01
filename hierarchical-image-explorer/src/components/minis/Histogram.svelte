@@ -2,7 +2,6 @@
   import type ColumnTable from 'arquero/dist/types/table/column-table';
   import * as aq from 'arquero';
   import { VegaLite } from 'svelte-vega';
-  import { ColorUtil } from '../../services/colorUtil';
 
   export let barColor: string;
   export let selectedRows: ColumnTable;
@@ -46,6 +45,9 @@
   };
 
   $: spec = {
+    $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
+    description: 'Histogram Visualization',
+    background: null,
     data: data,
     mark: { type: 'bar', fill: barColor, binSpacing: 0, width: { band: 10 } },
     encoding: {
@@ -56,4 +58,4 @@
   };
 </script>
 
-<VegaLite {spec} />
+<VegaLite {spec} options={{ actions: false }} />

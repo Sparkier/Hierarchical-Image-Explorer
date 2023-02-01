@@ -29,6 +29,7 @@
     title: `Boxplot for ${selectedColumnName}`,
     data: data,
     encoding: { y: { field: 'name', type: 'nominal', title: null } },
+    background: null,
     layer: [
       {
         mark: { type: 'rule' },
@@ -99,5 +100,5 @@
 </script>
 
 <main>
-  <VegaLite {spec} />
+  <VegaLite {spec} options={{ actions: false }} />
 </main>

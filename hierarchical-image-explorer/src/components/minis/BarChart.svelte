@@ -24,14 +24,14 @@
   $: spec = {
     $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
     description: 'Selection distribution',
-    background: 'transparent',
+    background: null,
     data: {
       values: distribution,
     },
-    mark: { type: 'bar' },
+    mark: 'bar',
     encoding: {
       y: { field: 'category' },
-      x: { field: 'amount', type: 'quantitative' },
+      x: { field: 'amount', type: 'quantitative', axis: { tickMinStep: 1 } },
       color: {
         field: 'category',
         scale: { range: colorscheme },
@@ -40,4 +40,4 @@
   };
 </script>
 
-<VegaLite {spec} />
+<VegaLite {spec} options={{ actions: false }} />
