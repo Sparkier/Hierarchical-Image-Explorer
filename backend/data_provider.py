@@ -7,7 +7,6 @@ from pathlib import Path
 import urllib.request
 import zipfile
 from PIL import Image
-import pyarrow as pa
 import data_provider_util
 
 
@@ -172,7 +171,7 @@ if __name__ == "__main__":
         help='Stores the metadata as csv in addition to arrow',
         action='store_true',)
     args = parser.parse_args()
-    if not DATASET_OPTIONS.__contains__(args.dataset):
+    if not DATASET_OPTIONS in args.dataset:
         sys.exit("Dataset must be one of: " + DATASET_OPTIONS)
     dataset_selected = list(
         filter(lambda e: e["name"] == args.dataset, datasets))[0]

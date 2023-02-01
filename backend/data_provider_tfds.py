@@ -40,7 +40,8 @@ def export_images(image_dir, dataset):
         image.save(Path(image_dir, file_name))
 
 
-def setup_data_provider(data_set, split, data_path):
+def get_tfds_data_set(data_set, split, data_path):
+    """Potentially download a tensorflow datasets dataset and extract its images and labels. """
     data, ds_stats = tfds.load(
         data_set, split=split, shuffle_files=False, with_info=True, data_dir=data_path)
     image_dir = Path(data_path, data_set, split)
@@ -114,6 +115,6 @@ if __name__ == "__main__":
         default="test",
         type=str)
     args = parser.parse_args()
-    swg_dict = setup_data_provider(args.dataset, args.split, args.data_path)
-    data_provider_util.write_data_table(args.out_dir, args.dataset, args.store_csv, f"{args.dataset}_{args.split}", swg_dict)
-
+    swg_dict = get_tfds_data_set(args.dataset, args.split, args.data_path)
+    data_provider_util.write_data_table(args.out_dir, args.dataset, args.store_csv,
+                                        f"{args.dataset}_{args.split}", swg_dict)
