@@ -116,5 +116,5 @@ if __name__ == "__main__":
         type=str)
     args = parser.parse_args()
     swg_dict = get_tfds_data_set(args.dataset, args.split, args.data_path)
-    data_provider_util.write_data_table(args.out_dir, args.dataset, args.store_csv,
+    data_provider_util.write_data_table(Path(args.out_dir, args.dataset), args.store_csv,
                                         f"{args.dataset}_{args.split}", swg_dict)
