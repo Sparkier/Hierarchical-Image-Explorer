@@ -160,4 +160,5 @@ if __name__ == "__main__":
         args.dimensionality_reduction, annotation, model_features, output_dir, name)
 
     config = {"swg": args.swg_file, "points2d": projections_2d_path, "imgDataRoot": ""}
-    json.dump(config, open("configurations" / f"config_{name}.json", "w", encoding="utf-8"))
+    with open("configurations" / f"config_{name}.json", "w", encoding="utf-8") as config_file:
+        json.dump(config, config_file)
