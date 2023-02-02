@@ -142,7 +142,7 @@
             from: { data: 'selectionA' },
             encode: {
               enter: {
-                x: { scale: 'x', field: 'amount' },
+                x: { scale: 'x', field: 'amount', axis: { tickMinStep: 1 } },
                 x2: { scale: 'x', value: 0 },
                 y: { scale: 'y', field: 'label' },
                 height: { scale: 'y', band: 1, offset: -1 },
@@ -193,7 +193,7 @@
             from: { data: 'selectionB' },
             encode: {
               enter: {
-                x: { scale: 'x', field: 'amount' },
+                x: { scale: 'x', field: 'amount', axis: { tickMinStep: 1 } },
                 x2: { scale: 'x', value: 0 },
                 y: { scale: 'y', field: 'label' },
                 height: { scale: 'y', band: 1, offset: -1 },
@@ -212,4 +212,4 @@
   };
 </script>
 
-<Vega {spec} />
+<Vega {spec} options={{ actions: false }} />

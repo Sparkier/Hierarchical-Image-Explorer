@@ -55,4 +55,4 @@
   };
 </script>
 
-<Vega {spec} />
+<Vega {spec} options={{ actions: false }} />

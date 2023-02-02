@@ -152,17 +152,17 @@
 
 <div class="pl-4 pt-4 font-medium text-lg text-left">Representative images</div>
 <div class="flex flex-row justify-between">
-  <figure>
-    {#if repA !== undefined}
+  {#if repA !== undefined}
+    <figure>
       <img
         alt="selectedA"
         class="ml-4 mt-2 mb-2 w-32 h-32"
         src={BackendService.getImageUrl(repA)}
         style="image-rendering: pixelated;"
       />
-    {/if}
-    <figcaption class="text-center">Group A</figcaption>
-  </figure>
+      <figcaption class="text-center">Group A</figcaption>
+    </figure>
+  {/if}
   {#if repB !== undefined}
     <figure>
       {#if repB !== undefined}
