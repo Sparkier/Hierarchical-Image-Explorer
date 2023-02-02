@@ -90,6 +90,8 @@ def dir_path(string):
 
 
 if __name__ == "__main__":
+    # pylint: disable=duplicate-code
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--dataset', type=str,
@@ -103,9 +105,7 @@ if __name__ == "__main__":
         type=str)
     parser.add_argument("--data_path", type=dir_path,
                         default='D:/data/tensorflow_datasets')
-    parser.add_argument(
-        '-csv',
-        '--store_csv',
+    parser.add_argument('-csv', '--store_csv',
         help='Stores the metadata as csv in addition to arrow',
         action='store_true',)
     parser.add_argument(

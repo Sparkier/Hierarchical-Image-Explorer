@@ -2,6 +2,7 @@
 import argparse
 from pathlib import Path
 import sys
+import json
 import pandas as pd
 from sklearn.manifold import TSNE
 import tensorflow as tf
@@ -10,7 +11,7 @@ from keras.models import Model
 import numpy as np
 import umap
 import pyarrow as pa
-import json
+
 
 
 def read_annotations(swg_path):
@@ -157,6 +158,6 @@ if __name__ == "__main__":
     model_features = run_feature_extraction(args.encoding, annotation)
     projections_2d_path = run_dimensionality_reduction(
         args.dimensionality_reduction, annotation, model_features, output_dir, name)
-    
+
     config = {"swg": args.swg_file, "points2d": projections_2d_path, "imgDataRoot": ""}
-    json.dump(config, open("configurations" / f"config_{name}.json", "w"))
+    json.dump(config, open("configurations" / f"config_{name}.json", "w", encoding="utf-8"))

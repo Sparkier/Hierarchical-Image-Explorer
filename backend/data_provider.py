@@ -155,6 +155,8 @@ def generate_annotations(destination, dataset, store_csv):
 
 
 if __name__ == "__main__":
+    # pylint: disable=duplicate-code
+
     parser = argparse.ArgumentParser()
     DATASET_OPTIONS = str(list(map(lambda e: e["name"], datasets)))
     parser.add_argument('dataset', type=str,
