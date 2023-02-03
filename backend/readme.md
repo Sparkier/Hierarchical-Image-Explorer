@@ -2,12 +2,14 @@
 
 ## Install
 
-To setup the data run `python data/setupBackend.py`
+To setup data run (mnist is here the data set name):
+`python -m data_provider_tfds --dataset mnist --split test`
+`python -m data_processing data/mnist/mnist_test.arrow data/mnist_test --encoding vgg-16 --dimensionality_reduction umap`
+More image data sets can be found at https://www.tensorflow.org/datasets/catalog/overview
+
 
 Setup the server with `yarn`
 
 ## Running
 
-Run `node server.js` for "production" usage.
-
-Run `yarn start` to run with *nodemon* for autorefresh upon file change 
+Run `yarn start -c configurations/config_mnist_test.json` 
