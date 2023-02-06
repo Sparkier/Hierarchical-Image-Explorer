@@ -25,7 +25,7 @@
 
   export let initialColumns = DEFAULT_NUM_COLUMNS;
   export let topleftSVGPoint: DOMPoint;
-  export let bottomrightSVGPoint: DOMPoint;
+  export let bottomrightSVGPoint: DOMPoint; // bottom right is actually top right
   export let currentSelectionA: ArraySet<[number, number]> = new ArraySet<
     [number, number]
   >();
@@ -39,21 +39,25 @@
     requantizeData(levelOfDetail, initialColumns);
   };
 
-  const hexaShortDiag = Math.sqrt(3) / 2;
-  const afterInitializationQueue: Function[] = [];
+  $: console.log('inital cols', initialColumns, 'topleft', topleftSVGPoint, 'botright', bottomrightSVGPoint, 'maxHeight', maxHeight, 'initDataHeight', initialDataHeight, 'initDataWidth', initialDataWidth);
+  $: console.log('availableSVGHeight', svgAvailHeight);
+  $: console.log('maxWidth', maxWidth);
+  $: console.log('hexaSide', hexaSide);
 
-  let maxWidth: number;
+  const hexaShortDiag = Math.sqrt(3) / 2;
+
+  let maxWidth: number = 0;
   let svg: SVGSVGElement;
-  let g: SVGSVGElement;
-  let svgContainer: HTMLElement;
-  let zoomLevel: number = 1;
-  let currentQuantizationLocal: ColumnTable;
-  let currentCulledQuantization: ColumnTable;
-  let toolbarHeight: number;
-  let selectionModeOn: boolean = false;
-  let hexaSide: number = 0;
+  let g: SVGSVGElement; // the g tag within the zoomsvg svg
+  let svgContainer: HTMLElement; // container div around the svg
+
+  let zoomLevel: number = 1; // level that is updated while you are zooming in
+  let currentQuantizationLocal: ColumnTable; // used for culling
+  let currentCulledQuantization: ColumnTable; // used for culling
+  let toolbarHeight: number; // height of the toolbar. used to compute the svg height/ available space
+  let selectionModeOn: boolean = false; // used to track that we are currelty selecting something
+  let hexaSide: number = 0; // not sure whats this is for...
   let isASelectionActive: boolean = true;
-  let isMounted: boolean = false;
   let hexagonPropertiesMapLocal: HexagonPropertiesMap;
   let culledQuantizationObject: DerivedHexagon[] = [];
   let currentDatagonHover: DerivedHexagon | undefined = undefined;
