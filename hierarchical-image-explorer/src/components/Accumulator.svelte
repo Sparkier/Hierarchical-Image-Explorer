@@ -46,14 +46,12 @@
   let svg: SVGSVGElement;
   let g: SVGSVGElement;
   let svgContainer: HTMLElement;
-  let rows: number = 0;
   let zoomLevel: number = 1;
   let currentQuantizationLocal: ColumnTable;
   let currentCulledQuantization: ColumnTable;
   let toolbarHeight: number;
   let selectionModeOn: boolean = false;
   let hexaSide: number = 0;
-  let columns: number = initialColumns;
   let isASelectionActive: boolean = true;
   let isMounted: boolean = false;
   let hexagonPropertiesMapLocal: HexagonPropertiesMap;
@@ -149,8 +147,8 @@
    */
   function onQuantizationChange(quantizationResult: QuantizationResults) {
     currentQuantizationLocal = quantizationResult.datagons;
-    rows = quantizationResult.rows;
-    columns = quantizationResult.columns;
+    const rows = quantizationResult.rows;
+    const columns = quantizationResult.columns;
     currentSelectionA = new ArraySet<[number, number]>();
     currentSelectionB = new ArraySet<[number, number]>();
 
