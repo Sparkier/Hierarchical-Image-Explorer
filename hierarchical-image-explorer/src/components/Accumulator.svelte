@@ -58,26 +58,44 @@
   let selectionModeOn: boolean = false; // used to track that we are currelty selecting something
   let hexaSide: number = 0; // not sure whats this is for...
   let isASelectionActive: boolean = true;
+
   let hexagonPropertiesMapLocal: HexagonPropertiesMap;
   let culledQuantizationObject: DerivedHexagon[] = [];
   let currentDatagonHover: DerivedHexagon | undefined = undefined;
   let selectedColorPaletteLocal: string = '';
 
   $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
+
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
-  $: scaleQuantisedX = (v: number, row: number) => {
+  $: {
+    requantizeData(levelOfDetail, initialColumns);
+  }
+
+  $: svgContainerBB = svgContainer ? svgContainer.getBoundingClientRect() : undefined;
+  $: {
+    updateScreenBoundaryPoints(svgContainerBB);
+  }
+
+  $: scaleQuantisedX = (v: number, row: number): number => {
+    if (! v || !row || isNaN(v) || isNaN(row)) {
+      return 0;
+    }
+
     return maxWidth == undefined
       ? 0
       : v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
     // every other hexagon (3*hexaside) is moved over by half a hexagon (1.5*hexaside) to create the grid
   };
-  $: scaleQuantisedY = (v: number) => {
+
+  $: scaleQuantisedY = (v: number): number => {
+    if (!v) {
+      return 0;
+    }
     return hexaShortDiag * hexaSide * v;
   };
 
   currentQuantization.subscribe((v) => {
-    if (v == null) return;
-    else {
+    if (v) {
       onQuantizationChange(v);
     }
   });
@@ -90,34 +108,6 @@
   selectedColorPalette.subscribe((v) => {
     selectedColorPaletteLocal = v;
     aggregate();
-  });
-
-  $: {
-    if (isMounted) requantizeData(levelOfDetail, initialColumns);
-  }
-  $: {
-    // runs a set of functions once everything is set up (svg is created)
-    if (
-      afterInitializationQueue.length != 0 &&
-      svg != undefined &&
-      svgAvailHeight != 0
-    ) {
-      afterInitializationQueue.forEach((e) => e());
-    }
-  }
-  $: {
-    if (svg != undefined && transform != undefined && zoomLevel != undefined) {
-      updateScreenBoundaryPoints();
-    }
-  }
-
-  onMount(() => {
-    const getInitialHexagons = () => {
-      requantizeData(0, initialColumns);
-      isMounted = true;
-    };
-    afterInitializationQueue.push(getInitialHexagons);
-    afterInitializationQueue.push(updateScreenBoundaryPoints);
   });
 
   /**
@@ -142,6 +132,7 @@
    * @param initialColumns column amount for lod = 0
    */
   function requantizeData(lod: number, initialColumns: number) {
+    console.log('requantize data. lod:', lod, 'initial cols:', initialColumns);
     TableService.updateQuantizationGlobalFiltered(initialColumns * 2 ** lod);
   }
 
@@ -150,6 +141,7 @@
    * @param quantizationResult quantization result
    */
   function onQuantizationChange(quantizationResult: QuantizationResults) {
+    console.log('QUANTIZATION CHANGE');
     currentQuantizationLocal = quantizationResult.datagons;
     const rows = quantizationResult.rows;
     const columns = quantizationResult.columns;
@@ -226,7 +218,6 @@
   function applyCulling() {
     // overestimate the inverse of scaleQuantized with a simple grid
     if (topleftSVGPoint != undefined) {
-      updateScreenBoundaryPoints();
       const x1_quantized = Math.floor(topleftSVGPoint.x / (3 * hexaSide)) - 1;
       const y1_quantized =
         Math.floor(topleftSVGPoint.y / (2 * hexaShortDiag * hexaSide)) * 2 - 1;
@@ -266,13 +257,18 @@
   /**
    *  updates the svg coordinates that mark the viewport
    */
-  function updateScreenBoundaryPoints() {
-    const svgCbr = svgContainer.getBoundingClientRect();
-    topleftSVGPoint = screenToSvg(svg, svgCbr.x, svgCbr.y, g);
+  function updateScreenBoundaryPoints(bb?: DOMRect) {
+    if (!bb) {
+      return;
+    }
+
+    console.log('update screen bb points');
+
+    topleftSVGPoint = screenToSvg(svg, bb.x, bb.y, g);
     bottomrightSVGPoint = screenToSvg(
       svg,
-      svgCbr.x + svgCbr.width,
-      svgCbr.y + svgCbr.height,
+      bb.x + bb.width,
+      bb.y + bb.height,
       g
     );
   }
