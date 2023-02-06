@@ -48,7 +48,6 @@
   let svgContainer: HTMLElement;
   let rows: number = 0;
   let zoomLevel: number = 1;
-  let transform: [number, number] = [0, 0];
   let currentQuantizationLocal: ColumnTable;
   let currentCulledQuantization: ColumnTable;
   let toolbarHeight: number;
@@ -395,7 +394,6 @@
   <ZoomSVG
     viewBox="0 0 {maxWidth} {svgAvailHeight}"
     bind:zoomLevel
-    bind:transform
     bind:svg
     bind:g
     {selectionModeOn}

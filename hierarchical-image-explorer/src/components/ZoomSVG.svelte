@@ -5,12 +5,12 @@
   import { createEventDispatcher } from 'svelte';
 
   export let viewBox = '0 0 300 150'; // default svg height and width
-  export let transform = [0, 0];
   export let zoomLevel = 1;
   export let g;
   export let svg;
   export let selectionModeOn = false;
 
+  let transform = [0, 0];
   let lassoStart;
   let lassoActive = false;
   let lassoPoints = '';
