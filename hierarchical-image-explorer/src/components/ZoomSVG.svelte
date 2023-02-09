@@ -26,38 +26,21 @@
 
   onMount(() => {
     if (svg && g) {
-      setupZoom();
+      select(svg).call(
+        zoom()
+          .on('zoom', ({ transform: transformNew }) => {
+            if (!selectionModeOn) {
+              const { k, x, y } = transformNew;
+              zoomLevel = k;
+              transform = [x, y];
+              select(g).attr('transform', `translate(${x}, ${y}) scale(${k})`);
+              dispatch('zoomEnd', {});
+            }
+          })
+          .scaleExtent([1, Number.POSITIVE_INFINITY])
+      );
     }
   });
-
-  /**
-   * dispatches a zoom event containing transform and scale (zoomLevel)
-   */
-  function dispatchZoomEndEvent() {
-    dispatch('zoomEnd', {
-      transform: transform,
-      zoomLevel: zoomLevel,
-    });
-  }
-
-  /**
-   * adds a d3 zoom function to the svg element
-   */
-  function setupZoom() {
-    select(svg).call(
-      zoom()
-        .on('zoom', ({ transform: transformNew }) => {
-          if (!selectionModeOn) {
-            const { k, x, y } = transformNew;
-            zoomLevel = k;
-            transform = [x, y];
-            select(g).attr('transform', `translate(${x}, ${y}) scale(${k})`);
-            dispatchZoomEndEvent();
-          }
-        })
-        .scaleExtent([1, Number.POSITIVE_INFINITY])
-    );
-  }
 
   /**
    * Starts the lasso selection process
