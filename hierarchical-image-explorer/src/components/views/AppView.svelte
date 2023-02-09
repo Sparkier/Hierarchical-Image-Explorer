@@ -50,12 +50,12 @@
   let accSvgHeight: number;
   let outerDiv: HTMLElement | undefined;
   let tableIsSet: boolean = false;
-  let updateQuantizationDataExportFunction: () => void;
+  // let updateQuantizationDataExportFunction: () => void;
   let currentQuantizationLocal: ColumnTable;
 
   const borderWidth: number = 2;
 
-  $: availableAccHeight =
+  $: availableAccHeight = // TODO: this need to be updated on browser resize
     outerDiv == undefined
       ? 0
       : window.innerHeight -
@@ -136,7 +136,6 @@
       <Accumulator
         initialColumns={settingsObject.columns}
         maxHeight={availableAccHeight}
-        bind:updateQuantizationDataExportFunction
         bind:currentSelectionA={selectedDatagonsA}
         bind:currentSelectionB={selectedDatagonsB}
         bind:topleftSVGPoint={accTopLeftCorner}
@@ -147,7 +146,7 @@
     </div>
     <RightSidebar
       on:filterApplied={() => {
-        updateQuantizationDataExportFunction();
+        // updateQuantizationDataExportFunction();
       }}
     />
   </div>
