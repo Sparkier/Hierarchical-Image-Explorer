@@ -4,11 +4,11 @@
 
   export let distributionA: { label: string; amount: number }[] = [];
   export let distributionB: { label: string; amount: number }[] = [];
-  export let distribution: {
+  let distribution: {
     label: string;
     amount: number;
     selection: string;
-  }[];
+  }[] = [];
 
   let categories: { category: string }[];
 

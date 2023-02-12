@@ -5,17 +5,14 @@
   import * as aq from 'arquero';
   import type { ArraySet } from '../../ArraySet';
 
-  export let currentQuantizationLocal: ColumnTable;
+  export let currentQuantization: ColumnTable;
   export let selection: ArraySet<[number, number]>;
 
   let selectedRow: { id: string };
 
   $: {
-    if (
-      currentQuantizationLocal != null &&
-      currentQuantizationLocal != undefined
-    ) {
-      selectedRow = getSelection(currentQuantizationLocal, selection)
+    if (currentQuantization != null && currentQuantization != undefined) {
+      selectedRow = getSelection(currentQuantization, selection)
         .select(aq.not(['quantization', 'x', 'y']))
         .object() as { id: string };
     }
