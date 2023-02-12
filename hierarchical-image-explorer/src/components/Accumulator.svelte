@@ -119,14 +119,12 @@
   );
 
   $: scaleQuantisedX = (v: number, row: number): number => {
-    if (!v || !row || isNaN(v) || isNaN(row)) {
+    if (isNaN(v) || isNaN(row) || maxWidth === undefined) {
       return 0;
     }
 
-    return maxWidth == undefined
-      ? 0
-      : v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
     // every other hexagon (3*hexaside) is moved over by half a hexagon (1.5*hexaside) to create the grid
+    return v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
   };
 
   $: scaleQuantisedY = (v: number): number => {
