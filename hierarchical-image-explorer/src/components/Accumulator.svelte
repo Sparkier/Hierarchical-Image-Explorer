@@ -80,10 +80,8 @@
   $: bottomrightSVGPoint = svgContainer
     ? screenToSvg(
         svg,
-        svgContainer.getBoundingClientRect().x +
-          svgContainer.getBoundingClientRect().width,
-        svgContainer.getBoundingClientRect().y +
-          svgContainer.getBoundingClientRect().height,
+        svgContainer.getBoundingClientRect().x + maxWidth,
+        svgContainer.getBoundingClientRect().y + svgAvailHeight,
         g
       )
     : new DOMPoint();
