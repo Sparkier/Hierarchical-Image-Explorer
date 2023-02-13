@@ -3,11 +3,7 @@
   import { ColorUtil } from '../services/colorUtil';
   import ZoomSVG from './ZoomSVG.svelte';
   import BackendService from '../services/backendService';
-  import type {
-    DerivedHexagon,
-    HexagonPropertiesMap,
-    QuantizationResults,
-  } from '../types';
+  import type { DerivedHexagon } from '../types';
   import { DEFAULT_NUM_COLUMNS } from '../config';
   import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
   import { TableService } from '../services/tableService';
@@ -57,9 +53,6 @@
   let selectionModeOn: boolean = false; // used to track that we are currelty selecting something
   let isASelectionActive: boolean = true;
 
-  let hexagonPropertiesMapLocal: HexagonPropertiesMap;
-  let selectedColorPaletteLocal: string = '';
-
   let currentDatagonHover: DerivedHexagon | undefined = undefined;
 
   // compute the available height of the SVG space, depending on the maximum height minus toolbar
@@ -87,10 +80,8 @@
   $: bottomrightSVGPoint = svgContainer
     ? screenToSvg(
         svg,
-        svgContainer.getBoundingClientRect().x +
-          svgContainer.getBoundingClientRect().width,
-        svgContainer.getBoundingClientRect().y +
-          svgContainer.getBoundingClientRect().height,
+        svgContainer.getBoundingClientRect().x + maxWidth,
+        svgContainer.getBoundingClientRect().y + svgAvailHeight,
         g
       )
     : new DOMPoint();
@@ -128,14 +119,12 @@
   );
 
   $: scaleQuantisedX = (v: number, row: number): number => {
-    if (!v || !row || isNaN(v) || isNaN(row)) {
+    if (isNaN(v) || isNaN(row) || maxWidth === undefined) {
       return 0;
     }
 
-    return maxWidth == undefined
-      ? 0
-      : v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
     // every other hexagon (3*hexaside) is moved over by half a hexagon (1.5*hexaside) to create the grid
+    return v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
   };
 
   $: scaleQuantisedY = (v: number): number => {
@@ -145,53 +134,39 @@
     return hexaShortDiag * hexaSide * v;
   };
 
-  $: hexagonPropertiesMap.subscribe((v) => {
-    hexagonPropertiesMapLocal = v;
-  });
-
-  $: selectedColorPalette.subscribe((v) => {
-    selectedColorPaletteLocal = v;
-  });
-
   // This is called, once recomputation, based on the current LOD, of datagons (quantization ) is done
-  $: currentQuantization.subscribe(
-    (quantizationResult: QuantizationResults | null) => {
-      if (!quantizationResult) {
-        return;
+  $: if ($currentQuantization) {
+    // reset selection
+    currentSelectionA = new ArraySet<[number, number]>();
+    currentSelectionB = new ArraySet<[number, number]>();
+
+    const lodQuantization = $currentQuantization.datagons;
+    const rows = $currentQuantization.rows;
+    const columns = $currentQuantization.columns;
+
+    // formula derived from width and height with "virtual" hexaside = 1 and then simplify
+    const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows);
+
+    if (widthToHeightDataRatio * maxWidth > svgAvailHeight) {
+      // image is height limited
+      hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);
+      if (initialDataHeight == 0) initialDataHeight = maxHeight;
+      if (initialDataWidth == 0) {
+        initialDataWidth = widthToHeightDataRatio * maxHeight;
       }
-
-      // reset selection
-      currentSelectionA = new ArraySet<[number, number]>();
-      currentSelectionB = new ArraySet<[number, number]>();
-
-      const lodQuantization = quantizationResult.datagons;
-      const rows = quantizationResult.rows;
-      const columns = quantizationResult.columns;
-
-      // formula derived from width and height with "virtual" hexaside = 1 and then simplify
-      const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows);
-
-      if (widthToHeightDataRatio * maxWidth > svgAvailHeight) {
-        // image is height limited
-        hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);
-        if (initialDataHeight == 0) initialDataHeight = maxHeight;
-        if (initialDataWidth == 0) {
-          initialDataWidth = widthToHeightDataRatio * maxHeight;
-        }
-      } else {
-        // image is width limited
-        hexaSide = maxWidth / (3 * columns + 0.5);
-        if (initialDataHeight == 0)
-          initialDataHeight = widthToHeightDataRatio * maxHeight;
-        if (initialDataWidth == 0) initialDataWidth = maxWidth;
-      }
-
-      lodDatagons = quantizationRollup(
-        lodQuantization,
-        hexagonPropertiesMapLocal
-      ).objects() as DerivedHexagon[];
+    } else {
+      // image is width limited
+      hexaSide = maxWidth / (3 * columns + 0.5);
+      if (initialDataHeight == 0)
+        initialDataHeight = widthToHeightDataRatio * maxHeight;
+      if (initialDataWidth == 0) initialDataWidth = maxWidth;
     }
-  );
+
+    lodDatagons = quantizationRollup(
+      lodQuantization,
+      $hexagonPropertiesMap
+    ).objects() as DerivedHexagon[];
+  }
 
   /**
    * handles key presses for selection tools
@@ -325,7 +300,7 @@
       return { color: ColorUtil.SELECTION_HIGHLIGHT_COLOR_B, isSelected: true };
     }
     return {
-      color: ColorUtil.getColor(datagon.color, selectedColorPaletteLocal),
+      color: ColorUtil.getColor(datagon.color, $selectedColorPalette),
       isSelected: false,
     };
   }
@@ -381,36 +356,36 @@
   >
     {#if culledLodDatagons}
       {#each culledLodDatagons as datagon}
+        <!-- svelte-ignore a11y-mouse-events-have-key-events -->
         <g
+          on:mouseover={() => {
+            if (datagon.count > 1) currentDatagonHover = datagon;
+          }}
           style={currentSelectionA.size() + currentSelectionB.size() > 0 &&
           !getSelectionInfo(datagon, currentSelectionA, currentSelectionB)
             .isSelected
             ? 'filter: opacity(60%)'
             : ''}
+          on:click={() => handleDatagonSelection(datagon.quantization)}
         >
           {#if datagon.count > 1}
-            <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-            <g on:mouseover={() => (currentDatagonHover = datagon)}>
-              <Hexagon
-                side={hexaSide}
-                x={scaleQuantisedX(
-                  datagon.quantization[0],
-                  datagon.quantization[1]
-                )}
-                y={scaleQuantisedY(datagon.quantization[1])}
-                stroke={getSelectionInfo(
-                  datagon,
-                  currentSelectionA,
-                  currentSelectionB
-                ).color}
-                strokeWidth={hexaSide / 5}
-                image={BackendService.getImageUrl(datagon.representantID)}
-                on:click={() => handleDatagonSelection(datagon.quantization)}
-              />
-            </g>
+            <Hexagon
+              side={hexaSide}
+              x={scaleQuantisedX(
+                datagon.quantization[0],
+                datagon.quantization[1]
+              )}
+              y={scaleQuantisedY(datagon.quantization[1])}
+              stroke={getSelectionInfo(
+                datagon,
+                currentSelectionA,
+                currentSelectionB
+              ).color}
+              strokeWidth={hexaSide / 5}
+              image={BackendService.getImageUrl(datagon.representantID)}
+            />
           {:else}
             <!-- datagon only contains a single image -> draw that image -->
-
             <!-- if that image is selected, draw a rectangle around it. -->
             {#if getSelectionInfo(datagon, currentSelectionA, currentSelectionB).isSelected}
               <rect
@@ -432,8 +407,7 @@
                   currentSelectionB
                 ).color}
               />
-              {/if}
-
+            {/if}
             <image
               width={hexaSide}
               height={hexaSide}
@@ -446,13 +420,11 @@
                 (2 * hexaShortDiag * hexaSide - hexaSide) / 2}
               href={BackendService.getImageUrl(datagon.representantID)}
               style={'image-rendering: pixelated;'}
-              on:click={() => handleDatagonSelection(datagon.quantization)}
             />
           {/if}
         </g>
       {/each}
-
-
+      <!--Draw a larger hexagon on hover.-->
       {#if !selectionModeOn && currentDatagonHover !== undefined}
         <!-- svelte-ignore a11y-mouse-events-have-key-events -->
         <g

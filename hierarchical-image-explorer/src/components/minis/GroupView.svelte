@@ -14,7 +14,7 @@
 
   export let datagonsA: ArraySet<[number, number]>;
   export let datagonsB: ArraySet<[number, number]>;
-  export let currentQuantizationLocal: ColumnTable;
+  export let currentQuantization: ColumnTable;
 
   let possibleColumns: string[] = TableService.getAdditionalColumns();
   let selectedColumn: string = possibleColumns[0];
@@ -24,8 +24,8 @@
     { numberOfImg: selectedRowsA.numRows(), selection: 'A' },
     { numberOfImg: selectedRowsB.numRows(), selection: 'B' },
   ];
-  $: selectedRowsA = getSelection(currentQuantizationLocal, datagonsA);
-  $: selectedRowsB = getSelection(currentQuantizationLocal, datagonsB);
+  $: selectedRowsA = getSelection(currentQuantization, datagonsA);
+  $: selectedRowsB = getSelection(currentQuantization, datagonsB);
   $: repA = getSuperRepresentant(datagonsA, selectedRowsA);
   $: repB = getSuperRepresentant(datagonsB, selectedRowsB);
   $: columnType = typeof TableService.getTable().column(selectedColumn)?.get(1);
@@ -241,7 +241,6 @@
           selectedRowsB,
           false
         )}
-        columnName={selectedColumn}
       />
     {/if}
   {/if}

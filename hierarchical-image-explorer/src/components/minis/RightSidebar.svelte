@@ -13,15 +13,10 @@
 
   let isSidebarExpanded: boolean = false;
   let colorQuery = '';
-  let colorPropertyTypeLocal = '';
   let selectedGradient = 'Cinema';
 
   $: selectedColorPalette.set(selectedGradient);
-
-  hexagonPropertiesMap.subscribe((v) => {
-    if (colorQuery == '') colorQuery = v.color;
-  });
-  colorPropertyType.subscribe((v) => (colorPropertyTypeLocal = v));
+  $: if (colorQuery == '') colorQuery = $hexagonPropertiesMap.color;
 
   function updateColorProperty() {
     hexagonPropertiesMap.update((e) => {
@@ -108,7 +103,7 @@
               value="apply"
             />
           </form>
-          {#if colorPropertyTypeLocal === 'number'}
+          {#if $colorPropertyType === 'number'}
             <div class="flex mt-2">
               <div class="mr-4">Color scheme</div>
               <select bind:value={selectedGradient}>
