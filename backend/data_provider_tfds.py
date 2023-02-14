@@ -199,7 +199,7 @@ if __name__ == "__main__":
         projections_2d_path = output_dir / f"{swg_name}_{args.projection_method}.arrow"
         util.save_points_data(projections_2d_path, data_frame)
 
-        config = {"swg": swg_name, "points2d": str(projections_2d_path), "imgDataRoot": ""}
+        config = {"swg": f"{output_dir}/{swg_name}.arrow", "points2d": str(projections_2d_path), "imgDataRoot": ""}
 
         config_path = Path("configurations", f"config_{swg_name}_{args.projection_method}.json")
         config_path.parent.mkdir(parents=True, exist_ok=True)
