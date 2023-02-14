@@ -7,7 +7,7 @@ from pathlib import Path
 import urllib.request
 import zipfile
 from PIL import Image
-import data_provider_util
+import util
 
 
 datasets = [
@@ -145,7 +145,7 @@ def generate_annotations_from_folders(destination, dataset, store_csv):
             labels.append(class_name.name)
             generated_id += 1
     swg_dict = {"image_id": ids, "file_path": file_paths, "label": labels}
-    data_provider_util.write_data_table(Path(destination, dataset), store_csv, swg_name, swg_dict)
+    util.write_data_table(Path(destination, dataset), store_csv, swg_name, swg_dict)
 
 def generate_annotations(destination, dataset, store_csv):
     """Determines the correct function to generate annotations"""

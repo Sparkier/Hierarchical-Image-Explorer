@@ -5,11 +5,18 @@
 import argparse
 import os
 from pathlib import Path
+import pickle
 
 import numpy as np
+import tensorflow as tf
 import tensorflow_datasets as tfds
 from PIL import Image
-import data_provider_util
+import util
+
+
+import umap
+
+
 
 def export_images(image_dir, dataset):
     """Helper function to save images from a dataset.
@@ -39,8 +46,39 @@ def export_images(image_dir, dataset):
             image = Image.fromarray((image).astype(np.uint8), 'RGB')
         image.save(Path(image_dir, file_name))
 
+def setup_model(data_set):
+    def transform_images(image, new_size):
+        if image.shape.dims[2].value == 1:
+            return tf.keras.applications.vgg16.preprocess_input(
+            tf.keras.layers.Resizing(new_size, new_size)(
+            tf.image.grayscale_to_rgb(image)))
+        else:
+            return tf.keras.applications.vgg16.preprocess_input(
+            tf.keras.layers.Resizing(new_size, new_size)(image))
+    #data_set = data_set.map(lambda row: transform_images(row, 224),
+    #                        num_parallel_calls=tf.data.AUTOTUNE)
+    inputs = tf.keras.layers.Input(shape=data_set.element_spec.shape.as_list())
+    preprocessing = tf.keras.layers.Resizing(224, 224)(inputs)
+
+    if data_set.element_spec.shape[2] == 1:
+        preprocessing = tf.image.grayscale_to_rgb(preprocessing)
+    preprocessing = tf.keras.applications.vgg16.preprocess_input(preprocessing)
+    model = tf.keras.applications.VGG16(
+        include_top=True, weights='imagenet')
+    feat_extractor = tf.keras.Model(
+        inputs=model.input, outputs=model.get_layer("fc2").output)
+    feat_extractor = feat_extractor(preprocessing)
+    feat_extractor = tf.keras.Model(
+        inputs=inputs, outputs=feat_extractor)
+
+    return data_set, feat_extractor
 
 def get_tfds_data_set(data_set, split, data_path):
+    data, ds_stats = tfds.load(
+    data_set, split=split, shuffle_files=False, with_info=True, data_dir=data_path)
+    return data.map(lambda elem: elem['image']), ds_stats
+
+def convert_tfds_data_set(data_set, split, data_path):
     """Potentially download a tensorflow datasets dataset and extract its images and labels. """
     data, ds_stats = tfds.load(
         data_set, split=split, shuffle_files=False, with_info=True, data_dir=data_path)
@@ -88,7 +126,6 @@ def dir_path(string):
         return string
     raise NotADirectoryError(string)
 
-
 if __name__ == "__main__":
     # pylint: disable=duplicate-code
 
@@ -114,7 +151,27 @@ if __name__ == "__main__":
         help='Split of the dataset to use',
         default="test",
         type=str)
+    parser.add_argument("--model", help='Tensorflow keras model',
+                required=False, choices=["VGG16"])
     args = parser.parse_args()
-    swg_dict = get_tfds_data_set(args.dataset, args.split, args.data_path)
-    data_provider_util.write_data_table(Path(args.out_dir, args.dataset), args.store_csv,
-                                        f"{args.dataset}_{args.split}", swg_dict)
+    dataset, dataset_info = get_tfds_data_set(args.dataset, args.split, args.data_path)
+    swg_dict = convert_tfds_data_set(args.dataset, args.split, args.data_path)
+    util.write_data_table(Path(args.out_dir, args.dataset), args.store_csv,
+                                    f"{args.dataset}_{args.split}", swg_dict)
+    if args.model:
+        dataset, feature_extractor = setup_model(dataset)
+        predictions_path = Path("cache", args.model, args.dataset,  "predictions.pkl")
+        if predictions_path.exists():
+            with open(predictions_path, "rb") as predictions_file:
+                features = pickle.load(predictions_file)
+        else:
+            
+            features = feature_extractor.predict(dataset.batch(128).cache().prefetch(tf.data.AUTOTUNE))
+            predictions_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(predictions_path, "wb") as output:
+                pickle.dump(features, output)
+        reducer = umap.UMAP()
+        embedding = reducer.fit_transform(features)
+        data_frame = embedding_to_df(swg_dict["image_id"], embedding)
+        util.save_points_data( Path(args.out_dir, args.dataset) / f"{args.dataset}_umap.arrow", data_frame)
+

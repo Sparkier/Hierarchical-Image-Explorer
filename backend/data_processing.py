@@ -3,13 +3,10 @@ import argparse
 from pathlib import Path
 import sys
 import json
-import pandas as pd
-from sklearn.manifold import TSNE
 import tensorflow as tf
 from tensorflow import keras
 from keras.models import Model
 import numpy as np
-import umap
 import pyarrow as pa
 
 
@@ -70,27 +67,9 @@ def extract_features_vgg_16(images):
     return image_features
 
 
-def embedding_to_df(embedding, ids):
-    """converts a 2d array of coordinates and ids to a dataframe"""
-    data_frame = pd.DataFrame()
-    data_frame["id"] = ids
-    data_frame["x"] = embedding[:, 0]
-    data_frame["y"] = embedding[:, 1]
-    return data_frame
 
 
-def run_tsne(features, ids):
-    """Runs t-sne on a given feature list. Returns a dataframe with id and coordinates"""
-    tsne = TSNE(n_components=2, verbose=1, random_state=222, perplexity=32)
-    tsne_output = tsne.fit_transform(features)
-    return embedding_to_df(tsne_output, ids)
 
-
-def run_umap(features, ids):
-    """Runs umap on a given feature list"""
-    reducer = umap.UMAP()
-    embedding = reducer.fit_transform(features)
-    return embedding_to_df(embedding, ids)
 
 
 def run_feature_extraction(encoding_method, annotations):
