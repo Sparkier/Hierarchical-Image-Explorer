@@ -8,7 +8,8 @@ from tensorflow import keras
 from keras.models import Model
 import numpy as np
 import pyarrow as pa
-
+import util
+import pandas
 
 
 def read_annotations(swg_path):
@@ -101,15 +102,10 @@ def run_dimensionality_reduction(dimensionality_reduction_method, annotations,
         if features is None:
             sys.exit("Running dimensionality reduction requires a feature set. \
                 Please provide either a metric or a path to a previously generated feature list")
-        ids = annotations.column("image_id")
         out_path = out_dir / f"{out_name}_{dimensionality_reduction_method}.arrow"
-        if dimensionality_reduction_method == "t-sne":
-            points_df = run_tsne(features, ids)
-        elif dimensionality_reduction_method == "umap":
-            points_df = run_umap(features, ids)
-        else:
-            sys.exit("unknown dimensionality reduction method")
-        save_points_data(out_path, points_df)
+        embedding = util.project_2d(features, args.projection_method)
+        points_df = pandas.DataFrame({"id": annotations["image_id"], "x": embedding[0], "y": embedding[1]})
+        util.save_points_data(out_path, points_df)
     return out_path
 
 

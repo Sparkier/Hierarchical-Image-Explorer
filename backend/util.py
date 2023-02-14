@@ -43,6 +43,25 @@ def embedding_to_df(embedding, ids):
     data_frame["y"] = embedding[:, 1]
     return data_frame
 
+def project_2d(X, method = "umap"):
+    # pylint: disable=invalid-name
+    """Projects high dimensional points to 2D.
+
+    Args:
+        X (array-like of shape (n_samples, n_features)): Input points
+        method (str, optional): Projection method, options: ["umap", "t-sne"]. Defaults to "umap".
+
+    Returns:
+        ndarray array of shape (n_samples, 2): List of projected points
+    """
+    if method == "umap":
+        projector = umap.UMAP()
+    elif method == "t-sne":
+        projector = TSNE(n_components=2, verbose=1, random_state=222, perplexity=32)
+    embedding = projector.fit_transform(X)
+    return embedding
+
+
 def run_tsne(features, ids):
     """Runs t-sne on a given feature list. Returns a dataframe with id and coordinates"""
     tsne = TSNE(n_components=2, verbose=1, random_state=222, perplexity=32)

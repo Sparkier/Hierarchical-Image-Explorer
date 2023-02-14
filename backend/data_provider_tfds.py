@@ -3,6 +3,7 @@
         python -m data_provider_tfds --dataset mnist --split test
 """
 import argparse
+import json
 import os
 from pathlib import Path
 import pickle
@@ -12,11 +13,7 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 from PIL import Image
 import util
-
-
-import umap
-
-
+import pandas
 
 def export_images(image_dir, dataset):
     """Helper function to save images from a dataset.
@@ -46,34 +43,45 @@ def export_images(image_dir, dataset):
             image = Image.fromarray((image).astype(np.uint8), 'RGB')
         image.save(Path(image_dir, file_name))
 
-def setup_model(data_set):
-    def transform_images(image, new_size):
-        if image.shape.dims[2].value == 1:
-            return tf.keras.applications.vgg16.preprocess_input(
-            tf.keras.layers.Resizing(new_size, new_size)(
-            tf.image.grayscale_to_rgb(image)))
-        else:
-            return tf.keras.applications.vgg16.preprocess_input(
-            tf.keras.layers.Resizing(new_size, new_size)(image))
-    #data_set = data_set.map(lambda row: transform_images(row, 224),
-    #                        num_parallel_calls=tf.data.AUTOTUNE)
+def model_preprocessing(data_set):
     inputs = tf.keras.layers.Input(shape=data_set.element_spec.shape.as_list())
     preprocessing = tf.keras.layers.Resizing(224, 224)(inputs)
 
     if data_set.element_spec.shape[2] == 1:
         preprocessing = tf.image.grayscale_to_rgb(preprocessing)
     preprocessing = tf.keras.applications.vgg16.preprocess_input(preprocessing)
+    return inputs, preprocessing
+
+def setup_feature_extraction_model(data_set):
+    """Configure feature extraction model to handle data set.
+
+    Args:
+        data_set (Tensorflow.DataSet): Data set that will be used for prediction.
+
+    Returns:
+        Keras.Model: Mode
+    """
+    inputs, preprocessing = model_preprocessing(data_set)
     model = tf.keras.applications.VGG16(
         include_top=True, weights='imagenet')
-    feat_extractor = tf.keras.Model(
-        inputs=model.input, outputs=model.get_layer("fc2").output)
-    feat_extractor = feat_extractor(preprocessing)
-    feat_extractor = tf.keras.Model(
-        inputs=inputs, outputs=feat_extractor)
+    feat_extractor_output = tf.keras.Model(
+        inputs=model.input, outputs=model.get_layer("fc2").output)(preprocessing)
+    feature_extractor_with_preprocessing = tf.keras.Model(
+        inputs=inputs, outputs=feat_extractor_output)
 
-    return data_set, feat_extractor
+    return feature_extractor_with_preprocessing
 
-def get_tfds_data_set(data_set, split, data_path):
+def get_tfds_image_data_set(data_set, split, data_path):
+    """Setup a tensorflow dataset image dataset.
+
+    Args:
+        data_set (str): Name of data set
+        split (str): Name of split, i.e., train or test
+        data_path (Path): Path to directory of tensorflow datasets
+
+    Returns:
+        tensorflow.DataSet, tfds.core.DatasetInfo: Image DataSet and its info.
+    """
     data, ds_stats = tfds.load(
     data_set, split=split, shuffle_files=False, with_info=True, data_dir=data_path)
     return data.map(lambda elem: elem['image']), ds_stats
@@ -86,26 +94,36 @@ def convert_tfds_data_set(data_set, split, data_path):
 
     if not image_dir.exists() or len(os.listdir(image_dir)) < data.cardinality().numpy():
         export_images(image_dir, data)
-    # Extract labels
-    ds_info_label = ds_stats.features["label"]
-    label_names = {label: ds_info_label.int2str(
-        label) for label in range(0, ds_info_label.num_classes)}
-    file_names = []
-    file_paths = []
-    labels = []
-    for i, item in enumerate(data):
-        if "id" in item:
-            file_name = item['id'].numpy().decode("utf-8") + ".jpeg"
-        elif "file_name" in item:
-            file_name = item['file_name'].numpy().decode("utf-8")
-        else:
-            file_name = f"{i}.jpeg"
-        file_names.append(file_name)
-        file_paths.append(str(Path(image_dir, file_name)))
-        if "label" in item:
-            labels.append(label_names[item['label'].numpy()])
 
-    return {"image_id": file_names, "file_path": file_paths, "label": labels}
+    # Required entries
+    data_dict = {"image_id": [], "file_path": []}
+
+    for row_idx, row in enumerate(data):
+        if "id" in row:
+            file_name = row['id'].numpy().decode("utf-8") + ".jpeg"
+        elif "file_name" in row:
+            file_name = row['file_name'].numpy().decode("utf-8")
+        else:
+            file_name = f"{row_idx}.jpeg"
+        data_dict["image_id"].append(file_name)
+        data_dict["file_path"].append(str(Path(image_dir, file_name)))
+
+        for key, val in row.items():
+            feature = ds_stats.features[key]
+            if isinstance(feature, tfds.features.ClassLabel):
+                if key not in data_dict:
+                    data_dict[key] = []
+                data_dict[key].append(feature.int2str(val.numpy()))
+            # if key == "objects":
+            #     if "object_count" not in data_dict: data_dict["object_count"] = []
+            #     data_dict["object_count"].append(len(val))
+                # for object_key, object in val.items():
+                #     object_name = f"object_{object_key}"
+                #     if object_name not in data_dict: data_dict[object_name] = []
+
+                #print(val)
+
+    return data_dict
 
 
 
@@ -151,27 +169,39 @@ if __name__ == "__main__":
         help='Split of the dataset to use',
         default="test",
         type=str)
-    parser.add_argument("--model", help='Tensorflow keras model',
+    parser.add_argument("--feature_extraction_model", help='Tensorflow keras model',
                 required=False, choices=["VGG16"])
+    parser.add_argument("-p", "--projection_method", default="umap",
+                        help="method for reducing model output to two dimensions",
+                        choices=["t-sne", "umap"])
     args = parser.parse_args()
-    dataset, dataset_info = get_tfds_data_set(args.dataset, args.split, args.data_path)
+    ds, dataset_info = get_tfds_image_data_set(args.dataset, args.split, args.data_path)
     swg_dict = convert_tfds_data_set(args.dataset, args.split, args.data_path)
-    util.write_data_table(Path(args.out_dir, args.dataset), args.store_csv,
-                                    f"{args.dataset}_{args.split}", swg_dict)
-    if args.model:
-        dataset, feature_extractor = setup_model(dataset)
-        predictions_path = Path("cache", args.model, args.dataset,  "predictions.pkl")
+    output_dir = Path(args.out_dir, args.dataset)
+    swg_name = f"{args.dataset}_{args.split}"
+    util.write_data_table(output_dir, args.store_csv,
+                                    swg_name, swg_dict)
+    if args.feature_extraction_model:
+        feature_extractor = setup_feature_extraction_model(ds)
+        predictions_path = Path("cache", args.feature_extraction_model, args.dataset, "predictions.pkl")
         if predictions_path.exists():
             with open(predictions_path, "rb") as predictions_file:
                 features = pickle.load(predictions_file)
         else:
-            
-            features = feature_extractor.predict(dataset.batch(128).cache().prefetch(tf.data.AUTOTUNE))
+            ds = ds.batch(128).cache().prefetch(tf.data.AUTOTUNE)
+            features = feature_extractor.predict(ds)
             predictions_path.parent.mkdir(parents=True, exist_ok=True)
             with open(predictions_path, "wb") as output:
                 pickle.dump(features, output)
-        reducer = umap.UMAP()
-        embedding = reducer.fit_transform(features)
-        data_frame = embedding_to_df(swg_dict["image_id"], embedding)
-        util.save_points_data( Path(args.out_dir, args.dataset) / f"{args.dataset}_umap.arrow", data_frame)
+        embedding = util.project_2d(features, args.projection_method)
+        data_frame = pandas.DataFrame({"id": swg_dict["image_id"],
+                                    "x": embedding[:, 0], "y": embedding[:, 1]})
+        projections_2d_path = output_dir / f"{swg_name}_{args.projection_method}.arrow"
+        util.save_points_data(projections_2d_path, data_frame)
 
+        config = {"swg": swg_name, "points2d": str(projections_2d_path), "imgDataRoot": ""}
+
+        config_path = Path("configurations", f"config_{swg_name}_{args.projection_method}.json")
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(config_path, "w", encoding="utf-8") as config_file:
+            json.dump(config, config_file)
