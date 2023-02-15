@@ -46,11 +46,10 @@ def export_images(image_dir, dataset):
 
 def model_preprocessing(data_set):
     inputs = tf.keras.layers.Input(shape=data_set.element_spec.shape.as_list())
-    preprocessing = tf.keras.layers.Resizing(224, 224)(inputs)
-
-    if data_set.element_spec.shape[2] == 1:
-        preprocessing = tf.image.grayscale_to_rgb(preprocessing)
-    preprocessing = tf.keras.applications.vgg16.preprocess_input(preprocessing)
+    if data_set.element_spec.shape[-1] == 1:
+        preprocessing = tf.image.grayscale_to_rgb(inputs)
+    else:
+        preprocessing = tf.keras.applications.vgg16.preprocess_input(inputs)
     return inputs, preprocessing
 
 def setup_feature_extraction_model(data_set):
@@ -62,6 +61,10 @@ def setup_feature_extraction_model(data_set):
     Returns:
         Keras.Model: Mode
     """
+    def resize_images(images):
+        return tf.image.resize(images, (224, 224))
+    # Resize images before to avoid errors with different image sizes in one batch 
+    data_set = data_set.map(resize_images)
     inputs, preprocessing = model_preprocessing(data_set)
     model = tf.keras.applications.VGG16(
         include_top=True, weights='imagenet')
@@ -70,7 +73,7 @@ def setup_feature_extraction_model(data_set):
     feature_extractor_with_preprocessing = tf.keras.Model(
         inputs=inputs, outputs=feat_extractor_output)
 
-    return feature_extractor_with_preprocessing
+    return data_set, feature_extractor_with_preprocessing
 
 def get_tfds_image_data_set(data_set, split, data_path):
     """Setup a tensorflow dataset image dataset.
@@ -115,14 +118,6 @@ def convert_tfds_data_set(data_set, split, data_path):
                 if key not in data_dict:
                     data_dict[key] = []
                 data_dict[key].append(feature.int2str(val.numpy()))
-            # if key == "objects":
-            #     if "object_count" not in data_dict: data_dict["object_count"] = []
-            #     data_dict["object_count"].append(len(val))
-                # for object_key, object in val.items():
-                #     object_name = f"object_{object_key}"
-                #     if object_name not in data_dict: data_dict[object_name] = []
-
-                #print(val)
 
     image_quality_path = Path(image_dir, "image_quality.pkl")
     if not image_quality_path.exists():
@@ -195,8 +190,8 @@ if __name__ == "__main__":
             with open(predictions_path, "rb") as predictions_file:
                 features = pickle.load(predictions_file)
         else:
-            ds = ds.batch(128).cache().prefetch(tf.data.AUTOTUNE)
-            feature_extractor = setup_feature_extraction_model(ds)
+            ds, feature_extractor = setup_feature_extraction_model(ds)
+            ds = ds.batch(32).cache().prefetch(tf.data.AUTOTUNE)
             features = feature_extractor.predict(ds)
             predictions_path.parent.mkdir(parents=True, exist_ok=True)
             with open(predictions_path, "wb") as output:
