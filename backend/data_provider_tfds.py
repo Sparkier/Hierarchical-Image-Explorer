@@ -13,13 +13,13 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 from PIL import Image
 import util
-import pandas
+import pandas as pd
 
 def export_images(image_dir, dataset):
     """Helper function to save images from a dataset.
 
     Args:
-        image_dir (Path): where to find the iages to be exported
+        image_dir (Path): where to find the images to be exported
         dataset (Dataset): the dataset from which to export the images
     """
     image_dir.mkdir(parents=True, exist_ok=True)
@@ -41,6 +41,7 @@ def export_images(image_dir, dataset):
             image = Image.fromarray((image).astype(np.uint8), 'L')
         else:
             image = Image.fromarray((image).astype(np.uint8), 'RGB')
+            
         image.save(Path(image_dir, file_name))
 
 def model_preprocessing(data_set):
@@ -123,6 +124,12 @@ def convert_tfds_data_set(data_set, split, data_path):
 
                 #print(val)
 
+    image_quality_path = Path(image_dir, "image_quality.pkl")
+    if not image_quality_path.exists():
+        util.export_image_quality(image_dir.glob('*.jpeg'), image_quality_path)
+    # Dataframe with file_path and image quality
+    imge_quality_df = pd.read_pickle(image_quality_path)
+    data_dict = pd.merge(pd.DataFrame(data_dict), imge_quality_df, on="file_path", how="left").to_dict('list')
     return data_dict
 
 
@@ -182,19 +189,21 @@ if __name__ == "__main__":
     util.write_data_table(output_dir, args.store_csv,
                                     swg_name, swg_dict)
     if args.feature_extraction_model:
-        feature_extractor = setup_feature_extraction_model(ds)
-        predictions_path = Path("cache", args.feature_extraction_model, args.dataset, "predictions.pkl")
+        predictions_path = Path("cache", args.feature_extraction_model, 
+                                args.dataset, f"predictions_{args.split}.pkl")
         if predictions_path.exists():
             with open(predictions_path, "rb") as predictions_file:
                 features = pickle.load(predictions_file)
         else:
             ds = ds.batch(128).cache().prefetch(tf.data.AUTOTUNE)
+            feature_extractor = setup_feature_extraction_model(ds)
             features = feature_extractor.predict(ds)
             predictions_path.parent.mkdir(parents=True, exist_ok=True)
             with open(predictions_path, "wb") as output:
                 pickle.dump(features, output)
+
         embedding = util.project_2d(features, args.projection_method)
-        data_frame = pandas.DataFrame({"id": swg_dict["image_id"],
+        data_frame = pd.DataFrame({"id": swg_dict["image_id"],
                                     "x": embedding[:, 0], "y": embedding[:, 1]})
         projections_2d_path = output_dir / f"{swg_name}_{args.projection_method}.arrow"
         util.save_points_data(projections_2d_path, data_frame)

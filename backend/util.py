@@ -1,11 +1,16 @@
 """ Utility functions for data providers. """
+from pathlib import Path
+import itertools
 import csv
 import pyarrow as pa
 import pandas as pd
 import umap
 from sklearn.manifold import TSNE
 import numpy as np
+from PIL import Image
 
+from torchvision import transforms
+import piq
 
 def write_data_table(destination, store_csv, swg_name, data_dict):
     """Writes dictionary items in data_dict into an arrow file."""
@@ -74,3 +79,30 @@ def run_umap(features, ids):
     reducer = umap.UMAP()
     embedding = reducer.fit_transform(features)
     return embedding_to_df(embedding, ids)
+
+def brisque_score(image_path: Path):
+    """Compute BRISQUE score image quality metric
+       See https://ieeexplore.ieee.org/document/6272356
+    Args:
+        image_path (Path): Path to image
+
+    Returns:
+        double: BRISQUE score
+    """    
+    img = Image.open(str(image_path))
+    to_tensor = transforms.Compose([
+        transforms.ToTensor()
+    ])
+    img_normalized = to_tensor(img)
+    # Input must be batched
+    img_normalized = img_normalized.unsqueeze(0)
+    brisque_index: torch.Tensor = piq.brisque(img_normalized, data_range=1., reduction='none')
+    return brisque_index.item()
+
+def export_image_quality(image_paths: iter, out_path):
+    # Copy iterator
+    image_paths, iter_copy = itertools.tee(image_paths)
+    filepaths= [str(pth) for pth in iter_copy]
+    scores = [brisque_score(img_path) for img_path in image_paths]
+    pd.DataFrame({"file_path": filepaths, "brisque_score": scores}).to_pickle(out_path)
+
