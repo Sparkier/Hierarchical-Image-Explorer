@@ -122,14 +122,6 @@ export class TableService {
   }
 
   /**
-   * updates the 'global' quantization in the svelte store
-   * @param columns amount of columns for the quantization
-   */
-  public static updateQuantizationGlobal(columns: number) {
-    currentQuantization.set(this.quantize(columns, this.getTable()));
-  }
-
-  /**
    * updates the 'global' quantization in the svelte store based on the filtered table
    * @param columns amount of columns for the quantization
    */

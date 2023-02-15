@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
   import { quantizationRollup } from '../../services/arqueroUtils';
   import { ColorUtil } from '../../services/colorUtil';
   import { TableService } from '../../services/tableService';
@@ -14,15 +13,30 @@
   export let columns: number = 20;
 
   let minimapWidth: number;
-  let minimapHeight: number = 0;
+  let minimapHeight: number;
   let rows: number = 0;
   let datagons: DerivedHexagon[] = [];
-  let hexagonPropertiesMapLocal: HexagonPropertiesMap;
 
-  $: svgToMinimapScaleX = (v: number) => (v / svgWidth) * minimapWidth;
-  $: svgToMinimapScaleY = (v: number) => (v / svgHeight) * minimapHeight;
+  const svgToMinimapScaleX = (v: number) => (v / svgWidth) * minimapWidth;
+  const svgToMinimapScaleY = (v: number) => (v / svgHeight) * minimapHeight;
+
+  $: minimapScaleX = topLeftSvgCorner
+    ? svgToMinimapScaleX(topLeftSvgCorner.x)
+    : 0;
+  $: minimapScaleY = topLeftSvgCorner
+    ? svgToMinimapScaleY(topLeftSvgCorner.y)
+    : 0;
+
+  $: minimapScaleHeight =
+    bottomRightSvgCorner && topLeftSvgCorner
+      ? svgToMinimapScaleY(bottomRightSvgCorner.y - topLeftSvgCorner.y)
+      : 0;
+  $: minimapScaleWidth =
+    bottomRightSvgCorner && topLeftSvgCorner
+      ? svgToMinimapScaleY(bottomRightSvgCorner.x - topLeftSvgCorner.x)
+      : 0;
+
   $: dotsize = minimapWidth / columns / 4;
-  $: hexagonPropertiesMapLocal = $hexagonPropertiesMap;
 
   /**
    * retrieves the quantized data used in the minimap
@@ -44,11 +58,11 @@
   }
 
   $: {
-    datagons = getQuantizedBlobs(hexagonPropertiesMapLocal);
+    datagons = getQuantizedBlobs($hexagonPropertiesMap);
   }
 
   onMount(() => {
-    datagons = getQuantizedBlobs(hexagonPropertiesMapLocal);
+    datagons = getQuantizedBlobs($hexagonPropertiesMap);
   });
 </script>
 
@@ -67,16 +81,12 @@
         />
         <!-- Color must be adjusted once custom hexagon colorizing is implemented -->
       {/each}
-      {#if topLeftSvgCorner !== undefined}
+      {#if !isNaN(minimapScaleX) && !isNaN(minimapScaleY)}
         <rect
-          x={svgToMinimapScaleX(topLeftSvgCorner.x)}
-          y={svgToMinimapScaleY(topLeftSvgCorner.y)}
-          width={svgToMinimapScaleX(
-            bottomRightSvgCorner.x - topLeftSvgCorner.x
-          )}
-          height={svgToMinimapScaleY(
-            bottomRightSvgCorner.y - topLeftSvgCorner.y
-          )}
+          x={minimapScaleX}
+          y={minimapScaleY}
+          width={minimapScaleWidth}
+          height={minimapScaleHeight}
           fill="black"
           fill-opacity=".25"
           stroke="red"

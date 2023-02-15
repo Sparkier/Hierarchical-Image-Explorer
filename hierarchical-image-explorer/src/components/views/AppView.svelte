@@ -11,7 +11,6 @@
   import { TableService } from '../../services/tableService';
   import RightSidebar from '../minis/RightSidebar.svelte';
   import { colorPropertyType, currentQuantization } from '../../stores';
-  import type ColumnTable from 'arquero/dist/types/table/column-table';
   import { getTotalSelectionSize } from '../../services/arqueroUtils';
   import { ArraySet } from '../../ArraySet';
   import ColorScaleLegend from '../minis/ColorScaleLegend.svelte';
@@ -50,23 +49,16 @@
   let accSvgHeight: number;
   let outerDiv: HTMLElement | undefined;
   let tableIsSet: boolean = false;
-  let updateQuantizationDataExportFunction: () => void;
-  let currentQuantizationLocal: ColumnTable;
+  // let updateQuantizationDataExportFunction: () => void;
 
   const borderWidth: number = 2;
 
-  $: availableAccHeight =
+  $: availableAccHeight = // TODO: this need to be updated on browser resize
     outerDiv == undefined
       ? 0
       : window.innerHeight -
         outerDiv.getBoundingClientRect().y -
         2 * borderWidth; // this will be used to limit the height of the accumulator to the screen
-
-  currentQuantization.subscribe((v) => {
-    if (v != null) {
-      currentQuantizationLocal = v.datagons;
-    }
-  });
 
   onMount(() => {
     document.addEventListener('click', handleOutsideClick, false);
@@ -110,21 +102,21 @@
     >
       <div class="w-96 border-r-2 border-y-2 border-slate-200 bg-slate-50">
         <div class="p-4 overflow-auto" style="height: {availableAccHeight}px;">
-          {#if currentQuantizationLocal !== undefined}
-            {#if getTotalSelectionSize(selectedDatagonsA, selectedDatagonsB, currentQuantizationLocal) === 1}
+          {#if $currentQuantization !== null}
+            {#if getTotalSelectionSize(selectedDatagonsA, selectedDatagonsB, $currentQuantization.datagons) === 1}
               <ImgView
                 selection={new ArraySet([
                   ...selectedDatagonsA.toArray(),
                   ...selectedDatagonsB.toArray(),
                 ])}
-                {currentQuantizationLocal}
+                currentQuantization={$currentQuantization.datagons}
               />
             {:else if selectedDatagonsA.size() > 0 || selectedDatagonsB.size() > 0}
               <div class="font-bold text-xl text-left">Group info</div>
               <GroupView
                 datagonsA={selectedDatagonsA}
                 datagonsB={selectedDatagonsB}
-                {currentQuantizationLocal}
+                currentQuantization={$currentQuantization.datagons}
               />
             {/if}
           {/if}
@@ -136,7 +128,6 @@
       <Accumulator
         initialColumns={settingsObject.columns}
         maxHeight={availableAccHeight}
-        bind:updateQuantizationDataExportFunction
         bind:currentSelectionA={selectedDatagonsA}
         bind:currentSelectionB={selectedDatagonsB}
         bind:topleftSVGPoint={accTopLeftCorner}
@@ -147,7 +138,7 @@
     </div>
     <RightSidebar
       on:filterApplied={() => {
-        updateQuantizationDataExportFunction();
+        // updateQuantizationDataExportFunction();
       }}
     />
   </div>
