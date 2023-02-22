@@ -53,14 +53,21 @@
 
   const borderWidth: number = 2;
 
+  let windowInnerHeight = window.innerHeight;
+
   $: availableAccHeight = // TODO: this need to be updated on browser resize
     outerDiv == undefined
       ? 0
-      : window.innerHeight -
+      : windowInnerHeight -
         outerDiv.getBoundingClientRect().y -
         2 * borderWidth; // this will be used to limit the height of the accumulator to the screen
 
   onMount(() => {
+    window.addEventListener('resize', (event) => {
+      if (event.currentTarget && event.currentTarget.innerHeight) {
+        windowInnerHeight = event.currentTarget.innerHeight;
+      }
+    });
     document.addEventListener('click', handleOutsideClick, false);
     document.addEventListener('keyup', handleEscape, false);
     BackendService.getDataArquero().then((r) => {
