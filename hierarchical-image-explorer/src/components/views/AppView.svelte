@@ -50,16 +50,10 @@
   let outerDiv: HTMLElement | undefined;
   let tableIsSet: boolean = false;
   let windowInnerHeight: number | undefined;
+  let accHeight: number | undefined;
   // let updateQuantizationDataExportFunction: () => void;
 
   const borderWidth: number = 2;
-
-  $: availableAccHeight =
-    outerDiv === undefined || windowInnerHeight === undefined
-      ? 0
-      : windowInnerHeight -
-        outerDiv.getBoundingClientRect().y -
-        2 * borderWidth; // this will be used to limit the height of the accumulator to the screen
 
   onMount(() => {
     document.addEventListener('click', handleOutsideClick, false);
@@ -96,7 +90,11 @@
       svgHeight={accSvgHeight}
     />
   </div>
-  <div class="flex items-stretch" bind:this={outerDiv}>
+  <div
+    class="flex items-stretch h-full"
+    bind:this={outerDiv}
+    bind:clientHeight={accHeight}
+  >
     <!--Left sidebar-->
     <div
       class={isLeftSidebarExpanded
@@ -104,7 +102,10 @@
         : 'duration-2000 transition -translate-x-96 left-0 h-full fixed'}
     >
       <div class="w-96 border-r-2 border-y-2 border-slate-200 bg-slate-50">
-        <div class="p-4 overflow-auto" style="height: {availableAccHeight}px;">
+        <div
+          class="p-4 overflow-auto"
+          style="height: {accHeight - 2 * borderWidth}px;"
+        >
           {#if $currentQuantization !== null}
             {#if getTotalSelectionSize(selectedDatagonsA, selectedDatagonsB, $currentQuantization.datagons) === 1}
               <ImgView
@@ -127,10 +128,10 @@
       </div>
     </div>
     <!-- Image explorer -->
-    <div class="w-auto grow border-y-2 border-slate-200">
+    <div class="w-auto grow border-y-2 border-slate-200 flex flex-col">
       <Accumulator
         initialColumns={settingsObject.columns}
-        maxHeight={availableAccHeight}
+        maxHeight={accHeight - 2 * borderWidth}
         bind:currentSelectionA={selectedDatagonsA}
         bind:currentSelectionB={selectedDatagonsB}
         bind:topleftSVGPoint={accTopLeftCorner}

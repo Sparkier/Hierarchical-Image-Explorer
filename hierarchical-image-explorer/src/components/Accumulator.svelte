@@ -44,7 +44,7 @@
   let zoomLevel: number = 1; // level that is updated while you are zooming in
   let hexaSide: number = 0; // not sure whats this is for...
 
-  let svgAvailHeight: number;
+  let svgAvailHeight: number = 0;
 
   let lodDatagons: DerivedHexagon[] = []; // datagons for for the current LOD
   let culledLodDatagons: DerivedHexagon[] = []; // datagons for the current LOD, but culled away the ones that are not shown
@@ -54,9 +54,6 @@
   let isASelectionActive: boolean = true;
 
   let currentDatagonHover: DerivedHexagon | undefined = undefined;
-
-  // compute the available height of the SVG space, depending on the maximum height minus toolbar
-  $: svgAvailHeight = maxHeight - (isNaN(toolbarHeight) ? 0 : toolbarHeight);
 
   // recompute lod depending on the zoom level
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
@@ -341,7 +338,7 @@
   bind:clientWidth={maxWidth}
   bind:this={svgContainer}
   bind:clientHeight={svgAvailHeight}
-  class="overflow-hidden"
+  class="overflow-hidden grow"
 >
   <ZoomSVG
     viewBox="0 0 {maxWidth} {svgAvailHeight}"
