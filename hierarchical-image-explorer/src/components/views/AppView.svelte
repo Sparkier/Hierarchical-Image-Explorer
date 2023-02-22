@@ -51,7 +51,6 @@
   let tableIsSet: boolean = false;
   let windowInnerHeight: number | undefined;
   let accHeight: number | undefined;
-  // let updateQuantizationDataExportFunction: () => void;
 
   const borderWidth: number = 2;
 
@@ -140,11 +139,7 @@
         bind:initialDataHeight={accSvgHeight}
       />
     </div>
-    <RightSidebar
-      on:filterApplied={() => {
-        // updateQuantizationDataExportFunction();
-      }}
-    />
+    <RightSidebar on:filterApplied={updateQuantizationDataExportFunction} />
   </div>
 {:else}
   <div class="flex justify-center mt-32">
