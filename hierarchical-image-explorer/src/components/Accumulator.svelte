@@ -1,19 +1,19 @@
 <script lang="ts">
-  import Hexagon from './minis/Hexagon.svelte';
-  import { ColorUtil } from '../services/colorUtil';
-  import ZoomSVG from './ZoomSVG.svelte';
-  import BackendService from '../services/backendService';
-  import type { DerivedHexagon } from '../types';
+  import { ArraySet } from '../ArraySet';
   import { DEFAULT_NUM_COLUMNS } from '../config';
-  import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
+  import { quantizationRollup } from '../services/arqueroUtils';
+  import BackendService from '../services/backendService';
+  import { ColorUtil } from '../services/colorUtil';
   import { TableService } from '../services/tableService';
   import {
     currentQuantization,
     hexagonPropertiesMap,
     selectedColorPalette,
   } from '../stores';
-  import { quantizationRollup } from '../services/arqueroUtils';
-  import { ArraySet } from '../ArraySet';
+  import type { DerivedHexagon } from '../types';
+  import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
+  import Hexagon from './minis/Hexagon.svelte';
+  import ZoomSVG from './ZoomSVG.svelte';
 
   export let initialColumns = DEFAULT_NUM_COLUMNS;
 

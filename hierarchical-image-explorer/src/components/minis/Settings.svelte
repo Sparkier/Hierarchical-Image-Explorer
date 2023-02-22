@@ -1,6 +1,7 @@
 <script lang="ts">
   import { DEFAULT_SETTINGS } from '../../config';
   import type { SettingsObject } from '../../types';
+  import { fade } from 'svelte/transition';
 
   export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
   export let isSettingsExpanded: boolean;
@@ -9,13 +10,10 @@
 </script>
 
 <!-- Menu container -->
-<div
-  class={isSettingsExpanded
-    ? 'transition duration-2000 opacity-100'
-    : 'transition duration-2000 opacity-0'}
->
+{#if isSettingsExpanded}
   <div
     class="overflow-visible absolute right-0 h-auto bg-gray-100 rounded-b-md z-50"
+    transition:fade
   >
     <div class="flex flex-col">
       <div class="font-bold text-xl text-left pl-4 pt-2">Settings</div>
@@ -47,4 +45,4 @@
       </div>
     </div>
   </div>
-</div>
+{/if}

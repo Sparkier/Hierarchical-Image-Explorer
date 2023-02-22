@@ -51,14 +51,27 @@
     </clipPath>
 
     {#if image !== ''}
-      <pattern id={IDString + '_img'} height="100%" width="100%" patternContentUnits="objectBoundingBox">
-        <image height="1" width="1" preserveAspectRatio="xMidYMid slice" xlink:href={image} />
+      <pattern
+        id={IDString + '_img'}
+        height="100%"
+        width="100%"
+        patternContentUnits="objectBoundingBox"
+      >
+        <image
+          height="1"
+          width="1"
+          preserveAspectRatio="xMidYMid slice"
+          xlink:href={image}
+        />
       </pattern>
     {/if}
   </defs>
 
   {#if image !== ''}
-    <polygon fill="url(#{IDString + '_img'})" points="{r} {br} {bl} {l} {tl} {tr}">
+    <polygon
+      fill="url(#{IDString + '_img'})"
+      points="{r} {br} {bl} {l} {tl} {tr}"
+    >
       <text
         class="pointer-events-none"
         transform="translate({side},{side})"
