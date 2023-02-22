@@ -147,12 +147,13 @@ def convert_tfds_data_set(data_set, split, data_path):
                 data_dict[key].append(feature.int2str(val.numpy()))
 
     image_quality_path = Path(image_dir, "image_quality.pkl")
-    if not image_quality_path.exists():
-        util.export_image_quality(image_dir.glob('*.jpeg'), image_quality_path)
-    # Dataframe with image_id and image quality
-    imge_quality_df = pd.read_pickle(image_quality_path)
-    data_dict = pd.merge(pd.DataFrame(data_dict), imge_quality_df,
-                         on="image_id", how="left").to_dict('list')
+    if image_quality_path.exists():
+        #util.export_image_quality(image_dir.glob('*.jpeg'), image_quality_path)
+        # Dataframe with image_id and image quality
+        imge_quality_df = pd.read_pickle(image_quality_path)
+        data_dict = pd.merge(pd.DataFrame(data_dict), imge_quality_df,
+                            on="image_id", how="left").to_dict('list')
+
     return data_dict
 
 
