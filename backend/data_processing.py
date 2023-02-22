@@ -13,9 +13,9 @@ from keras.models import Model
 from tensorflow import keras
 
 
-def read_annotations(swg_path):
+def read_annotations(table_path):
     """Reads annotations from given file"""
-    with pa.memory_map(swg_path, 'r') as source:
+    with pa.memory_map(table_path, 'r') as source:
         loaded_arrays = pa.ipc.open_file(source).read_all()
         return loaded_arrays
 
@@ -94,10 +94,10 @@ def run_dimensionality_reduction(dimensionality_reduction_method, annotations,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Run processing on image datasets defined by swg.csv files every optional \
-          parameter can be replaced with a path \
-          to the corresponding output file of the processing step.")
-    parser.add_argument("--swg_file", type=str, help="path to swg file")
+        description="Run processing on image datasets defined by arrow table. \
+            Every optional parameter can be replaced with a path to the \
+                corresponding output file of the processing step.")
+    parser.add_argument("--table", type=str, help="path to data table")
     parser.add_argument(
         "-n", "--name", help="name for files created by the script", default="")
     parser.add_argument("-enc", "--encoding",
@@ -110,13 +110,13 @@ if __name__ == "__main__":
 
     # Run pipeline
     print("Reading annotations")
-    annotation = read_annotations(args.swg_file)
-    output_dir = Path(args.swg_file).parent
-    name = Path(args.swg_file).stem
+    annotation = read_annotations(args.table)
+    output_dir = Path(args.table).parent
+    name = Path(args.table).stem
     model_features = run_feature_extraction(args.encoding, annotation)
     projections_2d_path = run_dimensionality_reduction(
         args.dimensionality_reduction, annotation, model_features, output_dir, name)
 
-    config = {"swg": args.swg_file, "points2d": projections_2d_path, "imgDataRoot": ""}
+    config = {"table": args.table, "points2d": projections_2d_path, "imgDataRoot": ""}
     with open("configurations" / f"config_{name}.json", "w", encoding="utf-8") as config_file:
         json.dump(config, config_file)

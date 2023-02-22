@@ -1,7 +1,7 @@
 # Hierarchical Image Explorer (HIE)
 
 ![image](docs/img/banner.png)
-The goal of this project was to develop a Level of Detail visualization for large-scale image datasets that allows interactive exploration of the data. It is part of the specialization subject Computer Graphics in the 5th and 6th semester for computer science and media students at Ulm University.
+The goal of this project was to develop a Level of Detail visualization for large-scale image datasets that allows interactive exploration of the data.
 
 ![image](docs/img/fullscreen_view.png)
 
@@ -128,7 +128,7 @@ For dimensionality reduction the backend expects an arrow IPC table containing: 
 
 The backend takes in a configuration file (`-c`) this contains 3 properties:
 
-- `swg` path to dataset arrow IPC table
+- `table` path to dataset arrow IPC table
 - `points2d` path to dimensionality reduction arrow IPC table
 - `imgDataRoot` path to the relative root of image paths
 
@@ -148,7 +148,7 @@ One row might look like this:
 ```js
 // backend/configurations/config_example.json
 {
-    "swg": "data/example/raw_data.arrow",
+    "table": "data/example/raw_data.arrow",
     "points2d": "data/example/raw_data_umap.arrow",
     "imgDataRoot": "../"
 }
@@ -156,9 +156,3 @@ One row might look like this:
 
 Now start the backend server with `yarn start -c configurations/config_example.json`
 The frontend needs no further adjustment to different datasets.
-
----
-
-Enjoy exploring data!
-
-Cheers, Daniel & Niklas<sup>2</sup>

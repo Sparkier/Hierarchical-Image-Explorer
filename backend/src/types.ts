@@ -1,5 +1,5 @@
 export interface HIEConfiguration {
-  swg: string;
+  table: string;
   points2d: string;
   imgDataRoot: string;
 }

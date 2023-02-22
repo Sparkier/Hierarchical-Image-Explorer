@@ -47,16 +47,15 @@ const confData = JSON.parse(
 ) as HIEConfiguration;
 const hieConfig = confData;
 
-let swgQuero: ColumnTable;
+let dataQuero: ColumnTable;
 let dimRedQuero: ColumnTable;
-// read in swg table
-if (hieConfig.swg.endsWith('.csv')) {
-  const swgCSVString = fs.readFileSync(hieConfig.swg).toString();
-  swgQuero = aq.fromCSV(swgCSVString);
+if (hieConfig.table.endsWith('.csv')) {
+  const csvString = fs.readFileSync(hieConfig.table).toString();
+  dataQuero = aq.fromCSV(csvString);
 } else {
   // assume it is an arrow table
-  const swgArrow = fs.readFileSync(hieConfig.swg);
-  swgQuero = aq.fromArrow(swgArrow);
+  const arrowTable = fs.readFileSync(hieConfig.table);
+  dataQuero = aq.fromArrow(arrowTable);
 }
 // read in dim red table
 if (hieConfig.points2d.endsWith('.csv')) {
@@ -69,7 +68,7 @@ if (hieConfig.points2d.endsWith('.csv')) {
 
 // unify and drop image_id
 const unifiedTable = dimRedQuero.join(
-  swgQuero,
+  dataQuero,
   ['id', 'image_id'],
   [aq.all(), aq.not('image_id')]
 );
