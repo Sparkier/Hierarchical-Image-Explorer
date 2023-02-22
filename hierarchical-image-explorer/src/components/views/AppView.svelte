@@ -49,25 +49,19 @@
   let accSvgHeight: number;
   let outerDiv: HTMLElement | undefined;
   let tableIsSet: boolean = false;
+  let windowInnerHeight: number | undefined;
   // let updateQuantizationDataExportFunction: () => void;
 
   const borderWidth: number = 2;
 
-  let windowInnerHeight = window.innerHeight;
-
-  $: availableAccHeight = // TODO: this need to be updated on browser resize
-    outerDiv == undefined
+  $: availableAccHeight =
+    outerDiv === undefined || windowInnerHeight === undefined
       ? 0
       : windowInnerHeight -
         outerDiv.getBoundingClientRect().y -
         2 * borderWidth; // this will be used to limit the height of the accumulator to the screen
 
   onMount(() => {
-    window.addEventListener('resize', (event) => {
-      if (event.currentTarget && event.currentTarget.innerHeight) {
-        windowInnerHeight = event.currentTarget.innerHeight;
-      }
-    });
     document.addEventListener('click', handleOutsideClick, false);
     document.addEventListener('keyup', handleEscape, false);
     BackendService.getDataArquero().then((r) => {
@@ -84,6 +78,8 @@
   $: isLeftSidebarExpanded =
     selectedDatagonsA.size() > 0 || selectedDatagonsB.size() > 0;
 </script>
+
+<svelte:window bind:innerHeight={windowInnerHeight} />
 
 {#if tableIsSet !== false}
   <!-- Minimap -->
