@@ -6,7 +6,6 @@
   import SettingsIcon from './icons/SettingsIcon.svelte';
   import Settings from './minis/Settings.svelte';
 
-  export let currentView: string;
   export let settingsObject: SettingsObject;
 
   let isSettingsExpanded: boolean = false;
@@ -14,10 +13,7 @@
 
 <nav class="bg-neutral-800">
   <div class="flex flex-row items-center h-14">
-    <div
-      class="ml-4 h-8 w-8 cursor-pointer"
-      on:click={() => (currentView = 'home')}
-    >
+    <div class="ml-4 h-8 w-8">
       <HieLogo />
     </div>
     <div class="h-8 w-8 ml-auto mr-2">

@@ -37,5 +37,5 @@ export type BoxPlotDatum = {
   median: number;
   q1: number;
   q2: number;
-  name:string;
-}
+  name: string;
+};
