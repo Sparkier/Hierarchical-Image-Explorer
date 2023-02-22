@@ -104,7 +104,9 @@ def run_dimensionality_reduction(dimensionality_reduction_method, annotations,
                 Please provide either a metric or a path to a previously generated feature list")
         out_path = out_dir / f"{out_name}_{dimensionality_reduction_method}.arrow"
         embedding = util.project_2d(features, args.projection_method)
-        points_df = pandas.DataFrame({"id": annotations["image_id"], "x": embedding[0], "y": embedding[1]})
+        points_df = pandas.DataFrame({"id": annotations["image_id"],
+                                     "x": embedding[0],
+                                     "y": embedding[1]})
         util.save_points_data(out_path, points_df)
     return out_path
 

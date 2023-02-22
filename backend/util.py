@@ -10,7 +10,9 @@ import numpy as np
 from PIL import Image
 
 from torchvision import transforms
+import torch
 import piq
+
 
 def write_data_table(destination, store_csv, swg_name, data_dict):
     """Writes dictionary items in data_dict into an arrow file."""
@@ -26,6 +28,7 @@ def write_data_table(destination, store_csv, swg_name, data_dict):
             csv_writer.writeheader()
             csv_writer.writerow(data_dict)
 
+
 def save_points_data(out_name, points_df):
     """Saves dataframe to given path"""
     schema = pa.Schema.from_pandas(points_df, preserve_index=False)
@@ -40,6 +43,7 @@ def pixels_to_features(images):
     """squeezes pixels of an image into a single dimension"""
     return map(lambda img: np.array(img).flatten(), images)
 
+
 def embedding_to_df(embedding, ids):
     """converts a 2d array of coordinates and ids to a dataframe"""
     data_frame = pd.DataFrame()
@@ -48,7 +52,8 @@ def embedding_to_df(embedding, ids):
     data_frame["y"] = embedding[:, 1]
     return data_frame
 
-def project_2d(X, method = "umap"):
+
+def project_2d(X, method="umap"):
     # pylint: disable=invalid-name
     """Projects high dimensional points to 2D.
 
@@ -62,7 +67,8 @@ def project_2d(X, method = "umap"):
     if method == "umap":
         projector = umap.UMAP()
     elif method == "t-sne":
-        projector = TSNE(n_components=2, verbose=1, random_state=222, perplexity=32)
+        projector = TSNE(n_components=2, verbose=1,
+                         random_state=222, perplexity=32)
     embedding = projector.fit_transform(X)
     return embedding
 
@@ -80,6 +86,7 @@ def run_umap(features, ids):
     embedding = reducer.fit_transform(features)
     return embedding_to_df(embedding, ids)
 
+
 def brisque_score(image_path: Path):
     """Compute BRISQUE score image quality metric
        See https://ieeexplore.ieee.org/document/6272356
@@ -88,7 +95,7 @@ def brisque_score(image_path: Path):
 
     Returns:
         double: BRISQUE score
-    """    
+    """
     img = Image.open(str(image_path))
     to_tensor = transforms.Compose([
         transforms.ToTensor()
@@ -96,13 +103,20 @@ def brisque_score(image_path: Path):
     img_normalized = to_tensor(img)
     # Input must be batched
     img_normalized = img_normalized.unsqueeze(0)
-    brisque_index: torch.Tensor = piq.brisque(img_normalized, data_range=1., reduction='none')
+    brisque_index: torch.Tensor = piq.brisque(
+        img_normalized, data_range=1., reduction='none')
     return brisque_index.item()
 
 def export_image_quality(image_paths: iter, out_path):
+    """Compute Brisque image quality and save DataFrame with its associated file name as image_id.
+
+    Args:
+        image_paths (iter): Paths to images
+        out_path (Path): Path to write pickle file
+    """
     # Copy iterator
     image_paths, iter_copy = itertools.tee(image_paths)
-    filepaths= [str(pth) for pth in iter_copy]
+    filenames = [str(pth.name) for pth in iter_copy]
     scores = [brisque_score(img_path) for img_path in image_paths]
-    pd.DataFrame({"file_path": filepaths, "brisque_score": scores}).to_pickle(out_path)
-
+    pd.DataFrame({"image_id": filenames, "brisque_score": scores}
+                 ).to_pickle(out_path)
