@@ -14,6 +14,7 @@ import tensorflow_datasets as tfds
 from PIL import Image
 import util
 import pandas as pd
+import h5py
 
 
 def export_images(image_dir, dataset):
@@ -214,24 +215,39 @@ if __name__ == "__main__":
 
     if args.feature_extraction_model:
         swg_name = f"{swg_name}_{args.feature_extraction_model}_{args.feature_extraction_model_layer}"
-        predictions_path = Path("cache", args.feature_extraction_model,
+        activations_path = Path("cache", args.feature_extraction_model,
                                 args.dataset,
-                                f"predictions_{args.split}_{args.feature_extraction_model_layer}.pkl")
-        if predictions_path.exists():
-            with open(predictions_path, "rb") as predictions_file:
-                features = pickle.load(predictions_file)
-        else:
+                                f"activations_{args.split}_{args.feature_extraction_model_layer}.h5")
+        if not activations_path.exists():
             ds, feature_extractor = setup_feature_extraction_model(
                 ds, args.feature_extraction_model, args.feature_extraction_model_layer)
-            ds = ds.batch(32).cache().prefetch(tf.data.AUTOTUNE)
-            features = feature_extractor.predict(ds)
-            predictions_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(predictions_path, "wb") as output:
-                pickle.dump(features, output)
 
-        embedding = util.project_2d(features, args.projection_method)
+            with h5py.File(activations_path, 'w') as file_handle:
+                features = feature_extractor.predict(ds.take(1).batch(1))
+                total_num_inputs = ds.cardinality().numpy()
+                output_shape = [total_num_inputs, np.prod(features.shape[:])]
+                BYTES_PER_FLOAT = 4
+                num_activations_in_one_mb = min(total_num_inputs, max(
+                    1, int(1000000 / (np.prod(output_shape[1:])*BYTES_PER_FLOAT))))
+                chunk_size = tuple([num_activations_in_one_mb] + output_shape[1:])
+                dset = file_handle.create_dataset(
+                    "activations", output_shape, compression="gzip", chunks=chunk_size)
+                iterator = 0
+                for batch in ds.batch(128).cache().prefetch(tf.data.AUTOTUNE):
+                    num_inputs = batch.shape[0]
+                    features = feature_extractor.predict(batch)
+                    flattened = np.reshape(features,
+                                [features.shape[0],
+                                np.prod(features.shape[1:])])
+                    dset[iterator:iterator+num_inputs] = flattened
+                    iterator += num_inputs
+                    print(f"Processed {iterator}/{total_num_inputs}")
+
+        with h5py.File(activations_path, 'r') as f_act:
+            features = f_act["activations"]
+            embedding = util.project_2d(features, args.projection_method)
         data_frame = pd.DataFrame({"id": swg_dict["image_id"],
-                                   "x": embedding[:, 0], "y": embedding[:, 1]})
+                                "x": embedding[:, 0], "y": embedding[:, 1]})
         projections_2d_path = output_dir / \
             f"{swg_name}_{args.projection_method}.arrow"
         util.save_points_data(projections_2d_path, data_frame)

@@ -69,7 +69,11 @@ def project_2d(X, method="umap"):
     elif method == "t-sne":
         projector = TSNE(n_components=2, verbose=1,
                          random_state=222, perplexity=32)
-    embedding = projector.fit_transform(X)
+    # The array must be flattened
+    X_2d = np.reshape(X,
+             [X.shape[0],
+             np.prod(X.shape[1:])])
+    embedding = projector.fit_transform(X_2d)
     return embedding
 
 
