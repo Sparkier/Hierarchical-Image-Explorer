@@ -11,7 +11,7 @@
 
   import FilterSelector from '../FilterSelector.svelte';
 
-  let isSidebarExpanded: boolean = false;
+  let isSidebarExpanded: boolean = true;
   let colorQuery = '';
   let selectedGradient = 'Cinema';
 
@@ -58,28 +58,7 @@
     <div
       class="w-96 border-l-2 flex flex-col border-y-2 border-slate-200 bg-slate-50 h-screen"
     >
-      <div class="overflow-y-auto flex flex-col h-full">
-        <div class="flex flex-row items-center">
-          <div class="top-0 left-0 flex mt-4 ml-4">
-            <button
-              type="button"
-              on:click={() => (isSidebarExpanded = !isSidebarExpanded)}
-            >
-              <svg
-                class="h-6 w-6 stroke-slate-600 hover:stroke-hie-red"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                stroke-width="2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+      <div class="flex flex-col h-full min-h-0">
         <!-- color query section -->
         <div class="px-4 pb-2 border-b-2 border-slate-200">
           <form
@@ -115,11 +94,8 @@
           {/if}
         </div>
         <!-- filtering section -->
-        <div class="flex mt-2 ml-4">
-          <FilterSelector on:filterApplied />
-        </div>
+        <FilterSelector on:filterApplied />
       </div>
-
       <div class="mb-[380px] border-t-2 border-slate-200" />
     </div>
   </div>

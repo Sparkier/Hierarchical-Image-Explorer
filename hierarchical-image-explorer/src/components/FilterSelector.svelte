@@ -60,37 +60,36 @@
   const dispatch = createEventDispatcher();
 </script>
 
-<div>
+<div class="flex flex-col justify-between grow p-2 min-h-0">
   <datalist id="filterColumns">
     <!-- Columns for right sided selection -->
     {#each categories as cat}
       <option>{cat}</option>
     {/each}
   </datalist>
-  <div class="grid columns-1 w-full">
+  <div class="flex flex-col items-center w-full overflow-y-auto min-h-0">
     {#each filterList as filter, index}
       <div class="w-80 bg-white rounded-md flex mt-2 mb-2 relative flex-col">
-        <div
-          class="mr-2 mt-2 absolute top-0 right-0 order-1"
-          on:click={() => {
-            filterList = filterList.filter((e) => e !== filter);
-            concatenations.splice(index, 1);
-            concatenations = [...concatenations];
-            TableService.applyFilters(filterList, concatenations);
-            dispatch('filterApplied');
-          }}
-        >
-          <CancelButton />
+        <div class="flex justify-between p-2">
+          <div class="text-lg">Filter settings:</div>
+          <div
+            on:click={() => {
+              filterList = filterList.filter((e) => e !== filter);
+              concatenations.splice(index, 1);
+              concatenations = [...concatenations];
+              TableService.applyFilters(filterList, concatenations);
+              dispatch('filterApplied');
+            }}
+          >
+            <CancelButton />
+          </div>
         </div>
-        <div class="text-lg pl-2 pt-2 pb-2">Select the filters:</div>
-        <div class="h-0.5 bg-neutral-200 order-2" />
         <div class="pl-2 pt-2 flex-row justify-between items-stretch">
           <select
             class="h-10 text-lg rounded-sm"
             bind:value={filter.toBeFilteredOn}
             on:input={() => (filter.arqueroQueryManuallyEdited = false)}
           >
-            <option value="" disabled selected>to filter</option>
             {#each categories as cat}
               <option value={cat}>{cat}</option>
             {/each}
@@ -114,16 +113,6 @@
             focus:ring-hie-orange focus:ring-2 w-2/5 placeholder:italic placeholder:text-slate-400 pl-2"
             placeholder="Insert class"
             list="filterColumns"
-            type="text"
-          />
-        </div>
-        <div class="pl-2 pt-2 pr-4">
-          <input
-            bind:value={filter.arqueroQuery}
-            on:input={() => (filter.arqueroQueryManuallyEdited = true)}
-            class="pr-2 rounded-sm h-10 bg-neutral-200 focus:outline-none focus:border-hie-orange 
-        focus:ring-hie-orange focus:ring-2 w-full placeholder:italic placeholder:text-slate-400 pl-2"
-            placeholder="Arquero Query"
             type="text"
           />
         </div>
@@ -155,27 +144,27 @@
         </div>
       {/if}
     {/each}
-    <div class="text-left overflow-x-hidden">
+  </div>
+  <div class="flex justify-between">
+    <button
+      class="bg-hie-orange hover:bg-hie-red text-white font-bold py-2 px-4 rounded pt-2"
+      on:click={() => {
+        addFilter(categories[0], '==', '', '', false);
+        addConcatenation(false);
+      }}
+    >
+      ADD FILTER
+    </button>
+    {#if filterList.length > 0}
       <button
-        class="bg-hie-orange hover:bg-hie-red text-white font-bold py-2 px-4 rounded pt-2"
+        class="border-2 border-slate-400 hover:bg-slate-400 hover:text-white text-black font-bold py-2 px-4 rounded"
         on:click={() => {
-          addFilter('', '==', '', '', false);
-          addConcatenation(false);
+          TableService.applyFilters(filterList, concatenations);
+          dispatch('filterApplied');
         }}
       >
-        ADD FILTER
+        {filterList.length === 1 ? 'APPLY FILTER' : 'APPLY FILTERS'}
       </button>
-      {#if filterList.length > 0}
-        <button
-          class="border-2 border-slate-400 hover:bg-slate-400 hover:text-white text-black font-bold py-2 px-4 rounded"
-          on:click={() => {
-            TableService.applyFilters(filterList, concatenations);
-            dispatch('filterApplied');
-          }}
-        >
-          {filterList.length === 1 ? 'APPLY FILTER' : 'APPLY FILTERS'}
-        </button>
-      {/if}
-    </div>
+    {/if}
   </div>
 </div>
