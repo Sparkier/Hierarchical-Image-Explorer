@@ -15,7 +15,7 @@ from PIL import Image
 import util
 import pandas as pd
 import h5py
-
+import time
 
 def export_images(image_dir, dataset):
     """Helper function to save images from a dataset.
@@ -222,7 +222,7 @@ if __name__ == "__main__":
         if not activations_path.exists():
             ds, feature_extractor = setup_feature_extraction_model(
                 ds, args.feature_extraction_model, args.feature_extraction_model_layer)
-
+            activations_path.parent.mkdir(parents=True, exist_ok=True)
             with h5py.File(activations_path, 'w') as file_handle:
                 features = feature_extractor.predict(ds.take(1).batch(1))
                 total_num_inputs = ds.cardinality().numpy()
@@ -234,7 +234,8 @@ if __name__ == "__main__":
                 dset = file_handle.create_dataset(
                     "activations", output_shape, compression="gzip", chunks=chunk_size)
                 iterator = 0
-                for batch in ds.batch(128).cache().prefetch(tf.data.AUTOTUNE):
+                start = time.time()
+                for batch in ds.batch(128).prefetch(tf.data.AUTOTUNE):
                     num_inputs = batch.shape[0]
                     features = feature_extractor.predict(batch)
                     flattened = np.reshape(features,
@@ -243,14 +244,15 @@ if __name__ == "__main__":
                     dset[iterator:iterator+num_inputs] = flattened
                     iterator += num_inputs
                     print(f"Processed {iterator}/{total_num_inputs}")
-
+                print(f'Time to process {total_num_inputs}: {time.time()-start:.2f}')   
+        projections_2d_path = output_dir / \
+            f"{swg_name}_{args.projection_method}.arrow"
         with h5py.File(activations_path, 'r') as f_act:
             features = f_act["activations"]
             embedding = util.project_2d(features, args.projection_method)
         data_frame = pd.DataFrame({"id": swg_dict["image_id"],
                                 "x": embedding[:, 0], "y": embedding[:, 1]})
-        projections_2d_path = output_dir / \
-            f"{swg_name}_{args.projection_method}.arrow"
+
         util.save_points_data(projections_2d_path, data_frame)
 
         config = {"swg": f"{output_dir}/{swg_name}.arrow",
