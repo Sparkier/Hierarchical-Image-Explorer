@@ -89,7 +89,7 @@ def extract_convert_cifar(destination, img_root, dataset):
     # unpickle cifar
     archives = (datapath).glob("*")
     for file in archives:
-        if(file.suffix != "" or not file.is_file()):
+        if (file.suffix != "" or not file.is_file()):
             continue
         unpickeled = unpickle(file)
         for i, img in enumerate(unpickeled[b'data']):
@@ -147,6 +147,7 @@ def generate_annotations_from_folders(destination, dataset, store_csv):
     swg_dict = {"image_id": ids, "file_path": file_paths, "label": labels}
     data_provider_util.write_data_table(Path(destination, dataset), store_csv, swg_name, swg_dict)
 
+
 def generate_annotations(destination, dataset, store_csv):
     """Determines the correct function to generate annotations"""
     print("Generating annotations")
@@ -173,7 +174,7 @@ if __name__ == "__main__":
         help='Stores the metadata as csv in addition to arrow',
         action='store_true',)
     args = parser.parse_args()
-    if not DATASET_OPTIONS in args.dataset:
+    if not args.dataset in map(lambda e: e['name'], datasets):
         sys.exit("Dataset must be one of: " + DATASET_OPTIONS)
     dataset_selected = list(
         filter(lambda e: e["name"] == args.dataset, datasets))[0]
