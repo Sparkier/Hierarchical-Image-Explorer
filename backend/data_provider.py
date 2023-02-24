@@ -1,14 +1,13 @@
 """Module that downloads datasets and generates corresponding swg-files"""
 import argparse
-import sys
-import tarfile
 import pickle
-from pathlib import Path
+import tarfile
 import urllib.request
 import zipfile
-from PIL import Image
-import data_provider_util
+from pathlib import Path
 
+import util
+from PIL import Image
 
 datasets = [
     {"name": "mnist_test",
@@ -33,6 +32,12 @@ datasets = [
      "filetype": "cifar",
      "img_root": "cifar-10-batches-py",
      "label_source": "folder",
+     "id_source": "filename"},
+    {"name": "imagenet2012",
+     "split": "train",
+     "url": "D:/data/tensorflow_datasets/imagenet2012/train",
+     "filetype": "folder",
+     "label_source": "folder",
      "id_source": "filename"}
 ]
 
@@ -42,13 +47,15 @@ TMP_ARCHIVE_NAME = "downloaded_archive"
 def download_file(url, filetype):
     """Downloads a file from a given url"""
     print("Downloading Data")
-    urllib.request.urlretrieve(url, TMP_ARCHIVE_NAME + "." + filetype)
+    if not Path(url).exists():
+        urllib.request.urlretrieve(url, TMP_ARCHIVE_NAME + "." + filetype)
 
 
 def delete_file(filename):
     """Deletes a given file"""
     print("Cleaning up")
-    Path(filename).unlink()
+    if Path(filename).exists():
+        Path(filename).unlink()
 
 
 def extract_file_zip(destination, img_root):
@@ -89,7 +96,7 @@ def extract_convert_cifar(destination, img_root, dataset):
     # unpickle cifar
     archives = (datapath).glob("*")
     for file in archives:
-        if(file.suffix != "" or not file.is_file()):
+        if (file.suffix != "" or not file.is_file()):
             continue
         unpickeled = unpickle(file)
         for i, img in enumerate(unpickeled[b'data']):
@@ -101,34 +108,39 @@ def extract_convert_cifar(destination, img_root, dataset):
                 unpickeled[b'filenames'][i].decode("utf-8").replace(".png", ".jpg"))
 
 
-def extract_file(filetype, destination, img_root, dataset):
+def extract_file(filetype, destination, dataset):
     """Determines the correct function to extract an archive"""
     print("Extracting archive")
     if filetype == "zip":
-        extract_file_zip(destination, img_root)
+        extract_file_zip(destination, dataset["img_root"])
     if filetype in ("tgz", "tar", "tar.gz"):
-        extract_file_tgz(destination, img_root, filetype)
+        extract_file_tgz(destination, dataset["img_root"], filetype)
     if filetype == "cifar":
-        extract_convert_cifar(destination, img_root, dataset)
+        extract_convert_cifar(destination, dataset["img_root"], dataset)
 
 
 def download_and_extract(dataset, destination):
     """Downloads extracts and removes the archive"""
     download_file(dataset["url"], dataset["filetype"])
     extract_file(dataset["filetype"], destination + "/" +
-                 dataset["name"] + "/", dataset["img_root"], dataset)
+                 dataset["name"] + "/", dataset)
     delete_file(TMP_ARCHIVE_NAME + "." + dataset["filetype"])
 
 
 def generate_annotations_from_folders(destination, dataset, store_csv):
     """Generates a swg file based on the folder structure of a dataset"""
-    swg_name = dataset["name"]
+    if "split" in dataset:
+        swg_name = f'{dataset["name"]}_{dataset["split"]}'
+    else:
+        swg_name = f'{dataset["name"]}'
     ids = []
     file_paths = []
     labels = []
+    if "img_root" in dataset:
+        class_names = Path(destination, dataset["name"], dataset["img_root"]).glob("*")
+    else:
+        class_names = Path(dataset["url"]).glob("*")
 
-    class_names = Path(
-        Path(destination) / dataset["name"] / dataset["img_root"]).glob("*")
     generated_id = 0
     for class_name in class_names:
         if Path(class_name).is_file():
@@ -145,7 +157,8 @@ def generate_annotations_from_folders(destination, dataset, store_csv):
             labels.append(class_name.name)
             generated_id += 1
     swg_dict = {"image_id": ids, "file_path": file_paths, "label": labels}
-    data_provider_util.write_data_table(Path(destination, dataset), store_csv, swg_name, swg_dict)
+    util.write_data_table(Path(destination, dataset["name"]), store_csv, swg_name, swg_dict)
+
 
 def generate_annotations(destination, dataset, store_csv):
     """Determines the correct function to generate annotations"""
@@ -158,9 +171,9 @@ if __name__ == "__main__":
     # pylint: disable=duplicate-code
 
     parser = argparse.ArgumentParser()
-    DATASET_OPTIONS = str(list(map(lambda e: e["name"], datasets)))
-    parser.add_argument('dataset', type=str,
-                        help='the dataset to download one of: ' + DATASET_OPTIONS)
+    DATASET_OPTIONS = [item["name"] for item in datasets]
+    parser.add_argument('dataset', choices=DATASET_OPTIONS,
+                        help=f"the dataset to download one of {','.join(DATASET_OPTIONS)}")
     parser.add_argument(
         '-p',
         '--path',
@@ -173,9 +186,8 @@ if __name__ == "__main__":
         help='Stores the metadata as csv in addition to arrow',
         action='store_true',)
     args = parser.parse_args()
-    if not DATASET_OPTIONS in args.dataset:
-        sys.exit("Dataset must be one of: " + DATASET_OPTIONS)
     dataset_selected = list(
         filter(lambda e: e["name"] == args.dataset, datasets))[0]
+    print(f"Preparing dataset: {dataset_selected}")
     download_and_extract(dataset_selected, args.path)
     generate_annotations(args.path, dataset_selected, args.store_csv)

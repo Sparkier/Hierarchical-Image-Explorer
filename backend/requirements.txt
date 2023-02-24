@@ -9,3 +9,4 @@ keras
 hdbscan
 umap-learn
 pyarrow
+piq

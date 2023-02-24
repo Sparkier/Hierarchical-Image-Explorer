@@ -1,17 +1,16 @@
 """Collection of image processing techniques"""
 import argparse
-from pathlib import Path
-import sys
 import json
-import pandas as pd
-from sklearn.manifold import TSNE
-import tensorflow as tf
-from tensorflow import keras
-from keras.models import Model
-import numpy as np
-import umap
-import pyarrow as pa
+import sys
+from pathlib import Path
 
+import numpy as np
+import pandas
+import pyarrow as pa
+import tensorflow as tf
+import util
+from keras.models import Model
+from tensorflow import keras
 
 
 def read_annotations(swg_path):
@@ -39,21 +38,6 @@ def load_images_from_annotations(annotations, resolution=128):
     return images
 
 
-def save_points_data(out_name, points_df):
-    """Saves dataframe to given path"""
-    schema = pa.Schema.from_pandas(points_df, preserve_index=False)
-    table = pa.Table.from_pandas(points_df, preserve_index=False)
-
-    writer = pa.ipc.new_file(out_name, schema)
-    writer.write(table)
-    writer.close()
-
-
-def pixels_to_features(images):
-    """squeezes pixels of an image into a single dimension"""
-    return map(lambda img: np.array(img).flatten(), images)
-
-
 def extract_features_vgg_16(images):
     """Takes in images as pixel data and runs a vgg-16
        pretrained on imagenet as a feature extractor"""
@@ -70,36 +54,13 @@ def extract_features_vgg_16(images):
     return image_features
 
 
-def embedding_to_df(embedding, ids):
-    """converts a 2d array of coordinates and ids to a dataframe"""
-    data_frame = pd.DataFrame()
-    data_frame["id"] = ids
-    data_frame["x"] = embedding[:, 0]
-    data_frame["y"] = embedding[:, 1]
-    return data_frame
-
-
-def run_tsne(features, ids):
-    """Runs t-sne on a given feature list. Returns a dataframe with id and coordinates"""
-    tsne = TSNE(n_components=2, verbose=1, random_state=222, perplexity=32)
-    tsne_output = tsne.fit_transform(features)
-    return embedding_to_df(tsne_output, ids)
-
-
-def run_umap(features, ids):
-    """Runs umap on a given feature list"""
-    reducer = umap.UMAP()
-    embedding = reducer.fit_transform(features)
-    return embedding_to_df(embedding, ids)
-
-
 def run_feature_extraction(encoding_method, annotations):
     """if args contains a set flag runs the
     corresponding feature extraction and returns a feature list"""
     features = None
     if encoding_method is not None:
         if encoding_method == "pixels":
-            features = map(lambda img: img.tolist(), pixels_to_features(
+            features = map(lambda img: img.tolist(), util.pixels_to_features(
                 load_images_from_annotations(annotations)))
             features = list(features)
         elif encoding_method == "vgg-16":
@@ -115,22 +76,19 @@ def run_feature_extraction(encoding_method, annotations):
 
 
 def run_dimensionality_reduction(dimensionality_reduction_method, annotations,
-                                features, out_dir, out_name):
+                                 features, out_dir, out_name):
     """if args contains a flag runs the
     corresponding dimensionality reduction"""
     if dimensionality_reduction_method is not None:
         if features is None:
             sys.exit("Running dimensionality reduction requires a feature set. \
                 Please provide either a metric or a path to a previously generated feature list")
-        ids = annotations.column("image_id")
         out_path = out_dir / f"{out_name}_{dimensionality_reduction_method}.arrow"
-        if dimensionality_reduction_method == "t-sne":
-            points_df = run_tsne(features, ids)
-        elif dimensionality_reduction_method == "umap":
-            points_df = run_umap(features, ids)
-        else:
-            sys.exit("unknown dimensionality reduction method")
-        save_points_data(out_path, points_df)
+        embedding = util.project_2d(features, args.projection_method)
+        points_df = pandas.DataFrame({"id": annotations["image_id"],
+                                     "x": embedding[0],
+                                      "y": embedding[1]})
+        util.save_points_data(out_path, points_df)
     return out_path
 
 
