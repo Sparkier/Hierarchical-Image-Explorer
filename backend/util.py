@@ -1,17 +1,17 @@
 """ Utility functions for data providers. """
-from pathlib import Path
-import itertools
 import csv
-import pyarrow as pa
-import pandas as pd
-import umap
-from sklearn.manifold import TSNE
-import numpy as np
-from PIL import Image
+import itertools
+from pathlib import Path
 
-from torchvision import transforms
-import torch
+import numpy as np
+import pandas as pd
 import piq
+import pyarrow as pa
+import torch
+import umap
+from PIL import Image
+from sklearn.manifold import TSNE
+from torchvision import transforms
 
 
 def write_data_table(destination, store_csv, swg_name, data_dict):
@@ -71,8 +71,8 @@ def project_2d(X, method="umap"):
                          random_state=222, perplexity=32)
     # The array must be flattened
     X_2d = np.reshape(X,
-             [X.shape[0],
-             np.prod(X.shape[1:])])
+                      [X.shape[0],
+                       np.prod(X.shape[1:])])
     embedding = projector.fit_transform(X_2d)
     return embedding
 
@@ -110,6 +110,7 @@ def brisque_score(image_path: Path):
     brisque_index: torch.Tensor = piq.brisque(
         img_normalized, data_range=1., reduction='none')
     return brisque_index.item()
+
 
 def export_image_quality(image_paths: iter, out_path):
     """Compute Brisque image quality and save DataFrame with its associated file name as image_id.

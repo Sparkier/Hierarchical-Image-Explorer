@@ -1,14 +1,13 @@
 """Module that downloads datasets and generates corresponding swg-files"""
 import argparse
-import sys
-import tarfile
 import pickle
-from pathlib import Path
+import tarfile
 import urllib.request
 import zipfile
-from PIL import Image
-import util
+from pathlib import Path
 
+import util
+from PIL import Image
 
 datasets = [
     {"name": "mnist_test",
@@ -35,7 +34,7 @@ datasets = [
      "label_source": "folder",
      "id_source": "filename"},
     {"name": "imagenet2012",
-     "split" : "train",
+     "split": "train",
      "url": "D:/data/tensorflow_datasets/imagenet2012/train",
      "filetype": "folder",
      "label_source": "folder",
@@ -97,7 +96,7 @@ def extract_convert_cifar(destination, img_root, dataset):
     # unpickle cifar
     archives = (datapath).glob("*")
     for file in archives:
-        if(file.suffix != "" or not file.is_file()):
+        if (file.suffix != "" or not file.is_file()):
             continue
         unpickeled = unpickle(file)
         for i, img in enumerate(unpickeled[b'data']):
@@ -141,7 +140,7 @@ def generate_annotations_from_folders(destination, dataset, store_csv):
         class_names = Path(destination, dataset["name"], dataset["img_root"]).glob("*")
     else:
         class_names = Path(dataset["url"]).glob("*")
-   
+
     generated_id = 0
     for class_name in class_names:
         if Path(class_name).is_file():
@@ -159,6 +158,7 @@ def generate_annotations_from_folders(destination, dataset, store_csv):
             generated_id += 1
     swg_dict = {"image_id": ids, "file_path": file_paths, "label": labels}
     util.write_data_table(Path(destination, dataset["name"]), store_csv, swg_name, swg_dict)
+
 
 def generate_annotations(destination, dataset, store_csv):
     """Determines the correct function to generate annotations"""

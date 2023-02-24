@@ -1,15 +1,16 @@
 """Collection of image processing techniques"""
 import argparse
-from pathlib import Path
-import sys
 import json
-import tensorflow as tf
-from tensorflow import keras
-from keras.models import Model
+import sys
+from pathlib import Path
+
 import numpy as np
-import pyarrow as pa
-import util
 import pandas
+import pyarrow as pa
+import tensorflow as tf
+import util
+from keras.models import Model
+from tensorflow import keras
 
 
 def read_annotations(swg_path):
@@ -37,21 +38,6 @@ def load_images_from_annotations(annotations, resolution=128):
     return images
 
 
-def save_points_data(out_name, points_df):
-    """Saves dataframe to given path"""
-    schema = pa.Schema.from_pandas(points_df, preserve_index=False)
-    table = pa.Table.from_pandas(points_df, preserve_index=False)
-
-    writer = pa.ipc.new_file(out_name, schema)
-    writer.write(table)
-    writer.close()
-
-
-def pixels_to_features(images):
-    """squeezes pixels of an image into a single dimension"""
-    return map(lambda img: np.array(img).flatten(), images)
-
-
 def extract_features_vgg_16(images):
     """Takes in images as pixel data and runs a vgg-16
        pretrained on imagenet as a feature extractor"""
@@ -68,18 +54,13 @@ def extract_features_vgg_16(images):
     return image_features
 
 
-
-
-
-
-
 def run_feature_extraction(encoding_method, annotations):
     """if args contains a set flag runs the
     corresponding feature extraction and returns a feature list"""
     features = None
     if encoding_method is not None:
         if encoding_method == "pixels":
-            features = map(lambda img: img.tolist(), pixels_to_features(
+            features = map(lambda img: img.tolist(), util.pixels_to_features(
                 load_images_from_annotations(annotations)))
             features = list(features)
         elif encoding_method == "vgg-16":
@@ -95,7 +76,7 @@ def run_feature_extraction(encoding_method, annotations):
 
 
 def run_dimensionality_reduction(dimensionality_reduction_method, annotations,
-                                features, out_dir, out_name):
+                                 features, out_dir, out_name):
     """if args contains a flag runs the
     corresponding dimensionality reduction"""
     if dimensionality_reduction_method is not None:
@@ -106,7 +87,7 @@ def run_dimensionality_reduction(dimensionality_reduction_method, annotations,
         embedding = util.project_2d(features, args.projection_method)
         points_df = pandas.DataFrame({"id": annotations["image_id"],
                                      "x": embedding[0],
-                                     "y": embedding[1]})
+                                      "y": embedding[1]})
         util.save_points_data(out_path, points_df)
     return out_path
 

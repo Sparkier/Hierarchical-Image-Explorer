@@ -5,17 +5,17 @@
 import argparse
 import json
 import os
+import time
 from pathlib import Path
-import pickle
 
+import h5py
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from PIL import Image
 import util
-import pandas as pd
-import h5py
-import time
+from PIL import Image
+
 
 def export_images(image_dir, dataset):
     """Helper function to save images from a dataset.
@@ -48,6 +48,14 @@ def export_images(image_dir, dataset):
 
 
 def model_preprocessing(data_set):
+    """Preprocess the data so it can be used with a model.
+
+    Args:
+        data_set (Tensorflow.DataSet): Data set that will be prepared for use with a model.
+
+    Returns:
+       Keras.Layer, Tensorflow.DataSet : Input layer to the model and preprocessing ops for data.
+    """
     inputs = tf.keras.layers.Input(shape=data_set.element_spec.shape.as_list())
     if data_set.element_spec.shape[-1] == 1:
         preprocessing = tf.image.grayscale_to_rgb(inputs)
@@ -63,7 +71,7 @@ def setup_feature_extraction_model(data_set, model, layer):
         data_set (Tensorflow.DataSet): Data set that will be used for prediction.
 
     Returns:
-        Keras.Model: Mode
+        Keras.Model: Model
     """
     def resize_images(images, image_size):
         return tf.image.resize(images, image_size)
@@ -148,11 +156,11 @@ def convert_tfds_data_set(data_set, split, data_path):
 
     image_quality_path = Path(image_dir, "image_quality.pkl")
     if image_quality_path.exists():
-        #util.export_image_quality(image_dir.glob('*.jpeg'), image_quality_path)
+        # util.export_image_quality(image_dir.glob('*.jpeg'), image_quality_path)
         # Dataframe with image_id and image quality
         imge_quality_df = pd.read_pickle(image_quality_path)
         data_dict = pd.merge(pd.DataFrame(data_dict), imge_quality_df,
-                            on="image_id", how="left").to_dict('list')
+                             on="image_id", how="left").to_dict('list')
 
     return data_dict
 
@@ -215,10 +223,11 @@ if __name__ == "__main__":
     swg_name = f"{args.dataset}_{args.split}"
 
     if args.feature_extraction_model:
-        swg_name = f"{swg_name}_{args.feature_extraction_model}_{args.feature_extraction_model_layer}"
-        activations_path = Path("cache", args.feature_extraction_model,
-                                args.dataset,
-                                f"activations_{args.split}_{args.feature_extraction_model_layer}.h5")
+        swg_name = f"{swg_name}_{args.feature_extraction_model}_\
+            {args.feature_extraction_model_layer}"
+        activations_path = Path(
+            "cache", args.feature_extraction_model, args.dataset,
+            f"activations_{args.split}_{args.feature_extraction_model_layer}.h5")
         if not activations_path.exists():
             ds, feature_extractor = setup_feature_extraction_model(
                 ds, args.feature_extraction_model, args.feature_extraction_model_layer)
@@ -233,25 +242,25 @@ if __name__ == "__main__":
                 chunk_size = tuple([num_activations_in_one_mb] + output_shape[1:])
                 dset = file_handle.create_dataset(
                     "activations", output_shape, compression="gzip", chunks=chunk_size)
-                iterator = 0
+                ITERATOR = 0
                 start = time.time()
                 for batch in ds.batch(128).prefetch(tf.data.AUTOTUNE):
                     num_inputs = batch.shape[0]
                     features = feature_extractor.predict(batch)
                     flattened = np.reshape(features,
-                                [features.shape[0],
-                                np.prod(features.shape[1:])])
-                    dset[iterator:iterator+num_inputs] = flattened
-                    iterator += num_inputs
-                    print(f"Processed {iterator}/{total_num_inputs}")
-                print(f'Time to process {total_num_inputs}: {time.time()-start:.2f}')   
+                                           [features.shape[0],
+                                            np.prod(features.shape[1:])])
+                    dset[ITERATOR:ITERATOR+num_inputs] = flattened
+                    ITERATOR = ITERATOR + num_inputs
+                    print(f"Processed {ITERATOR}/{total_num_inputs}")
+                print(f'Time to process {total_num_inputs}: {time.time()-start:.2f}')
         projections_2d_path = output_dir / \
             f"{swg_name}_{args.projection_method}.arrow"
         with h5py.File(activations_path, 'r') as f_act:
             features = f_act["activations"]
             embedding = util.project_2d(features, args.projection_method)
         data_frame = pd.DataFrame({"id": swg_dict["image_id"],
-                                "x": embedding[:, 0], "y": embedding[:, 1]})
+                                   "x": embedding[:, 0], "y": embedding[:, 1]})
 
         util.save_points_data(projections_2d_path, data_frame)
 
