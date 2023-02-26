@@ -30,9 +30,11 @@
   export let maxHeight: number;
   export let initialDataHeight: number = 0;
   export let initialDataWidth: number = 0;
-  // export const updateQuantizationDataExportFunction: () => void = () => {
-  //   requantizeData(levelOfDetail, initialColumns);
-  // };
+  export const updateQuantizationDataExportFunction: () => void = () => {
+    TableService.updateQuantizationGlobalFiltered(
+      initialColumns * 2 ** levelOfDetail
+    );
+  };
 
   const hexaShortDiag = Math.sqrt(3) / 2;
 
