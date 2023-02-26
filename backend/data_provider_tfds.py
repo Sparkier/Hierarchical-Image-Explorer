@@ -78,7 +78,6 @@ def setup_feature_extraction_model(data_set, model, layer):
     elif model == "Xception-malaria":
         model_path = "models/Xception-malaria.keras"
         model = tf.keras.models.load_model(model_path)
-        # model = tf.saved_model.load(model_path)
         if layer == "":
             layer = "global_average_pooling2d"
     print(model.summary())
