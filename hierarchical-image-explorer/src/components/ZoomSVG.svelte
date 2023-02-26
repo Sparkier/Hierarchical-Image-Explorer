@@ -6,8 +6,8 @@
 
   export let viewBox = '0 0 300 150'; // default svg height and width
   export let zoomLevel = 1;
-  export let g;
-  export let svg;
+  export let g = undefined;
+  export let svg = undefined;
   export let selectionModeOn = false;
 
   let transform = [0, 0];
