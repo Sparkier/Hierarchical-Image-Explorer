@@ -1,19 +1,19 @@
 <script lang="ts">
-  import BackendService from '../../services/backendService';
-  import Accumulator from '../Accumulator.svelte';
-  import { onDestroy, onMount } from 'svelte';
-  import ImgView from '../minis/ImgView.svelte';
-  import GroupView from '../minis/GroupView.svelte';
-  import { DEFAULT_SETTINGS } from '../../config';
-  import type { SettingsObject } from '../../types';
-  import Minimap from '../minis/Minimap.svelte';
   import * as aq from 'arquero';
-  import { TableService } from '../../services/tableService';
-  import RightSidebar from '../minis/RightSidebar.svelte';
-  import { colorPropertyType, currentQuantization } from '../../stores';
-  import { getTotalSelectionSize } from '../../services/arqueroUtils';
+  import { onDestroy, onMount } from 'svelte';
   import { ArraySet } from '../../ArraySet';
+  import { DEFAULT_SETTINGS } from '../../config';
+  import { getTotalSelectionSize } from '../../services/arqueroUtils';
+  import BackendService from '../../services/backendService';
+  import { TableService } from '../../services/tableService';
+  import { colorPropertyType, currentQuantization } from '../../stores';
+  import type { SettingsObject } from '../../types';
+  import Accumulator from '../Accumulator.svelte';
   import ColorScaleLegend from '../minis/ColorScaleLegend.svelte';
+  import GroupView from '../minis/GroupView.svelte';
+  import ImgView from '../minis/ImgView.svelte';
+  import Minimap from '../minis/Minimap.svelte';
+  import RightSidebar from '../minis/RightSidebar.svelte';
 
   export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
 
@@ -51,6 +51,7 @@
   let tableIsSet: boolean = false;
   let windowInnerHeight: number | undefined;
   let accHeight: number | undefined;
+  let updateQuantizationDataExportFunction: () => void;
 
   const borderWidth: number = 2;
 
@@ -137,6 +138,7 @@
         bind:bottomrightSVGPoint={accBottomRightCorner}
         bind:initialDataWidth={accSvgWidth}
         bind:initialDataHeight={accSvgHeight}
+        bind:updateQuantizationDataExportFunction
       />
     </div>
     <RightSidebar on:filterApplied={updateQuantizationDataExportFunction} />

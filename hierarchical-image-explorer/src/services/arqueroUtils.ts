@@ -12,7 +12,10 @@ import type { ArraySet } from '../ArraySet';
 export function quantizationRollup(
   table: ColumnTable,
   hexagonPropertiesMap: HexagonPropertiesMap
-): ColumnTable {
+): ColumnTable | undefined {
+  if (table.numRows() === 0) {
+    return undefined;
+  }
   return table.groupby('quantization').rollup({
     quantization: (d: { quantization: [number, number] }) =>
       aq.op.any(d.quantization),
