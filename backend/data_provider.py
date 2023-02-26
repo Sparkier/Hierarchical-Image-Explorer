@@ -1,4 +1,4 @@
-"""Module that downloads datasets and generates corresponding swg-files"""
+"""Module that downloads datasets and generates corresponding arrow tables"""
 import argparse
 import pickle
 import tarfile
@@ -128,11 +128,11 @@ def download_and_extract(dataset, destination):
 
 
 def generate_annotations_from_folders(destination, dataset, store_csv):
-    """Generates a swg file based on the folder structure of a dataset"""
+    """Generates a arrow file based on the folder structure of a dataset"""
     if "split" in dataset:
-        swg_name = f'{dataset["name"]}_{dataset["split"]}'
+        arrow_name = f'{dataset["name"]}_{dataset["split"]}'
     else:
-        swg_name = f'{dataset["name"]}'
+        arrow_name = f'{dataset["name"]}'
     ids = []
     file_paths = []
     labels = []
@@ -156,8 +156,8 @@ def generate_annotations_from_folders(destination, dataset, store_csv):
             file_paths.append(str(file))
             labels.append(class_name.name)
             generated_id += 1
-    swg_dict = {"image_id": ids, "file_path": file_paths, "label": labels}
-    util.write_data_table(Path(destination, dataset["name"]), store_csv, swg_name, swg_dict)
+    arrow_dict = {"image_id": ids, "file_path": file_paths, "label": labels}
+    util.write_data_table(Path(destination, dataset["name"]), store_csv, arrow_name, arrow_dict)
 
 
 def generate_annotations(destination, dataset, store_csv):
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '-p',
         '--path',
-        help='Path to download the images to and generate the swg file in',
+        help='Path to download the images to and generate the arrow file in',
         default="data/",
         type=str)
     parser.add_argument(

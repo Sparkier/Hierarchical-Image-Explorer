@@ -1,5 +1,5 @@
 {
-  "swg": "./data/cifar-10/cifar-10.arrow",
+  "table": "./data/cifar-10/cifar-10.arrow",
   "points2d": "./data/cifar-10/cifar-10_umap.arrow",
   "imgDataRoot": "../"
 }

@@ -1,5 +1,5 @@
 {
-  "swg": "./data/flowers/flowers.arrow",
+  "table": "./data/flowers/flowers.arrow",
   "points2d": "./data/flowers/flowers__umap.arrow",
   "imgDataRoot": "../"
 }

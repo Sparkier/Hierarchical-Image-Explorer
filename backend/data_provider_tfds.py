@@ -218,12 +218,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     ds, dataset_info = get_tfds_image_data_set(
         args.dataset, args.split, args.data_path)
-    swg_dict = convert_tfds_data_set(args.dataset, args.split, args.data_path)
     output_dir = Path(args.out_dir, args.dataset)
-    swg_name = f"{args.dataset}_{args.split}"
+    data_name = f"{args.dataset}_{args.split}"
 
     if args.feature_extraction_model:
-        swg_name = f"{swg_name}_{args.feature_extraction_model}_\
+        data_name = f"{data_name}_{args.feature_extraction_model}_\
             {args.feature_extraction_model_layer}"
         activations_path = Path(
             "cache", args.feature_extraction_model, args.dataset,
@@ -255,23 +254,24 @@ if __name__ == "__main__":
                     print(f"Processed {ITERATOR}/{total_num_inputs}")
                 print(f'Time to process {total_num_inputs}: {time.time()-start:.2f}')
         projections_2d_path = output_dir / \
-            f"{swg_name}_{args.projection_method}.arrow"
+            f"{data_name}_{args.projection_method}.arrow"
         with h5py.File(activations_path, 'r') as f_act:
             features = f_act["activations"]
             embedding = util.project_2d(features, args.projection_method)
-        data_frame = pd.DataFrame({"id": swg_dict["image_id"],
+        data_frame = pd.DataFrame({"id": data_dict["image_id"],
                                    "x": embedding[:, 0], "y": embedding[:, 1]})
 
         util.save_points_data(projections_2d_path, data_frame)
 
-        config = {"swg": f"{output_dir}/{swg_name}.arrow",
+        config = {"table": f"{output_dir}/{data_name}.arrow",
                   "points2d": str(projections_2d_path), "imgDataRoot": ""}
 
         config_path = Path(
-            "configurations", f"config_{swg_name}_{args.projection_method}.json")
+            "configurations", f"config_{data_name}_{args.projection_method}.json")
         config_path.parent.mkdir(parents=True, exist_ok=True)
         with open(config_path, "w", encoding="utf-8") as config_file:
             json.dump(config, config_file)
 
-    util.write_data_table(output_dir, args.store_csv,
-                          swg_name, swg_dict)
+    util.write_data_table(
+        output_dir, args.store_csv, data_name,
+        convert_tfds_data_set(args.dataset, args.split, args.data_path))

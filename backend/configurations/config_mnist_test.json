@@ -1,5 +1,5 @@
 {
-  "swg": "./data/mnist/mnist_test.arrow",
+  "table": "./data/mnist/mnist_test.arrow",
   "points2d": "./data/mnist/mnist_test_umap.arrow",
   "imgDataRoot": ""
 }
