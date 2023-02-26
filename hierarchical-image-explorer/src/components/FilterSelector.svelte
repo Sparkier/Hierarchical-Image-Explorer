@@ -40,7 +40,6 @@
   function updateArqueroQueries(filterList: filterDescriptor[]) {
     filterList.map((e) => {
       if (e.arqueroQueryManuallyEdited) return e;
-      const newFilter = e;
       e.arqueroQuery = `d.${e.toBeFilteredOn} ${e.comparator} `;
       if (categories.includes(e.valueToBeComparedTo)) {
         e.arqueroQuery += `d.${e.valueToBeComparedTo}`;
@@ -88,7 +87,6 @@
           <select
             class="h-10 text-lg rounded-sm"
             bind:value={filter.toBeFilteredOn}
-            on:input={() => (filter.arqueroQueryManuallyEdited = false)}
           >
             {#each categories as cat}
               <option value={cat}>{cat}</option>
@@ -97,7 +95,6 @@
           <select
             class="h-10 rounded-sm text-lg"
             bind:value={filter.comparator}
-            on:input={() => (filter.arqueroQueryManuallyEdited = false)}
           >
             <option value="<="> ≤ </option>
             <option value=">="> ≥ </option>
@@ -108,7 +105,6 @@
           </select>
           <input
             bind:value={filter.valueToBeComparedTo}
-            on:input={() => (filter.arqueroQueryManuallyEdited = false)}
             class="pr-2 rounded-sm h-10 bg-neutral-200 focus:outline-none focus:border-hie-orange 
             focus:ring-hie-orange focus:ring-2 w-2/5 placeholder:italic placeholder:text-slate-400 pl-2"
             placeholder="Insert class"

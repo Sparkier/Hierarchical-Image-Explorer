@@ -161,10 +161,9 @@
       if (initialDataWidth == 0) initialDataWidth = maxWidth;
     }
 
-    lodDatagons = quantizationRollup(
-      lodQuantization,
-      $hexagonPropertiesMap
-    ).objects() as DerivedHexagon[];
+    const rollup = quantizationRollup(lodQuantization, $hexagonPropertiesMap);
+    lodDatagons =
+      rollup === undefined ? [] : (rollup.objects() as DerivedHexagon[]);
   }
 
   /**
