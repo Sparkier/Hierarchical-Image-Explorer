@@ -120,14 +120,14 @@ def get_tfds_image_data_set(data_set, split, data_path):
     Returns:
         tensorflow.DataSet, tfds.core.DatasetInfo: Image DataSet and its info.
     """
-    data, ds_stats = tfds.load(
+    data_items, ds_stats = tfds.load(
         data_set, split=split, shuffle_files=False, with_info=True, data_dir=data_path)
-    return data.map(lambda elem: elem['image']), ds_stats
+    return data_items.map(lambda elem: elem['image']), ds_stats
 
 
 def convert_tfds_data_set(data_set, split, data_path):
     """Potentially download a tensorflow datasets dataset and extract its images and labels. """
-    data, ds_stats = tfds.load(
+    data_items, ds_stats = tfds.load(
         data_set, split=split, shuffle_files=False, with_info=True, data_dir=data_path)
     image_dir = Path(data_path, data_set, split)
 
@@ -137,7 +137,7 @@ def convert_tfds_data_set(data_set, split, data_path):
     # Required entries
     data_dict = {"image_id": [], "file_path": []}
 
-    for row_idx, row in enumerate(data):
+    for row_idx, row in enumerate(data_items):
         if "id" in row:
             file_name = row['id'].numpy().decode("utf-8") + ".jpeg"
         elif "file_name" in row:
@@ -218,7 +218,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     ds, dataset_info = get_tfds_image_data_set(
         args.dataset, args.split, args.data_path)
-    data_set = convert_tfds_data_set(args.dataset, args.split, args.data_path)
+    data = convert_tfds_data_set(args.dataset, args.split, args.data_path)
     output_dir = Path(args.out_dir, args.dataset)
     data_name = f"{args.dataset}_{args.split}"
 
@@ -259,7 +259,7 @@ if __name__ == "__main__":
         with h5py.File(activations_path, 'r') as f_act:
             features = f_act["activations"]
             embedding = util.project_2d(features, args.projection_method)
-        data_frame = pd.DataFrame({"id": data_set["image_id"],
+        data_frame = pd.DataFrame({"id": data["image_id"],
                                    "x": embedding[:, 0], "y": embedding[:, 1]})
 
         util.save_points_data(projections_2d_path, data_frame)
@@ -274,4 +274,4 @@ if __name__ == "__main__":
             json.dump(config, config_file)
 
     util.write_data_table(
-        output_dir, args.store_csv, data_name, data_set)
+        output_dir, args.store_csv, data_name, data)
