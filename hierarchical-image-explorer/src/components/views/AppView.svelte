@@ -131,6 +131,7 @@
     <div class="w-auto grow border-y-2 border-slate-200 flex flex-col">
       <Accumulator
         initialColumns={settingsObject.columns}
+        shapeType={settingsObject.shapeType}
         maxHeight={accHeight - 2 * borderWidth}
         bind:currentSelectionA={selectedDatagonsA}
         bind:currentSelectionB={selectedDatagonsB}

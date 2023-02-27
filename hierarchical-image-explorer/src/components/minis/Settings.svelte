@@ -9,8 +9,6 @@
 
   let numCols = settingsObject.columns;
   let shapeType = settingsObject.shapeType;
-
-  $: console.log(shapeType);
 </script>
 
 <!-- Menu container -->
@@ -48,12 +46,10 @@
               <div class="text-lg">Shape Type:</div>
 
               {#each Object.keys(ShapeType).filter(x => !(parseInt(x) >= 0)) as shape, index}
-              <label>
-                <input type=radio group="shape-type" name="shape-type" value={index} /> {shape}
-              </label>
-
+                <label>
+                  <input type=radio bind:group={shapeType} name="shape-types" value={index} /> {shape}
+                </label>
               {/each}
-
             </div>
 
             <input

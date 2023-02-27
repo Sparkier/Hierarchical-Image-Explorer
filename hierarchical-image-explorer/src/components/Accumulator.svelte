@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ArraySet } from '../ArraySet';
-  import { DEFAULT_NUM_COLUMNS } from '../config';
+  import { DEFAULT_NUM_COLUMNS, DEFAULT_SHAPE_TYPE } from '../config';
   import { quantizationRollup } from '../services/arqueroUtils';
   import BackendService from '../services/backendService';
   import { ColorUtil } from '../services/colorUtil';
@@ -11,11 +11,13 @@
     selectedColorPalette,
   } from '../stores';
   import type { DerivedHexagon } from '../types';
+  import { ShapeTypes } from '../types';
   import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
   import Hexagon from './minis/Hexagon.svelte';
   import ZoomSVG from './ZoomSVG.svelte';
 
   export let initialColumns = DEFAULT_NUM_COLUMNS;
+  export let shapeType = DEFAULT_SHAPE_TYPE;
 
   // these two are here to that we can propagate them outside to AppView and pass them down into the minimap.
   export let topleftSVGPoint: DOMPoint;
