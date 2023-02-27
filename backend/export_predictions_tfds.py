@@ -22,20 +22,20 @@ def setup_model(data_set, model_name):
     """
     data_set, inputs, preprocessing = util_tfds.model_preprocessing(data_set, model_name)
     if model_name == "VGG16":
-        model = tf.keras.applications.VGG16(
+        prediction_model = tf.keras.applications.VGG16(
             include_top=True, weights='imagenet')
         preprocessing = tf.keras.applications.vgg16.preprocess_input(
             preprocessing)
     elif model_name == "InceptionV3":
-        model = tf.keras.applications.InceptionV3(
+        prediction_model = tf.keras.applications.InceptionV3(
             include_top=True, weights='imagenet')
         preprocessing = tf.keras.applications.inception_v3.preprocess_input(
             preprocessing)
     elif model_name == "Xception-malaria":
         model_path = "models/Xception-malaria.keras"
-        model = tf.keras.models.load_model(model_path)
+        prediction_model = tf.keras.models.load_model(model_path)
 
-    outputs = model(preprocessing)
+    outputs = prediction_model(preprocessing)
     model_with_preprocessing = tf.keras.Model(
         inputs=inputs, outputs=outputs)
 
@@ -69,8 +69,10 @@ if __name__ == "__main__":
     ds_dict = util_tfds.decode_tfds_image_data_set(ds, dataset_info, output_dir)
 
     ds, model = setup_model(ds, args.model)
-    predictions = tf.argmax(model.predict(ds.batch(128).prefetch(tf.data.AUTOTUNE)), 
-                            axis=-1).numpy()
+    predictions = []
+    for batch in ds.batch(128).prefetch(tf.data.AUTOTUNE):
+        predictions.extend(tf.argmax(model.predict(batch),
+                                axis=-1).numpy())
 
     predictions_path = Path(output_dir, f"predictions_{args.model}.pkl")
     predictions_path.parent.mkdir(parents=True, exist_ok=True)
@@ -80,4 +82,3 @@ if __name__ == "__main__":
                   "prediction": predictions_coded,
                   "prediction_raw": predictions}
                 ).to_pickle(predictions_path)
-
