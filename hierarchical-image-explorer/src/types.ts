@@ -1,5 +1,10 @@
 import type ColumnTable from 'arquero/dist/types/table/column-table';
 
+export enum ShapeType {
+  Hexagon,
+  Square
+}
+
 export type QuantizationResults = {
   datagons: ColumnTable;
   xDomain: [number, number];
@@ -16,7 +21,10 @@ export type filterDescriptor = {
   arqueroQueryManuallyEdited: boolean;
 };
 
-export type SettingsObject = { columns: number };
+export type SettingsObject = {
+  columns: number,
+  shapeType: ShapeType,
+ };
 
 export type DerivedHexagon = {
   quantization: [number, number];

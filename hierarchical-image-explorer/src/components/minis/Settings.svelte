@@ -1,12 +1,16 @@
 <script lang="ts">
   import { DEFAULT_SETTINGS } from '../../config';
   import type { SettingsObject } from '../../types';
+  import { ShapeType } from '../../types';
   import { fade } from 'svelte/transition';
 
   export let settingsObject: SettingsObject = DEFAULT_SETTINGS;
   export let isSettingsExpanded: boolean;
 
   let numCols = settingsObject.columns;
+  let shapeType = settingsObject.shapeType;
+
+  $: console.log(shapeType);
 </script>
 
 <!-- Menu container -->
@@ -22,19 +26,36 @@
         <div class="gap-4 pl-2 items-center pr-2">
           <form
             class="flex flex-row justify-between"
+            style="flex-flow: column"
             on:submit|preventDefault={() => {
               settingsObject.columns = numCols;
+              settingsObject.shapeType = shapeType;
             }}
           >
-            <div class="text-lg pr-2 ">Hexagon resolution:</div>
-            <input
-              class="w-16 rounded-md focus:outline-none focus:border-hie-orange
+            <div class="">
+              <div class="text-lg">Hexagon resolution:</div>
+              <input
+                class="w-16 rounded-md focus:outline-none focus:border-hie-orange
             focus:ring-hie-orange focus:ring-2 pl-2 ml-auto"
-              type="number"
-              name="columnsValue"
-              id="columnsValue"
-              bind:value={numCols}
-            />
+                type="number"
+                name="columnsValue"
+                id="columnsValue"
+                bind:value={numCols}
+              />
+            </div>
+
+            <div class="">
+              <div class="text-lg">Shape Type:</div>
+
+              {#each Object.keys(ShapeType).filter(x => !(parseInt(x) >= 0)) as shape, index}
+              <label>
+                <input type=radio group="shape-type" name="shape-type" value={index} /> {shape}
+              </label>
+
+              {/each}
+
+            </div>
+
             <input
               class="pl-2 text-lg hover:text-hie-red"
               type="submit"
