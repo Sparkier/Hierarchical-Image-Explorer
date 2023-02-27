@@ -379,33 +379,31 @@
                 currentSelectionA,
                 currentSelectionB
               ).color}
-              strokeWidth={hexaSide / 5}
+              strokeWidth={hexaSide / 8}
               image={BackendService.getImageUrl(datagon.representantID)}
             />
           {:else}
             <!-- datagon only contains a single image -> draw that image -->
-            <!-- if that image is selected, draw a rectangle around it. -->
-            {#if getSelectionInfo(datagon, currentSelectionA, currentSelectionB).isSelected}
-              <rect
-                x={scaleQuantisedX(
-                  datagon.quantization[0],
-                  datagon.quantization[1]
-                ) +
-                  hexaSide / 2 -
-                  hexaSide / 10}
-                y={scaleQuantisedY(datagon.quantization[1]) +
-                  (2 * hexaShortDiag * hexaSide - hexaSide) / 2 -
-                  hexaSide / 10}
-                width={hexaSide + 2 * (hexaSide / 10)}
-                height={hexaSide + 2 * (hexaSide / 10)}
-                stroke="none"
-                fill={getSelectionInfo(
-                  datagon,
-                  currentSelectionA,
-                  currentSelectionB
-                ).color}
-              />
-            {/if}
+            <rect
+              x={scaleQuantisedX(
+                datagon.quantization[0],
+                datagon.quantization[1]
+              ) +
+                hexaSide / 2 -
+                hexaSide / 10}
+              y={scaleQuantisedY(datagon.quantization[1]) +
+                (2 * hexaShortDiag * hexaSide - hexaSide) / 2 -
+                hexaSide / 10}
+              width={hexaSide + 2 * (hexaSide / 10)}
+              height={hexaSide + 2 * (hexaSide / 10)}
+              fill="none"
+              stroke-width={hexaSide / 8}
+              stroke={getSelectionInfo(
+                datagon,
+                currentSelectionA,
+                currentSelectionB
+              ).color}
+            />
             <image
               width={hexaSide}
               height={hexaSide}
