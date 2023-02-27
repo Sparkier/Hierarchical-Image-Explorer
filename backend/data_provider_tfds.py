@@ -91,6 +91,7 @@ def setup_feature_extraction_model(data_set, model, layer):
 
 
 def export_activations(dataset, out_hdf5_path, model):
+    # pylint: disable=too-many-locals
     """Export activations from a model."""
     out_hdf5_path.parent.mkdir(parents=True, exist_ok=True)
     with h5py.File(out_hdf5_path, 'w') as file_handle:
@@ -188,11 +189,13 @@ if __name__ == "__main__":
             else:
                 projection_model_path = Path(f'{activations_base}_projection_model.sav')
             if projection_model_path.exists():
-                projector = pickle.load((open(projection_model_path, 'rb')))
+                with open(projection_model_path, 'rb') as f_proj:
+                    projector = pickle.load(f_proj)
                 embedding = projector.transform(features)
             else:
                 embedding, projector = util.project_2d(features, args.projection_method)
-                pickle.dump(projector, open(projection_model_path, 'wb'))
+                with open(projection_model_path, 'wb') as f_proj:
+                    pickle.dump(projector, f_proj)
                 print(f"Saved UMAP model to: {projection_model_path}."
                       "You can use this model to project new data to the same 2D space."
                       "Use the --projection_model_path argument.")
