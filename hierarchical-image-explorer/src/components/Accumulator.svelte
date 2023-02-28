@@ -11,9 +11,10 @@
     selectedColorPalette,
   } from '../stores';
   import type { DerivedHexagon } from '../types';
-  import { ShapeTypes } from '../types';
+  import { ShapeType } from '../types';
   import LassoSelectIcon from './icons/LassoSelectIcon.svelte';
   import Hexagon from './minis/Hexagon.svelte';
+  import Square from './minis/Square.svelte';
   import ZoomSVG from './ZoomSVG.svelte';
 
   export let initialColumns = DEFAULT_NUM_COLUMNS;
@@ -46,14 +47,16 @@
   let svgContainer: HTMLElement; // container div around the svg
 
   let zoomLevel: number = 1; // level that is updated while you are zooming in
-  let hexaSide: number = 0; // not sure whats this is for...
+  let hexaSide: number = 0; // not sure what this is for...
 
   let svgAvailHeight: number = 0;
 
   let lodDatagons: DerivedHexagon[] = []; // datagons for for the current LOD
   let culledLodDatagons: DerivedHexagon[] = []; // datagons for the current LOD, but culled away the ones that are not shown
 
-  let toolbarHeight: number; // height of the toolbar. used to compute the svg height/ available space
+  let rows: number = 1;
+  let columns: number = 1;
+
   let selectionModeOn: boolean = false; // used to track that we are currelty selecting something
   let isASelectionActive: boolean = true;
 
@@ -111,28 +114,41 @@
       : null;
 
   // cull the datagons, based on the current culling box
-  $: culledLodDatagons = lodDatagons.filter(
-    (datagon: DerivedHexagon) =>
-      datagon.quantization[0] >= cullingBox?.top?.x! &&
-      datagon.quantization[1] >= cullingBox?.top?.y! &&
-      datagon.quantization[0] <= cullingBox?.bot?.x! &&
-      datagon.quantization[1] <= cullingBox?.bot?.y!
-  );
+  $: culledLodDatagons = lodDatagons;
+  // .filter(
+  //   (datagon: DerivedHexagon) =>
+  //     datagon.quantization[0] >= cullingBox?.top?.x! &&
+  //     datagon.quantization[1] >= cullingBox?.top?.y! &&
+  //     datagon.quantization[0] <= cullingBox?.bot?.x! &&
+  //     datagon.quantization[1] <= cullingBox?.bot?.y!
+  // );
 
-  $: scaleQuantisedX = (v: number, row: number): number => {
+  $: scaleQuantisedX = (v: number, row: number, shape: ShapeType): number => {
     if (isNaN(v) || isNaN(row) || maxWidth === undefined) {
       return 0;
     }
 
-    // every other hexagon (3*hexaside) is moved over by half a hexagon (1.5*hexaside) to create the grid
-    return v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
+    if (shape === ShapeType.Hexagon) {
+      // every other hexagon (3*hexaside) is moved over by half a hexagon (1.5*hexaside) to create the grid
+      return v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
+    } 
+
+    // ShapeType Square
+    // return v * hexaSide + (row * hexaSide);
+    // return v * 2 * hexaSide + (row % 2 == 0 ? 0 : hexaSide);
+    return v * hexaSide;
   };
 
-  $: scaleQuantisedY = (v: number): number => {
+  $: scaleQuantisedY = (v: number, shape: ShapeType): number => {
     if (!v) {
       return 0;
     }
-    return hexaShortDiag * hexaSide * v;
+
+    if (shape === ShapeType.Hexagon) {
+      return hexaShortDiag * hexaSide * v;
+    }
+
+    return v * hexaSide;
   };
 
   // This is called, once recomputation, based on the current LOD, of datagons (quantization ) is done
@@ -142,26 +158,30 @@
     currentSelectionB = new ArraySet<[number, number]>();
 
     const lodQuantization = $currentQuantization.datagons;
-    const rows = $currentQuantization.rows;
-    const columns = $currentQuantization.columns;
+    rows = $currentQuantization.rows;
+    columns = $currentQuantization.columns;
 
     // formula derived from width and height with "virtual" hexaside = 1 and then simplify
     const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows);
 
     if (widthToHeightDataRatio * maxWidth > svgAvailHeight) {
       // image is height limited
-      hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);
+      // hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);
       if (initialDataHeight == 0) initialDataHeight = maxHeight;
       if (initialDataWidth == 0) {
         initialDataWidth = widthToHeightDataRatio * maxHeight;
       }
     } else {
       // image is width limited
-      hexaSide = maxWidth / (3 * columns + 0.5);
+      // hexaSide = maxWidth / (3 * columns + 0.5);
       if (initialDataHeight == 0)
         initialDataHeight = widthToHeightDataRatio * maxHeight;
       if (initialDataWidth == 0) initialDataWidth = maxWidth;
     }
+
+    const shortEdgeLength = maxWidth < svgAvailHeight ? maxWidth : svgAvailHeight;
+    hexaSide = shortEdgeLength / (columns + 3); // +3 means, the shapes are a little smaller than the available screen space, so we have a litte space around the visualization
+    console.log(shortEdgeLength, hexaSide, columns);
 
     const rollup = quantizationRollup(lodQuantization, $hexagonPropertiesMap);
     lodDatagons =
@@ -233,8 +253,8 @@
    */
   function handleLassoSelection() {
     const newlySelectedHexagons = culledLodDatagons.filter((d) => {
-      const svgX = scaleQuantisedX(d.quantization[0], d.quantization[1]);
-      const svgY = scaleQuantisedY(d.quantization[1]);
+      const svgX = scaleQuantisedX(d.quantization[0], d.quantization[1], shapeType);
+      const svgY = scaleQuantisedY(d.quantization[1], shapeType);
       const svgXCenter = svgX + hexaSide;
       const svgYCenter = svgY + hexaShortDiag * hexaSide;
       const domPoint = svgToScreen(svg, svgXCenter, svgYCenter, g);
@@ -308,7 +328,7 @@
 
 <svelte:window on:keyup={handleKeyDown} />
 <!-- Toolbar -->
-<div class="flex gap-2 px-2" bind:clientHeight={toolbarHeight}>
+<div class="flex gap-2 px-2">
   <div
     class={`cursor-pointer ${
       selectionModeOn
@@ -369,21 +389,41 @@
           on:click={() => handleDatagonSelection(datagon.quantization)}
         >
           {#if datagon.count > 1}
-            <Hexagon
-              side={hexaSide}
-              x={scaleQuantisedX(
-                datagon.quantization[0],
-                datagon.quantization[1]
-              )}
-              y={scaleQuantisedY(datagon.quantization[1])}
-              stroke={getSelectionInfo(
-                datagon,
-                currentSelectionA,
-                currentSelectionB
-              ).color}
-              strokeWidth={hexaSide / 5}
-              image={BackendService.getImageUrl(datagon.representantID)}
-            />
+            {#if shapeType === ShapeType.Hexagon}
+              <Hexagon
+                side={hexaSide}
+                x={scaleQuantisedX(
+                  datagon.quantization[0],
+                  datagon.quantization[1],
+                  shapeType
+                )}
+                y={scaleQuantisedY(datagon.quantization[1], shapeType)}
+                stroke={getSelectionInfo(
+                  datagon,
+                  currentSelectionA,
+                  currentSelectionB
+                ).color}
+                strokeWidth={hexaSide / 5}
+                image={BackendService.getImageUrl(datagon.representantID)}
+              />
+            {:else}
+              <Square
+                side={hexaSide}
+                x={scaleQuantisedX(
+                  datagon.quantization[0],
+                  datagon.quantization[1],
+                  shapeType
+                )}
+                y={scaleQuantisedY(datagon.quantization[1], shapeType)}
+                stroke={getSelectionInfo(
+                  datagon,
+                  currentSelectionA,
+                  currentSelectionB
+                ).color}
+                strokeWidth={hexaSide / 10}
+                image={BackendService.getImageUrl(datagon.representantID)}
+              />
+            {/if}
           {:else}
             <!-- datagon only contains a single image -> draw that image -->
             <!-- if that image is selected, draw a rectangle around it. -->
@@ -391,11 +431,12 @@
               <rect
                 x={scaleQuantisedX(
                   datagon.quantization[0],
-                  datagon.quantization[1]
+                  datagon.quantization[1],
+                  shapeType
                 ) +
                   hexaSide / 2 -
                   hexaSide / 10}
-                y={scaleQuantisedY(datagon.quantization[1]) +
+                y={scaleQuantisedY(datagon.quantization[1], shapeType) +
                   (2 * hexaShortDiag * hexaSide - hexaSide) / 2 -
                   hexaSide / 10}
                 width={hexaSide + 2 * (hexaSide / 10)}
@@ -413,10 +454,11 @@
               height={hexaSide}
               x={scaleQuantisedX(
                 datagon.quantization[0],
-                datagon.quantization[1]
+                datagon.quantization[1],
+                shapeType
               ) +
                 (2 * hexaSide - hexaSide) / 2}
-              y={scaleQuantisedY(datagon.quantization[1]) +
+              y={scaleQuantisedY(datagon.quantization[1], shapeType) +
                 (2 * hexaShortDiag * hexaSide - hexaSide) / 2}
               href={BackendService.getImageUrl(datagon.representantID)}
               style={'image-rendering: pixelated;'}
@@ -436,13 +478,15 @@
             currentDatagonHover = undefined;
           }}
         >
+          {#if shapeType === ShapeType.Hexagon}
           <Hexagon
             side={hexaSide * 2}
             x={scaleQuantisedX(
               currentDatagonHover.quantization[0],
-              currentDatagonHover.quantization[1]
+              currentDatagonHover.quantization[1],
+              shapeType
             ) - hexaSide}
-            y={scaleQuantisedY(currentDatagonHover.quantization[1]) - hexaSide}
+            y={scaleQuantisedY(currentDatagonHover.quantization[1], shapeType) - hexaSide}
             stroke={getSelectionInfo(
               currentDatagonHover,
               currentSelectionA,
@@ -453,6 +497,20 @@
               currentDatagonHover.representantID
             )}
           />
+          {:else}
+            <Square
+              side={hexaSide}
+              x={scaleQuantisedX(
+                currentDatagonHover.quantization[0],
+                currentDatagonHover.quantization[1],
+                shapeType
+              )}
+              y={scaleQuantisedY(currentDatagonHover.quantization[1], shapeType)}
+              stroke="black"
+              strokeWidth={hexaSide / 10}
+              image={BackendService.getImageUrl(currentDatagonHover.representantID)}
+            />
+          {/if}
         </g>
       {/if}
     {/if}

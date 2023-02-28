@@ -36,7 +36,7 @@
       ? svgToMinimapScaleY(bottomRightSvgCorner.x - topLeftSvgCorner.x)
       : 0;
 
-  $: dotsize = minimapWidth / columns / 4;
+  $: dotsize = minimapWidth / columns;
 
   /**
    * retrieves the quantized data used in the minimap
@@ -47,8 +47,9 @@
   ): DerivedHexagon[] {
     const quantizationResult = TableService.getQuantizationLocal(columns);
     rows = quantizationResult.rows;
-    const virtualHexaSide = minimapWidth / (3 * columns);
-    minimapHeight = (((rows + 1) * Math.sqrt(3)) / 2) * virtualHexaSide;
+    // const virtualHexaSide = minimapWidth / (3 * columns);
+
+    minimapHeight = minimapWidth;
 
     const minimalTable = quantizationRollup(
       quantizationResult.datagons,
@@ -70,13 +71,11 @@
   {#if !isNaN(minimapWidth)}
     <svg height={minimapHeight} width={minimapWidth}>
       {#each datagons as d}
-        <circle
-          cx={((d.quantization[0] + (d.quantization[1] % 2 === 0 ? 0 : 0.5)) /
-            columns) *
-            (minimapWidth - dotsize) +
-            dotsize}
-          cy={(d.quantization[1] / rows) * (minimapHeight - dotsize) + dotsize}
-          r={dotsize}
+        <rect
+          x={d.quantization[0] * dotsize}
+          y={d.quantization[1] * dotsize}
+          width={dotsize}
+          height={dotsize}
           fill={ColorUtil.getColor(d.color, $selectedColorPalette)}
         />
         <!-- Color must be adjusted once custom hexagon colorizing is implemented -->

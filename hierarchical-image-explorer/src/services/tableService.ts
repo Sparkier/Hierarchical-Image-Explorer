@@ -1,5 +1,6 @@
 import type ColumnTable from 'arquero/dist/types/table/column-table';
 import * as aq from 'arquero';
+import * as d3 from 'd3-array';
 import type { filterDescriptor, QuantizationResults } from '../types';
 import { currentQuantization } from '../stores';
 import { get } from 'svelte/store';
@@ -152,49 +153,83 @@ export class TableService {
       this.getTable()
     );
 
-    const hexaSide = Math.abs(xMin - xMax) / (3 * columns);
+    // const stepSize = yExtent < xExtent ? yExtent / columns : xExtent / columns;
+    // console.log('x', xMin, xMax, xExtent)
+    // console.log('y', yMin, yMax, yExtent)
+    // console.log(stepSize);
 
-    const rows = Math.ceil(
-      (yExtent / xExtent) * (this.HEXA_RATIO * 2 * columns)
-    );
+    const xStepSize = xExtent / columns;
+    const xBinThresholds = Array(columns).fill(0).map((_, i) => [xMin + (i * xStepSize), xMin + ((i + 1) * xStepSize)]);
 
-    const { scaleQuantizedX, scaleQuantizedY, scaleX, scaleY } =
-      this.generateScales(
-        hexaSide,
-        xMin,
-        xExtent,
-        columns,
-        yMin,
-        yExtent,
-        rows
-      );
+    const yStepSize = yExtent / columns;
+    const yBinThresholds = Array(columns).fill(0).map((_, i) => [yMin + (i * yStepSize), yMin + ((i + 1) * yStepSize)]);
 
-    const possiblePoints = this.calculatePossiblePoints(
-      columns,
-      rows,
-      scaleQuantizedX,
-      scaleQuantizedY,
-      hexaSide
-    );
+    const getBinIndex = (v: number, thresholds: number[][]) => {
+      for (let i = 0; i < thresholds.length; ++i) {
+        const [min, max] = thresholds[i];
+        if (v > min && v < max) {
+          return i;
+        }
+      }
+    }
 
-    const quantized = this.getQuantization(
-      xMin,
-      hexaSide,
-      yMin,
-      columns,
-      rows,
-      possiblePoints,
-      scaleX,
-      scaleY,
-      dataTable
-    );
+    const quantized = dataTable.derive({
+      quantization: aq.escape(
+        (d: { x: number; y: number; id: string; label: string }) => {
+          const xQuantized = getBinIndex(d.x, xBinThresholds);
+          const yQuantized = getBinIndex(d.y, yBinThresholds);
+          return [xQuantized, yQuantized];
+        }
+      ),
+    });
+
+    // console.log(quantized);
+
+    // const rows = aq.agg(quantized, aq.op.distinct('quantization[1]'));
+
+    // const hexaSide = Math.abs(xMin - xMax) / (3 * columns);
+
+    // const rows = Math.ceil(
+    //   (yExtent / xExtent) * (this.HEXA_RATIO * 2 * columns)
+    // );
+
+    // const { scaleQuantizedX, scaleQuantizedY, scaleX, scaleY } =
+    //   this.generateScales(
+    //     hexaSide,
+    //     xMin,
+    //     xExtent,
+    //     columns,
+    //     yMin,
+    //     yExtent,
+    //     rows
+    //   );
+
+    // const possiblePoints = this.calculatePossiblePoints(
+    //   columns,
+    //   rows,
+    //   scaleQuantizedX,
+    //   scaleQuantizedY,
+    //   hexaSide
+    // );
+
+    // const quantized = this.getQuantization(
+    //   xMin,
+    //   hexaSide,
+    //   yMin,
+    //   columns,
+    //   rows,
+    //   possiblePoints,
+    //   scaleX,
+    //   scaleY,
+    //   dataTable
+    // );
 
     return {
       datagons: quantized,
       xDomain: [xMin, xMax],
       yDomain: [yMin, yMax],
       columns: columns,
-      rows: rows,
+      rows: columns,
     };
   }
 
