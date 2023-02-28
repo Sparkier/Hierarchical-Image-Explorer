@@ -397,7 +397,7 @@
               width={hexaSide + 2 * (hexaSide / 10)}
               height={hexaSide + 2 * (hexaSide / 10)}
               fill="none"
-              stroke-width={hexaSide / 8}
+              stroke-width={hexaSide / 16}
               stroke={getSelectionInfo(
                 datagon,
                 currentSelectionA,
