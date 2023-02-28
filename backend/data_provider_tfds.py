@@ -8,12 +8,14 @@ import os
 import time
 from pathlib import Path
 
+import pickle
 import h5py
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 import tensorflow_datasets as tfds
 import util
+import util_tfds
 from PIL import Image
 
 
@@ -47,21 +49,6 @@ def export_images(image_dir, dataset):
         image.save(Path(image_dir, file_name))
 
 
-def model_preprocessing(data_set):
-    """Preprocess the data so it can be used with a model.
-
-    Args:
-        data_set (Tensorflow.DataSet): Data set that will be prepared for use with a model.
-
-    Returns:
-       Keras.Layer, Tensorflow.DataSet : Input layer to the model and preprocessing ops for data.
-    """
-    inputs = tf.keras.layers.Input(shape=data_set.element_spec.shape.as_list())
-    if data_set.element_spec.shape[-1] == 1:
-        preprocessing = tf.image.grayscale_to_rgb(inputs)
-    else:
-        preprocessing = inputs
-    return inputs, preprocessing
 
 
 def setup_feature_extraction_model(data_set, model, layer):
@@ -73,18 +60,7 @@ def setup_feature_extraction_model(data_set, model, layer):
     Returns:
         Keras.Model: Model
     """
-    def resize_images(images, image_size):
-        return tf.image.resize(images, image_size)
-    if model == "VGG16":
-        image_size = (224, 224)
-    elif model == "InceptionV3":
-        image_size = (299, 299)
-    # Resize images before providing data to preprocessing
-    # to avoid errors with different image sizes in one batch
-    data_set = data_set.map(lambda row: resize_images(row, image_size),
-                            num_parallel_calls=tf.data.AUTOTUNE)
-
-    inputs, preprocessing = model_preprocessing(data_set)
+    data_set, inputs, preprocessing = util_tfds.model_preprocessing(data_set, model)
     if model == "VGG16":
         model = tf.keras.applications.VGG16(
             include_top=True, weights='imagenet')
@@ -99,6 +75,11 @@ def setup_feature_extraction_model(data_set, model, layer):
             preprocessing)
         if layer == "":
             layer = "predictions"
+    elif model == "Xception-malaria":
+        model_path = "models/Xception-malaria.keras"
+        model = tf.keras.models.load_model(model_path)
+        if layer == "":
+            layer = "global_average_pooling2d"
     print(model.summary())
 
     feat_extractor_output = tf.keras.Model(
@@ -109,78 +90,33 @@ def setup_feature_extraction_model(data_set, model, layer):
     return data_set, feature_extractor_with_preprocessing
 
 
-def get_tfds_image_data_set(data_set, split, data_path):
-    """Setup a tensorflow dataset image dataset.
-
-    Args:
-        data_set (str): Name of data set
-        split (str): Name of split, i.e., train or test
-        data_path (Path): Path to directory of tensorflow datasets
-
-    Returns:
-        tensorflow.DataSet, tfds.core.DatasetInfo: Image DataSet and its info.
-    """
-    data_items, ds_stats = tfds.load(
-        data_set, split=split, shuffle_files=False, with_info=True, data_dir=data_path)
-    return data_items.map(lambda elem: elem['image']), ds_stats
-
-
-def convert_tfds_data_set(data_set, split, data_path):
-    """Potentially download a tensorflow datasets dataset and extract its images and labels. """
-    data_items, ds_stats = tfds.load(
-        data_set, split=split, shuffle_files=False, with_info=True, data_dir=data_path)
-    image_dir = Path(data_path, data_set, split)
-
-    if not image_dir.exists() or len(os.listdir(image_dir)) < data.cardinality().numpy():
-        export_images(image_dir, data)
-
-    # Required entries
-    data_dict = {"image_id": [], "file_path": []}
-
-    for row_idx, row in enumerate(data_items):
-        if "id" in row:
-            file_name = row['id'].numpy().decode("utf-8") + ".jpeg"
-        elif "file_name" in row:
-            file_name = row['file_name'].numpy().decode("utf-8")
-        else:
-            file_name = f"{row_idx}.jpeg"
-        data_dict["image_id"].append(file_name)
-        data_dict["file_path"].append(str(Path(image_dir, file_name)))
-
-        for key, val in row.items():
-            feature = ds_stats.features[key]
-            if isinstance(feature, tfds.features.ClassLabel):
-                if key not in data_dict:
-                    data_dict[key] = []
-                data_dict[key].append(feature.int2str(val.numpy()))
-
-    image_quality_path = Path(image_dir, "image_quality.pkl")
-    if image_quality_path.exists():
-        # util.export_image_quality(image_dir.glob('*.jpeg'), image_quality_path)
-        # Dataframe with image_id and image quality
-        imge_quality_df = pd.read_pickle(image_quality_path)
-        data_dict = pd.merge(pd.DataFrame(data_dict), imge_quality_df,
-                             on="image_id", how="left").to_dict('list')
-
-    return data_dict
-
-
-def dir_path(string):
-    """Check if a string is a path directory.
-
-    Args:
-        string (str): the string to be checked
-
-    Raises:
-        NotADirectoryError: error indicating the string is not a directory path
-
-    Returns:
-        str: the original string
-    """
-    if Path(string).is_dir():
-        return string
-    raise NotADirectoryError(string)
-
+def export_activations(dataset, out_hdf5_path, model):
+    # pylint: disable=too-many-locals
+    """Export activations from a model."""
+    out_hdf5_path.parent.mkdir(parents=True, exist_ok=True)
+    with h5py.File(out_hdf5_path, 'w') as file_handle:
+        activations = model.predict(dataset.take(1).batch(1))
+        total_num_inputs = dataset.cardinality().numpy()
+        output_shape = [total_num_inputs, np.prod(activations.shape[:])]
+        bytes_per_float = 4
+        num_activations_in_one_mb = min(total_num_inputs, max(
+                    1, int(1000000 / (np.prod(output_shape[1:])*bytes_per_float))))
+        chunk_size = tuple(
+                    [num_activations_in_one_mb] + output_shape[1:])
+        dset = file_handle.create_dataset(
+                    "activations", output_shape, compression="gzip", chunks=chunk_size)
+        current_index = 0
+        start = time.time()
+        for batch in dataset.batch(128).prefetch(tf.data.AUTOTUNE):
+            num_inputs = batch.shape[0]
+            activations = model.predict(batch)
+            flattened = np.reshape(activations,
+                                           [activations.shape[0],
+                                            np.prod(activations.shape[1:])])
+            dset[current_index:current_index+num_inputs] = flattened
+            current_index = current_index + num_inputs
+            print(f"Processed {current_index}/{total_num_inputs}")
+        print(f'Time to process {total_num_inputs}: {time.time()-start:.2f}')
 
 if __name__ == "__main__":
     # pylint: disable=duplicate-code
@@ -196,7 +132,7 @@ if __name__ == "__main__":
         help='Directory to generate dataset description files in (.arrow, .csv)',
         default="data",
         type=str)
-    parser.add_argument("--data_path", type=dir_path,
+    parser.add_argument("--data_path", type=util.dir_path,
                         default='D:/data/tensorflow_datasets')
     parser.add_argument('-csv', '--store_csv',
                         help='Stores the metadata as csv in addition to arrow',
@@ -208,60 +144,66 @@ if __name__ == "__main__":
         default="test",
         type=str)
     parser.add_argument("--feature_extraction_model", help='Tensorflow keras model',
-                        required=False, choices=["VGG16", "InceptionV3"])
+                        required=False, choices=["VGG16", "InceptionV3", "Xception-malaria"])
     parser.add_argument("--feature_extraction_model_layer",
                         help='Model layer to use, empty for a default layer',
                         default="")
     parser.add_argument("-p", "--projection_method", default="umap",
                         help="method for reducing model output to two dimensions",
                         choices=["t-sne", "umap"])
+    parser.add_argument("--projection_model_path",
+                        help='Model layer to use, empty for a default layer',
+                        default=None)
     args = parser.parse_args()
-    ds, dataset_info = get_tfds_image_data_set(
-        args.dataset, args.split, args.data_path)
-    data = convert_tfds_data_set(args.dataset, args.split, args.data_path)
+    ds, dataset_info = tfds.load(
+        args.dataset, split=args.split, shuffle_files=False,
+        with_info=True, data_dir=args.data_path)
     output_dir = Path(args.out_dir, args.dataset)
-    data_name = f"{args.dataset}_{args.split}"
 
+    dataset_dir = Path(args.data_path, args.dataset, args.split)
+    if not dataset_dir.exists() or len(os.listdir(dataset_dir)) < ds.cardinality().numpy():
+        export_images(dataset_dir, ds)
+    data = util_tfds.decode_tfds_image_data_set(ds, dataset_info, dataset_dir)
+
+    data_name = f"{args.dataset}_{args.split}"
     if args.feature_extraction_model:
-        data_name = f"{data_name}_{args.feature_extraction_model}_\
-            {args.feature_extraction_model_layer}"
-        activations_path = Path(
-            "cache", args.feature_extraction_model, args.dataset,
-            f"activations_{args.split}_{args.feature_extraction_model_layer}.h5")
+        data_name = f"{data_name}_{args.feature_extraction_model}_" \
+                    f"{args.feature_extraction_model_layer}"
+        activations_base = f"cache/{args.feature_extraction_model}/" \
+                    f"{args.dataset}/activations_{args.split}" \
+                    f"_{args.feature_extraction_model_layer}"
+        activations_path = Path(f"{activations_base}.h5")
         if not activations_path.exists():
             ds, feature_extractor = setup_feature_extraction_model(
                 ds, args.feature_extraction_model, args.feature_extraction_model_layer)
-            activations_path.parent.mkdir(parents=True, exist_ok=True)
-            with h5py.File(activations_path, 'w') as file_handle:
-                features = feature_extractor.predict(ds.take(1).batch(1))
-                total_num_inputs = ds.cardinality().numpy()
-                output_shape = [total_num_inputs, np.prod(features.shape[:])]
-                BYTES_PER_FLOAT = 4
-                num_activations_in_one_mb = min(total_num_inputs, max(
-                    1, int(1000000 / (np.prod(output_shape[1:])*BYTES_PER_FLOAT))))
-                chunk_size = tuple([num_activations_in_one_mb] + output_shape[1:])
-                dset = file_handle.create_dataset(
-                    "activations", output_shape, compression="gzip", chunks=chunk_size)
-                ITERATOR = 0
-                start = time.time()
-                for batch in ds.batch(128).prefetch(tf.data.AUTOTUNE):
-                    num_inputs = batch.shape[0]
-                    features = feature_extractor.predict(batch)
-                    flattened = np.reshape(features,
-                                           [features.shape[0],
-                                            np.prod(features.shape[1:])])
-                    dset[ITERATOR:ITERATOR+num_inputs] = flattened
-                    ITERATOR = ITERATOR + num_inputs
-                    print(f"Processed {ITERATOR}/{total_num_inputs}")
-                print(f'Time to process {total_num_inputs}: {time.time()-start:.2f}')
+            # Activations might not fit in memory, so we export them in chunks to file
+            export_activations(ds, activations_path, feature_extractor)
         projections_2d_path = output_dir / \
             f"{data_name}_{args.projection_method}.arrow"
         with h5py.File(activations_path, 'r') as f_act:
             features = f_act["activations"]
-            embedding = util.project_2d(features, args.projection_method)
+            # Project activations to 2D.
+            # Either use a precomputed projection model or compute a new one
+            if args.projection_model_path:
+                projection_model_path = Path(args.projection_model_path)
+            else:
+                projection_model_path = Path(f'{activations_base}_projection_model.sav')
+            if projection_model_path.exists():
+                with open(projection_model_path, 'rb') as f_proj:
+                    projector = pickle.load(f_proj)
+                embedding = projector.transform(features)
+            else:
+                embedding, projector = util.project_2d(features, args.projection_method)
+                with open(projection_model_path, 'wb') as f_proj:
+                    pickle.dump(projector, f_proj)
+                print(f"Saved UMAP model to: {projection_model_path}."
+                      "You can use this model to project new data to the same 2D space."
+                      "Use the --projection_model_path argument.")
+                print(f"--projection_model_path {projection_model_path}")
         data_frame = pd.DataFrame({"id": data["image_id"],
                                    "x": embedding[:, 0], "y": embedding[:, 1]})
 
+        projections_2d_path.parent.mkdir(parents=True, exist_ok=True)
         util.save_points_data(projections_2d_path, data_frame)
 
         config = {"table": f"{output_dir}/{data_name}.arrow",

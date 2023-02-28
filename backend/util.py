@@ -13,6 +13,22 @@ from PIL import Image
 from sklearn.manifold import TSNE
 from torchvision import transforms
 
+def dir_path(string):
+    """Check if a string is a path directory.
+
+    Args:
+        string (str): the string to be checked
+
+    Raises:
+        NotADirectoryError: error indicating the string is not a directory path
+
+    Returns:
+        str: the original string
+    """
+    if Path(string).is_dir():
+        return string
+    raise NotADirectoryError(string)
+
 
 def write_data_table(destination, store_csv, data_name, data_dict):
     """Writes dictionary items in data_dict into an arrow file."""
@@ -74,7 +90,7 @@ def project_2d(X, method="umap"):
                       [X.shape[0],
                        np.prod(X.shape[1:])])
     embedding = projector.fit_transform(X_2d)
-    return embedding
+    return embedding, projector
 
 
 def run_tsne(features, ids):
