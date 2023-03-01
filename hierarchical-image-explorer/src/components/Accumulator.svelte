@@ -95,33 +95,24 @@
     topleftSVGPoint && bottomrightSVGPoint && hexaSide
       ? {
           top: {
-            x: Math.floor(topleftSVGPoint.x / (3 * hexaSide)) - 1,
-            y:
-              Math.floor(topleftSVGPoint.y / (2 * hexaShortDiag * hexaSide)) *
-                2 -
-              1,
+            x: Math.floor(topleftSVGPoint.x / hexaSide) - 1,
+            y: Math.floor(topleftSVGPoint.y / hexaSide) - 1,
           },
           bot: {
-            x: Math.ceil(bottomrightSVGPoint.x / (3 * hexaSide)) + 1,
-            y:
-              Math.ceil(
-                bottomrightSVGPoint.y / (2 * hexaShortDiag * hexaSide)
-              ) *
-                2 +
-              1,
+            x: Math.ceil(bottomrightSVGPoint.x / hexaSide) + 1,
+            y: Math.ceil(bottomrightSVGPoint.y / hexaSide) + 1,
           },
         }
       : null;
 
   // cull the datagons, based on the current culling box
-  $: culledLodDatagons = lodDatagons;
-  // .filter(
-  //   (datagon: DerivedHexagon) =>
-  //     datagon.quantization[0] >= cullingBox?.top?.x! &&
-  //     datagon.quantization[1] >= cullingBox?.top?.y! &&
-  //     datagon.quantization[0] <= cullingBox?.bot?.x! &&
-  //     datagon.quantization[1] <= cullingBox?.bot?.y!
-  // );
+  $: culledLodDatagons = lodDatagons.filter(
+    (datagon: DerivedHexagon) =>
+      datagon.quantization[0] >= cullingBox?.top?.x! &&
+      datagon.quantization[1] >= cullingBox?.top?.y! &&
+      datagon.quantization[0] <= cullingBox?.bot?.x! &&
+      datagon.quantization[1] <= cullingBox?.bot?.y!
+  );
 
   $: scaleQuantisedX = (v: number, row: number, shape: ShapeType): number => {
     if (isNaN(v) || isNaN(row) || maxWidth === undefined) {
@@ -131,7 +122,7 @@
     if (shape === ShapeType.Hexagon) {
       // every other hexagon (3*hexaside) is moved over by half a hexagon (1.5*hexaside) to create the grid
       return v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
-    } 
+    }
 
     // ShapeType Square
     // return v * hexaSide + (row * hexaSide);
@@ -161,27 +152,32 @@
     rows = $currentQuantization.rows;
     columns = $currentQuantization.columns;
 
-    // formula derived from width and height with "virtual" hexaside = 1 and then simplify
-    const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows);
+    // // formula derived from width and height with "virtual" hexaside = 1 and then simplify
+    // const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows);
 
-    if (widthToHeightDataRatio * maxWidth > svgAvailHeight) {
-      // image is height limited
-      // hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);
-      if (initialDataHeight == 0) initialDataHeight = maxHeight;
-      if (initialDataWidth == 0) {
-        initialDataWidth = widthToHeightDataRatio * maxHeight;
-      }
-    } else {
-      // image is width limited
-      // hexaSide = maxWidth / (3 * columns + 0.5);
-      if (initialDataHeight == 0)
-        initialDataHeight = widthToHeightDataRatio * maxHeight;
-      if (initialDataWidth == 0) initialDataWidth = maxWidth;
-    }
+    // if (widthToHeightDataRatio * maxWidth > svgAvailHeight) {
+    //   // image is height limited
+    //   // hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);
+    //   if (initialDataHeight == 0) initialDataHeight = maxHeight;
+    //   if (initialDataWidth == 0) {
+    //     initialDataWidth = widthToHeightDataRatio * maxHeight;
+    //   }
+    // } else {
+    //   // image is width limited
+    //   // hexaSide = maxWidth / (3 * columns + 0.5);
+    //   if (initialDataHeight == 0)
+    //     initialDataHeight = widthToHeightDataRatio * maxHeight;
+    //   if (initialDataWidth == 0) initialDataWidth = maxWidth;
+    // }
 
     const shortEdgeLength = maxWidth < svgAvailHeight ? maxWidth : svgAvailHeight;
     hexaSide = shortEdgeLength / (columns + 3); // +3 means, the shapes are a little smaller than the available screen space, so we have a litte space around the visualization
     console.log(shortEdgeLength, hexaSide, columns);
+
+    initialDataHeight = rows * hexaSide;
+    initialDataWidth = columns * hexaSide;
+
+    console.log(initialDataHeight, initialDataWidth);
 
     const rollup = quantizationRollup(lodQuantization, $hexagonPropertiesMap);
     lodDatagons =

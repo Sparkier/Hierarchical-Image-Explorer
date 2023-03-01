@@ -14,7 +14,6 @@
 
   let minimapWidth: number;
   let minimapHeight: number;
-  let rows: number = 0;
   let datagons: DerivedHexagon[] = [];
 
   const svgToMinimapScaleX = (v: number) => (v / svgWidth) * minimapWidth;
@@ -46,7 +45,6 @@
     propertyMap: HexagonPropertiesMap
   ): DerivedHexagon[] {
     const quantizationResult = TableService.getQuantizationLocal(columns);
-    rows = quantizationResult.rows;
     // const virtualHexaSide = minimapWidth / (3 * columns);
 
     minimapHeight = minimapWidth;
@@ -55,6 +53,11 @@
       quantizationResult.datagons,
       propertyMap
     );
+
+    if (!minimalTable) {
+      return [];
+    }
+
     return minimalTable.objects() as DerivedHexagon[];
   }
 

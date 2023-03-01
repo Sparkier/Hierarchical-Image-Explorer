@@ -1,6 +1,5 @@
 import type ColumnTable from 'arquero/dist/types/table/column-table';
 import * as aq from 'arquero';
-import * as d3 from 'd3-array';
 import type { filterDescriptor, QuantizationResults } from '../types';
 import { currentQuantization } from '../stores';
 import { get } from 'svelte/store';
@@ -152,11 +151,6 @@ export class TableService {
     const { xMin, xMax, yExtent, xExtent, yMin, yMax } = this.getExtents(
       this.getTable()
     );
-
-    // const stepSize = yExtent < xExtent ? yExtent / columns : xExtent / columns;
-    // console.log('x', xMin, xMax, xExtent)
-    // console.log('y', yMin, yMax, yExtent)
-    // console.log(stepSize);
 
     const xStepSize = xExtent / columns;
     const xBinThresholds = Array(columns).fill(0).map((_, i) => [xMin + (i * xStepSize), xMin + ((i + 1) * xStepSize)]);
