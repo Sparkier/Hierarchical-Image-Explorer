@@ -140,15 +140,12 @@
       return 0;
     }
 
-    if (shape === ShapeType.Hexagon) {
+    if (shape === ShapeType.Square) {
+      return v * hexaSide;
+    } else {
       // every other hexagon (3*hexaside) is moved over by half a hexagon (1.5*hexaside) to create the grid
       return v * 3 * hexaSide + (row % 2 == 0 ? 0 : 1.5 * hexaSide);
     }
-
-    // ShapeType Square
-    // return v * hexaSide + (row * hexaSide);
-    // return v * 2 * hexaSide + (row % 2 == 0 ? 0 : hexaSide);
-    return v * hexaSide;
   };
 
   $: scaleQuantisedY = (v: number, shape: ShapeType): number => {
@@ -156,11 +153,11 @@
       return 0;
     }
 
-    if (shape === ShapeType.Hexagon) {
+    if (shape === ShapeType.Square) {
+      return v * hexaSide;
+    } else {
       return hexaShortDiag * hexaSide * v;
     }
-
-    return v * hexaSide;
   };
 
   // This is called, once recomputation, based on the current LOD, of datagons (quantization ) is done

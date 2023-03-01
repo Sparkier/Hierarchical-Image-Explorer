@@ -6,7 +6,7 @@
   import { TableService } from '../../services/tableService';
   import { hexagonPropertiesMap, selectedColorPalette } from '../../stores';
   import { DerivedHexagon, HexagonPropertiesMap, ShapeType } from '../../types';
-    import Square from './Square.svelte';
+  import Square from './Square.svelte';
 
   export let svgHeight: number;
   export let svgWidth: number;
@@ -39,7 +39,10 @@
       ? svgToMinimapScaleY(bottomRightSvgCorner.x - topLeftSvgCorner.x)
       : 0;
 
-  $: dotsize = shapeType === ShapeType.Square ? minimapWidth / columns : minimapWidth / columns / 4;
+  $: dotsize =
+    shapeType === ShapeType.Square
+      ? minimapWidth / columns
+      : minimapWidth / columns / 4;
 
   /**
    * retrieves the quantized data used in the minimap
@@ -48,10 +51,12 @@
   function getQuantizedBlobs(
     propertyMap: HexagonPropertiesMap
   ): DerivedHexagon[] {
-    const quantizationResult = TableService.getQuantizationLocal(columns, shapeType);
+    const quantizationResult = TableService.getQuantizationLocal(
+      columns,
+      shapeType
+    );
 
     if (shapeType === ShapeType.Square) {
-
       minimapHeight = minimapWidth;
     } else {
       rows = quantizationResult.rows;
@@ -85,23 +90,24 @@
     <svg height={minimapHeight} width={minimapWidth}>
       {#each datagons as d}
         {#if shapeType === ShapeType.Square}
-        <rect
-          x={d.quantization[0] * dotsize}
-          y={d.quantization[1] * dotsize}
-          width={dotsize}
-          height={dotsize}
-          fill={ColorUtil.getColor(d.color, $selectedColorPalette)}
-        />
+          <rect
+            x={d.quantization[0] * dotsize}
+            y={d.quantization[1] * dotsize}
+            width={dotsize}
+            height={dotsize}
+            fill={ColorUtil.getColor(d.color, $selectedColorPalette)}
+          />
         {:else}
-        <circle
-          cx={((d.quantization[0] + (d.quantization[1] % 2 === 0 ? 0 : 0.5)) /
-            columns) *
-            (minimapWidth - dotsize) +
-            dotsize}
-          cy={(d.quantization[1] / rows) * (minimapHeight - dotsize) + dotsize}
-          r={dotsize}
-          fill={ColorUtil.getColor(d.color, $selectedColorPalette)}
-        />
+          <circle
+            cx={((d.quantization[0] + (d.quantization[1] % 2 === 0 ? 0 : 0.5)) /
+              columns) *
+              (minimapWidth - dotsize) +
+              dotsize}
+            cy={(d.quantization[1] / rows) * (minimapHeight - dotsize) +
+              dotsize}
+            r={dotsize}
+            fill={ColorUtil.getColor(d.color, $selectedColorPalette)}
+          />
         {/if}
 
         <!-- Color must be adjusted once custom hexagon colorizing is implemented -->
