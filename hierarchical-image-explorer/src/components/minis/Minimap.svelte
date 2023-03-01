@@ -1,20 +1,24 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { DEFAULT_SHAPE_TYPE } from '../../config';
   import { quantizationRollup } from '../../services/arqueroUtils';
   import { ColorUtil } from '../../services/colorUtil';
   import { TableService } from '../../services/tableService';
   import { hexagonPropertiesMap, selectedColorPalette } from '../../stores';
-  import type { DerivedHexagon, HexagonPropertiesMap } from '../../types';
+  import { DerivedHexagon, HexagonPropertiesMap, ShapeType } from '../../types';
+    import Square from './Square.svelte';
 
   export let svgHeight: number;
   export let svgWidth: number;
   export let topLeftSvgCorner: DOMPoint;
   export let bottomRightSvgCorner: DOMPoint;
   export let columns: number = 20;
+  export let shapeType = DEFAULT_SHAPE_TYPE;
 
   let minimapWidth: number;
   let minimapHeight: number;
   let datagons: DerivedHexagon[] = [];
+  let rows: number = 0;
 
   const svgToMinimapScaleX = (v: number) => (v / svgWidth) * minimapWidth;
   const svgToMinimapScaleY = (v: number) => (v / svgHeight) * minimapHeight;
@@ -35,7 +39,7 @@
       ? svgToMinimapScaleY(bottomRightSvgCorner.x - topLeftSvgCorner.x)
       : 0;
 
-  $: dotsize = minimapWidth / columns;
+  $: dotsize = shapeType === ShapeType.Square ? minimapWidth / columns : minimapWidth / columns / 4;
 
   /**
    * retrieves the quantized data used in the minimap
@@ -44,10 +48,16 @@
   function getQuantizedBlobs(
     propertyMap: HexagonPropertiesMap
   ): DerivedHexagon[] {
-    const quantizationResult = TableService.getQuantizationLocal(columns);
-    // const virtualHexaSide = minimapWidth / (3 * columns);
+    const quantizationResult = TableService.getQuantizationLocal(columns, shapeType);
 
-    minimapHeight = minimapWidth;
+    if (shapeType === ShapeType.Square) {
+
+      minimapHeight = minimapWidth;
+    } else {
+      rows = quantizationResult.rows;
+      const virtualHexaSide = minimapWidth / (3 * columns);
+      minimapHeight = (((rows + 1) * Math.sqrt(3)) / 2) * virtualHexaSide;
+    }
 
     const minimalTable = quantizationRollup(
       quantizationResult.datagons,
@@ -74,6 +84,7 @@
   {#if !isNaN(minimapWidth)}
     <svg height={minimapHeight} width={minimapWidth}>
       {#each datagons as d}
+        {#if shapeType === ShapeType.Square}
         <rect
           x={d.quantization[0] * dotsize}
           y={d.quantization[1] * dotsize}
@@ -81,6 +92,18 @@
           height={dotsize}
           fill={ColorUtil.getColor(d.color, $selectedColorPalette)}
         />
+        {:else}
+        <circle
+          cx={((d.quantization[0] + (d.quantization[1] % 2 === 0 ? 0 : 0.5)) /
+            columns) *
+            (minimapWidth - dotsize) +
+            dotsize}
+          cy={(d.quantization[1] / rows) * (minimapHeight - dotsize) + dotsize}
+          r={dotsize}
+          fill={ColorUtil.getColor(d.color, $selectedColorPalette)}
+        />
+        {/if}
+
         <!-- Color must be adjusted once custom hexagon colorizing is implemented -->
       {/each}
       {#if !isNaN(minimapScaleX) && !isNaN(minimapScaleY)}

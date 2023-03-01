@@ -35,7 +35,7 @@
   export let initialDataWidth: number = 0;
   export const updateQuantizationDataExportFunction: () => void = () => {
     TableService.updateQuantizationGlobalFiltered(
-      initialColumns * 2 ** levelOfDetail
+      initialColumns * 2 ** levelOfDetail, shapeType
     );
   };
 
@@ -62,12 +62,14 @@
 
   let currentDatagonHover: DerivedHexagon | undefined = undefined;
 
+  let cullingBox = { top: { x: 0, y: 0 }, bot: { x: 0, y: 0 } };
+
   // recompute lod depending on the zoom level
   $: levelOfDetail = isNaN(zoomLevel) ? 0 : Math.floor(Math.log2(zoomLevel));
   // if the lod level changes -> requantizise
   $: {
     TableService.updateQuantizationGlobalFiltered(
-      initialColumns * 2 ** levelOfDetail
+      initialColumns * 2 ** levelOfDetail, shapeType
     );
   }
 
@@ -91,27 +93,46 @@
     : new DOMPoint();
 
   // compute culling bounding box (hexagon-space! these are not screen or svg X/Y, but hexagon rows/cols)
-  $: cullingBox =
-    topleftSVGPoint && bottomrightSVGPoint && hexaSide
-      ? {
-          top: {
-            x: Math.floor(topleftSVGPoint.x / hexaSide) - 1,
-            y: Math.floor(topleftSVGPoint.y / hexaSide) - 1,
-          },
-          bot: {
-            x: Math.ceil(bottomrightSVGPoint.x / hexaSide) + 1,
-            y: Math.ceil(bottomrightSVGPoint.y / hexaSide) + 1,
-          },
-        }
-      : null;
+  $: if (topleftSVGPoint && bottomrightSVGPoint && hexaSide) {
+    cullingBox =
+      shapeType === ShapeType.Square
+        ? {
+            top: {
+              x: Math.floor(topleftSVGPoint.x / hexaSide) - 1,
+              y: Math.floor(topleftSVGPoint.y / hexaSide) - 1,
+            },
+            bot: {
+              x: Math.ceil(bottomrightSVGPoint.x / hexaSide) + 1,
+              y: Math.ceil(bottomrightSVGPoint.y / hexaSide) + 1,
+            },
+          }
+        : {
+            top: {
+              x: Math.floor(topleftSVGPoint.x / (3 * hexaSide)) - 1,
+              y:
+                Math.floor(topleftSVGPoint.y / (2 * hexaShortDiag * hexaSide)) *
+                  2 -
+                1,
+            },
+            bot: {
+              x: Math.ceil(bottomrightSVGPoint.x / (3 * hexaSide)) + 1,
+              y:
+                Math.ceil(
+                  bottomrightSVGPoint.y / (2 * hexaShortDiag * hexaSide)
+                ) *
+                  2 +
+                1,
+            },
+          };
+  }
 
   // cull the datagons, based on the current culling box
   $: culledLodDatagons = lodDatagons.filter(
     (datagon: DerivedHexagon) =>
-      datagon.quantization[0] >= cullingBox?.top?.x! &&
-      datagon.quantization[1] >= cullingBox?.top?.y! &&
-      datagon.quantization[0] <= cullingBox?.bot?.x! &&
-      datagon.quantization[1] <= cullingBox?.bot?.y!
+      datagon.quantization[0] >= cullingBox.top.x &&
+      datagon.quantization[1] >= cullingBox.top.y &&
+      datagon.quantization[0] <= cullingBox.bot.x &&
+      datagon.quantization[1] <= cullingBox.bot.y
   );
 
   $: scaleQuantisedX = (v: number, row: number, shape: ShapeType): number => {
@@ -152,32 +173,32 @@
     rows = $currentQuantization.rows;
     columns = $currentQuantization.columns;
 
-    // // formula derived from width and height with "virtual" hexaside = 1 and then simplify
-    // const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows);
+    if (shapeType === ShapeType.Square) {
+      const shortEdgeLength =
+        maxWidth < svgAvailHeight ? maxWidth : svgAvailHeight;
+      hexaSide = shortEdgeLength / (columns + 3); // +3 means, the shapes are a little smaller than the available screen space, so we have a litte space around the visualization
+      console.log(shortEdgeLength, hexaSide, columns);
 
-    // if (widthToHeightDataRatio * maxWidth > svgAvailHeight) {
-    //   // image is height limited
-    //   // hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);
-    //   if (initialDataHeight == 0) initialDataHeight = maxHeight;
-    //   if (initialDataWidth == 0) {
-    //     initialDataWidth = widthToHeightDataRatio * maxHeight;
-    //   }
-    // } else {
-    //   // image is width limited
-    //   // hexaSide = maxWidth / (3 * columns + 0.5);
-    //   if (initialDataHeight == 0)
-    //     initialDataHeight = widthToHeightDataRatio * maxHeight;
-    //   if (initialDataWidth == 0) initialDataWidth = maxWidth;
-    // }
-
-    const shortEdgeLength = maxWidth < svgAvailHeight ? maxWidth : svgAvailHeight;
-    hexaSide = shortEdgeLength / (columns + 3); // +3 means, the shapes are a little smaller than the available screen space, so we have a litte space around the visualization
-    console.log(shortEdgeLength, hexaSide, columns);
-
-    initialDataHeight = rows * hexaSide;
-    initialDataWidth = columns * hexaSide;
-
-    console.log(initialDataHeight, initialDataWidth);
+      initialDataHeight = rows * hexaSide;
+      initialDataWidth = columns * hexaSide;
+    } else {
+      // formula derived from width and height with "virtual" hexaside = 1 and then simplify
+      const widthToHeightDataRatio = (2 * columns * Math.sqrt(3)) / (1 + rows);
+      if (widthToHeightDataRatio * maxWidth > svgAvailHeight) {
+        // image is height limited
+        hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);
+        if (initialDataHeight == 0) initialDataHeight = maxHeight;
+        if (initialDataWidth == 0) {
+          initialDataWidth = widthToHeightDataRatio * maxHeight;
+        }
+      } else {
+        // image is width limited
+        hexaSide = maxWidth / (3 * columns + 0.5);
+        if (initialDataHeight == 0)
+          initialDataHeight = widthToHeightDataRatio * maxHeight;
+        if (initialDataWidth == 0) initialDataWidth = maxWidth;
+      }
+    }
 
     const rollup = quantizationRollup(lodQuantization, $hexagonPropertiesMap);
     lodDatagons =
@@ -249,7 +270,11 @@
    */
   function handleLassoSelection() {
     const newlySelectedHexagons = culledLodDatagons.filter((d) => {
-      const svgX = scaleQuantisedX(d.quantization[0], d.quantization[1], shapeType);
+      const svgX = scaleQuantisedX(
+        d.quantization[0],
+        d.quantization[1],
+        shapeType
+      );
       const svgY = scaleQuantisedY(d.quantization[1], shapeType);
       const svgXCenter = svgX + hexaSide;
       const svgYCenter = svgY + hexaShortDiag * hexaSide;
@@ -475,24 +500,27 @@
           }}
         >
           {#if shapeType === ShapeType.Hexagon}
-          <Hexagon
-            side={hexaSide * 2}
-            x={scaleQuantisedX(
-              currentDatagonHover.quantization[0],
-              currentDatagonHover.quantization[1],
-              shapeType
-            ) - hexaSide}
-            y={scaleQuantisedY(currentDatagonHover.quantization[1], shapeType) - hexaSide}
-            stroke={getSelectionInfo(
-              currentDatagonHover,
-              currentSelectionA,
-              currentSelectionB
-            ).color}
-            strokeWidth={hexaSide / 5}
-            image={BackendService.getImageUrl(
-              currentDatagonHover.representantID
-            )}
-          />
+            <Hexagon
+              side={hexaSide * 2}
+              x={scaleQuantisedX(
+                currentDatagonHover.quantization[0],
+                currentDatagonHover.quantization[1],
+                shapeType
+              ) - hexaSide}
+              y={scaleQuantisedY(
+                currentDatagonHover.quantization[1],
+                shapeType
+              ) - hexaSide}
+              stroke={getSelectionInfo(
+                currentDatagonHover,
+                currentSelectionA,
+                currentSelectionB
+              ).color}
+              strokeWidth={hexaSide / 5}
+              image={BackendService.getImageUrl(
+                currentDatagonHover.representantID
+              )}
+            />
           {:else}
             <Square
               side={hexaSide}
@@ -501,10 +529,15 @@
                 currentDatagonHover.quantization[1],
                 shapeType
               )}
-              y={scaleQuantisedY(currentDatagonHover.quantization[1], shapeType)}
+              y={scaleQuantisedY(
+                currentDatagonHover.quantization[1],
+                shapeType
+              )}
               stroke="black"
               strokeWidth={hexaSide / 10}
-              image={BackendService.getImageUrl(currentDatagonHover.representantID)}
+              image={BackendService.getImageUrl(
+                currentDatagonHover.representantID
+              )}
             />
           {/if}
         </g>

@@ -88,6 +88,7 @@
       bottomRightSvgCorner={accBottomRightCorner}
       svgWidth={accSvgWidth}
       svgHeight={accSvgHeight}
+      shapeType={settingsObject.shapeType}
     />
   </div>
   <div

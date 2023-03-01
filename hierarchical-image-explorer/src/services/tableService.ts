@@ -1,6 +1,6 @@
 import type ColumnTable from 'arquero/dist/types/table/column-table';
 import * as aq from 'arquero';
-import type { filterDescriptor, QuantizationResults } from '../types';
+import { filterDescriptor, QuantizationResults, ShapeType } from '../types';
 import { currentQuantization } from '../stores';
 import { get } from 'svelte/store';
 
@@ -125,8 +125,13 @@ export class TableService {
    * updates the 'global' quantization in the svelte store based on the filtered table
    * @param columns amount of columns for the quantization
    */
-  public static updateQuantizationGlobalFiltered(columns: number) {
-    currentQuantization.set(this.quantize(columns, this.getTableFiltered()));
+  public static updateQuantizationGlobalFiltered(
+    columns: number,
+    shapeType: ShapeType
+  ) {
+    currentQuantization.set(
+      this.quantize(columns, this.getTableFiltered(), shapeType)
+    );
   }
 
   /**
@@ -134,8 +139,11 @@ export class TableService {
    * @param columns amount of columns for the quantization
    * @returns table with quantization
    */
-  public static getQuantizationLocal(columns: number): QuantizationResults {
-    return this.quantize(columns, this.getTable());
+  public static getQuantizationLocal(
+    columns: number,
+    shapeType: ShapeType
+  ): QuantizationResults {
+    return this.quantize(columns, this.getTable(), shapeType);
   }
 
   /**
@@ -146,85 +154,95 @@ export class TableService {
    */
   public static quantize(
     columns: number,
-    dataTable: ColumnTable
+    dataTable: ColumnTable,
+    shapeType: ShapeType
   ): QuantizationResults {
     const { xMin, xMax, yExtent, xExtent, yMin, yMax } = this.getExtents(
       this.getTable()
     );
 
-    const xStepSize = xExtent / columns;
-    const xBinThresholds = Array(columns).fill(0).map((_, i) => [xMin + (i * xStepSize), xMin + ((i + 1) * xStepSize)]);
+    if (shapeType === ShapeType.Square) {
+      const xStepSize = xExtent / columns;
+      const xBinThresholds = Array(columns)
+        .fill(0)
+        .map((_, i) => [xMin + i * xStepSize, xMin + (i + 1) * xStepSize]);
 
-    const yStepSize = yExtent / columns;
-    const yBinThresholds = Array(columns).fill(0).map((_, i) => [yMin + (i * yStepSize), yMin + ((i + 1) * yStepSize)]);
+      const yStepSize = yExtent / columns;
+      const yBinThresholds = Array(columns)
+        .fill(0)
+        .map((_, i) => [yMin + i * yStepSize, yMin + (i + 1) * yStepSize]);
 
-    const getBinIndex = (v: number, thresholds: number[][]) => {
-      for (let i = 0; i < thresholds.length; ++i) {
-        const [min, max] = thresholds[i];
-        if (v > min && v < max) {
-          return i;
+      const getBinIndex = (v: number, thresholds: number[][]) => {
+        for (let i = 0; i < thresholds.length; ++i) {
+          const [min, max] = thresholds[i];
+          if (v > min && v < max) {
+            return i;
+          }
         }
-      }
+      };
+
+      const quantized = dataTable.derive({
+        quantization: aq.escape(
+          (d: { x: number; y: number; id: string; label: string }) => {
+            const xQuantized = getBinIndex(d.x, xBinThresholds);
+            const yQuantized = getBinIndex(d.y, yBinThresholds);
+            return [xQuantized, yQuantized];
+          }
+        ),
+      });
+      return {
+        datagons: quantized,
+        xDomain: [xMin, xMax],
+        yDomain: [yMin, yMax],
+        columns: columns,
+        rows: columns,
+      };
+
+    } else { // Hexagon quantization
+      const hexaSide = Math.abs(xMin - xMax) / (3 * columns);
+
+      const rows = Math.ceil(
+        (yExtent / xExtent) * (this.HEXA_RATIO * 2 * columns)
+      );
+
+      const { scaleQuantizedX, scaleQuantizedY, scaleX, scaleY } =
+        this.generateScales(
+          hexaSide,
+          xMin,
+          xExtent,
+          columns,
+          yMin,
+          yExtent,
+          rows
+        );
+
+      const possiblePoints = this.calculatePossiblePoints(
+        columns,
+        rows,
+        scaleQuantizedX,
+        scaleQuantizedY,
+        hexaSide
+      );
+
+      const quantized = this.getQuantization(
+        xMin,
+        hexaSide,
+        yMin,
+        columns,
+        rows,
+        possiblePoints,
+        scaleX,
+        scaleY,
+        dataTable
+      );
+      return {
+        datagons: quantized,
+        xDomain: [xMin, xMax],
+        yDomain: [yMin, yMax],
+        columns: columns,
+        rows: columns,
+      };
     }
-
-    const quantized = dataTable.derive({
-      quantization: aq.escape(
-        (d: { x: number; y: number; id: string; label: string }) => {
-          const xQuantized = getBinIndex(d.x, xBinThresholds);
-          const yQuantized = getBinIndex(d.y, yBinThresholds);
-          return [xQuantized, yQuantized];
-        }
-      ),
-    });
-
-    // console.log(quantized);
-
-    // const rows = aq.agg(quantized, aq.op.distinct('quantization[1]'));
-
-    // const hexaSide = Math.abs(xMin - xMax) / (3 * columns);
-
-    // const rows = Math.ceil(
-    //   (yExtent / xExtent) * (this.HEXA_RATIO * 2 * columns)
-    // );
-
-    // const { scaleQuantizedX, scaleQuantizedY, scaleX, scaleY } =
-    //   this.generateScales(
-    //     hexaSide,
-    //     xMin,
-    //     xExtent,
-    //     columns,
-    //     yMin,
-    //     yExtent,
-    //     rows
-    //   );
-
-    // const possiblePoints = this.calculatePossiblePoints(
-    //   columns,
-    //   rows,
-    //   scaleQuantizedX,
-    //   scaleQuantizedY,
-    //   hexaSide
-    // );
-
-    // const quantized = this.getQuantization(
-    //   xMin,
-    //   hexaSide,
-    //   yMin,
-    //   columns,
-    //   rows,
-    //   possiblePoints,
-    //   scaleX,
-    //   scaleY,
-    //   dataTable
-    // );
-
-    return {
-      datagons: quantized,
-      xDomain: [xMin, xMax],
-      yDomain: [yMin, yMax],
-      columns: columns,
-      rows: columns,
-    };
   }
 
   /**
