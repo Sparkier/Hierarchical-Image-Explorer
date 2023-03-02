@@ -391,14 +391,14 @@
                 datagon.quantization[1]
               ) +
                 hexaSide / 2 -
-                hexaSide / 10}
+                hexaSide / 15}
               y={scaleQuantisedY(datagon.quantization[1]) +
                 (2 * hexaShortDiag * hexaSide - hexaSide) / 2 -
-                hexaSide / 10}
-              width={hexaSide + 2 * (hexaSide / 10)}
-              height={hexaSide + 2 * (hexaSide / 10)}
+                hexaSide / 15}
+              width={hexaSide + 2 * (hexaSide / 15)}
+              height={hexaSide + 2 * (hexaSide / 15)}
               fill="none"
-              stroke-width={hexaSide / 8}
+              stroke-width={hexaSide / 15}
               stroke={getSelectionInfo(
                 datagon,
                 currentSelectionA,
