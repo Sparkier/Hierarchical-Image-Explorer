@@ -140,6 +140,13 @@
     currentSelectionB = new ArraySet<[number, number]>();
 
     const lodQuantization = $currentQuantization.datagons;
+
+    const rollup = quantizationRollup(lodQuantization, $hexagonPropertiesMap);
+    lodDatagons =
+      rollup === undefined ? [] : (rollup.objects() as DerivedHexagon[]);
+  }
+
+  $: if ($currentQuantization) {
     const rows = $currentQuantization.rows;
     const columns = $currentQuantization.columns;
 
@@ -149,21 +156,15 @@
     if (widthToHeightDataRatio * maxWidth > svgAvailHeight) {
       // image is height limited
       hexaSide = svgAvailHeight / ((rows + 1) * hexaShortDiag);
-      if (initialDataHeight == 0) initialDataHeight = maxHeight;
-      if (initialDataWidth == 0) {
-        initialDataWidth = widthToHeightDataRatio * maxHeight;
-      }
+      initialDataHeight = maxHeight;
+      initialDataWidth = widthToHeightDataRatio * maxHeight;
+
     } else {
       // image is width limited
       hexaSide = maxWidth / (3 * columns + 0.5);
-      if (initialDataHeight == 0)
-        initialDataHeight = widthToHeightDataRatio * maxHeight;
-      if (initialDataWidth == 0) initialDataWidth = maxWidth;
+      initialDataHeight = widthToHeightDataRatio * maxHeight;
+      initialDataWidth = maxWidth;
     }
-
-    const rollup = quantizationRollup(lodQuantization, $hexagonPropertiesMap);
-    lodDatagons =
-      rollup === undefined ? [] : (rollup.objects() as DerivedHexagon[]);
   }
 
   /**
