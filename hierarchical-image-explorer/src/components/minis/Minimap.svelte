@@ -54,6 +54,11 @@
       quantizationResult.datagons,
       propertyMap
     );
+
+    if (!minimalTable) {
+      return [];
+    }
+
     return minimalTable.objects() as DerivedHexagon[];
   }
 
