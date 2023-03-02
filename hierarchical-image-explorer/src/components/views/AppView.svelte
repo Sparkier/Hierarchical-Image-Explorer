@@ -91,6 +91,7 @@
       shapeType={settingsObject.shapeType}
     />
   </div>
+
   <div
     class="flex items-stretch h-full"
     bind:this={outerDiv}

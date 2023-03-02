@@ -174,7 +174,6 @@
       const shortEdgeLength =
         maxWidth < svgAvailHeight ? maxWidth : svgAvailHeight;
       hexaSide = shortEdgeLength / (columns + 3); // +3 means, the shapes are a little smaller than the available screen space, so we have a litte space around the visualization
-      console.log(shortEdgeLength, hexaSide, columns);
 
       initialDataHeight = rows * hexaSide;
       initialDataWidth = columns * hexaSide;
