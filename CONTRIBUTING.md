@@ -10,3 +10,9 @@ We require reviewed pull requests before merging to `main`. This means:
 4. Once you have applied all the changes you wanted to make to your branch, you need to open a pull request on GitHub.
 5. You need to assign a reviewer and get approval before you are able to merge your changes.
 6. Your pull request needs to pass all checks on GitHub before being merged.
+
+### Technology stack
+
+- Code formatter: [prettier](https://prettier.io/)
+- Linter: [eslint](https://eslint.org/)
+- Web-framework: [svelte](https://svelte.dev/)
