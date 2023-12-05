@@ -4,7 +4,21 @@ HIE provides a hierarchical level-of-detail visualization for large-scale image 
 You can try HIE [online](http://nemesis.informatik.uni-ulm.de/frontend/main/) with an example dataset provided by us.
 
 This is joint work by [Alex Bäuerle](a13x.io), [Christian van Onzenoodt](onze.io), [Daniel Jönsson](https://liu.se/en/employee/danjo37), and [Timo Ropinski](https://viscom.uni-ulm.de/members/timo-ropinski/).
-HIE will be published as a short paper at [EuroVis 2023](https://www.eurovis.org).
+Please, use the following reference to cite HIE in your work:
+
+```bibtex
+
+@inproceedings {10.2312:evs.20231051,
+booktitle = {EuroVis 2023 - Short Papers},
+editor = {Hoellt, Thomas and Aigner, Wolfgang and Wang, Bei},
+title = {{Semantic Hierarchical Exploration of Large Image Datasets}},
+author = {Bäuerle, Alex and Onzenoodt, Christian van and Jönsson, Daniel and Ropinski, Timo},
+year = {2023},
+publisher = {The Eurographics Association},
+ISBN = {978-3-03868-219-6},
+DOI = {10.2312/evs.20231051}
+}
+```
 
 ---
 
