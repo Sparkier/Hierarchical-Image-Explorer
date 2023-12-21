@@ -7,7 +7,6 @@ from pathlib import Path
 import numpy as np
 import pandas
 import pyarrow as pa
-import pyarrow.dataset as ds
 import pyarrow.csv as csv
 import pyarrow.json as pajson
 import pyarrow.feather as feather
@@ -115,14 +114,16 @@ def run_dimensionality_reduction(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Run image encoding and dimensionality reduction for each file in the supplied table. \
-            Every optional parameter can be replaced with a path to the \
+        description="Run image encoding and dimensionality reduction \
+                for each file in the supplied table. \
+                Every optional parameter can be replaced with a path to the \
                 corresponding output file of the processing step."
     )
     parser.add_argument(
         "--table",
         type=str,
-        help="Path to table. Must have file_path . Supported .csv, .feather, .json, .parquet, .arrow",
+        help="Path to table with columns file_path and image_id. \
+            Supports .csv, .feather, .json, .parquet, .arrow",
     )
     parser.add_argument(
         "-enc",
@@ -149,10 +150,12 @@ if __name__ == "__main__":
         args.projection_method, annotation, model_features, output_dir, name
     )
 
-    config = {"table": args.table, "points2d": str(projections_2d_path), "imgDataRoot": ""}
-    config_path = Path(
-            "configurations", f"config_{name}_{args.projection_method}.json")
+    config = {
+        "table": args.table,
+        "points2d": str(projections_2d_path),
+        "imgDataRoot": "",
+    }
+    config_path = Path("configurations", f"config_{name}_{args.projection_method}.json")
     config_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(config_path, "w", encoding="utf-8"
-    ) as config_file:
+    with open(config_path, "w", encoding="utf-8") as config_file:
         json.dump(config, config_file)
