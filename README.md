@@ -122,7 +122,7 @@ One row might look like this:
 | -------- | ---------------------------- | ------ | ---------- | ----------- | ------------------- |
 | '01'     | 'data/example/images/01.jpg' | 'bird' | 'plane'    | 0.2543      | [0.2342,...,0.3243] |
 
-Then, we run dimensionality reduction: `python data_processing.py data/example/raw_data.arrow data/example/ -enc arrow.activations -dim umap ` this generates the file `data/example/raw_data_umap.arrow`.
+Then, we run dimensionality reduction: `python data_processing.py data/example/raw_data.arrow data/example/ -enc arrow.activations --projection_method umap ` this generates the file `data/example/raw_data_umap.arrow`.
 
 Now, we write a config for the server:
 
